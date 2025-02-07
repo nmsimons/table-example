@@ -1,31 +1,66 @@
-# Welcome to the Fluid Framework Examples Repository!
+# Shared Tree Demo
 
-This codebase includes examples of collaborative applications built with the Fluid Framework.
-For documentation about the Fluid Framework, go to [FluidFramework.com](https://fluidframework.com/).
-The Fluid Framework repository lives at [Github.com/Microsoft/FluidFramework](https://github.com/microsoft/fluidframework).
+This app demonstrates how to create a simple tree data structure and build a React app using that data.
 
-Each example in this repository is a standalone application that defines a Fluid Container and loads it into a webpage.
+## Setting up the Fluid Framework
 
-## Getting Started
+This app is designed to use
+[Azure Fluid Relay](https://aka.ms/azurefluidrelay) a Fluid relay service offered by Microsoft. You can also run a local service for development purposes. Instructions on how to set up a Fluid relay are on the [Fluid Framework website](https://aka.ms/fluid).
 
-To get started, clone the repository and navigate to one of the example folders.
-From the example root, you can install and start the example.
+To use AzureClient's local mode, you first need to start a local server.
 
-1. Run `npm install` from the example root
-2. Run `npm run start` to start both the client and server
+```bash
+npm run start:server
+```
 
-> For more details see the individual example README.md.
+Running this command from your terminal window will launch the Azure Fluid Relay local server. Once the server is started, you can run your application against the local service.
 
-## Contributing
+```bash
+npm run start
+```
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This command starts the webpack development server, which will make the application available at [http://localhost:8080/](http://localhost:8080/).
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+One important note is that you will need to use a token provider or, purely for testing and development, use the insecure token provider. There are instructions on how to set this up on the [Fluid Framework website](https://aka.ms/fluid).
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+All the code required to set up the Fluid Framework and SharedTree data structure is in the infra folder. Most of this code will be the same for any app.
+
+## Schema Definition
+
+The SharedTree schema is defined in the \_schema.ts source files. This schema is passed into the SharedTree when it is initialized in index.tsx. For more details, see the schema.ts comments.
+
+## Working with Data
+
+Working with data in the SharedTree is very simple; however, working with distributed data is always a little more complicated than working with local data. To isolate this complexity, this app uses a set of helper functions in the \_helpers.ts source files and in the schema itself that take types defined in the schema as input and modify the data in some way. Each function includes a brief description of how it works.
+
+One important note about managing local state and events: ideally, in any app you write, it is best to not
+special case local changes. Treat the SharedTree as your local data and rely on tree events to update your view. This makes the code reliable and easy to maintain. Also, never mutate tree nodes within events listeners.
+
+## User Interface
+
+This app is built using React. Changes to the data are handled using the helper functions mentioned above. If you look at the code in \*ux.tsx files, you'll find very little code that is unique to an app built with the Fluid Framework. If you want to change the css you must run 'npx tailwindcss -i ./src/index.css -o ./src/output.css --watch' in the root folder of your project so that tailwind can update the output.css file.
+
+## Devtools
+
+This sample application is configured to leverage the Fluid Framework's [Developer Tooling](https://fluidframework.com/docs/testing/devtools/).
+
+Refer to the above article for examples and usage instructions.
+
+## Building and Running
+
+You can use the following npm scripts (`npm run SCRIPT-NAME`) to build and run the app.
+
+<!-- AUTO-GENERATED-CONTENT:START (SCRIPTS) -->
+
+| Script      | Description                                                                           |
+| ----------- | ------------------------------------------------------------------------------------- |
+| `build`     | `npm run format && npm run webpack`                                                   |
+| `compile`   | Compile the TypeScript source code to JavaScript.                                     |
+| `dev`       | Runs the app in webpack-dev-server. Expects local-azure-service running on port 7070. |
+| `dev:azure` | Runs the app in webpack-dev-server using the Azure Fluid Relay config.                |
+| `format`    | Format source code using Prettier.                                                    |
+| `lint`      | Lint source code using ESLint                                                         |
+| `webpack`   | `webpack`                                                                             |
+| `start`     | `npm run dev`                                                                         |
+
+<!-- AUTO-GENERATED-CONTENT:END -->
