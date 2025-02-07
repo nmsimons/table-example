@@ -7,11 +7,13 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
 import { Items, appTreeConfiguration } from "./schema/app_schema.js";
-import { sessionTreeConfiguration } from "./schema/session_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
 import { IFluidContainer } from "fluid-framework";
+
+import { acquirePresenceViaDataObject } from "@fluidframework/presence/alpha";
+import { SelectionManager } from "./utils/presence_helpers.js";
 
 export async function loadApp(
 	client: AzureClient | OdspClient,
@@ -27,14 +29,15 @@ export async function loadApp(
 	);
 
 	// Initialize the SharedTree DDSes
-	const sessionTree = container.initialObjects.sessionData.viewWith(sessionTreeConfiguration);
-	if (sessionTree.compatibility.canInitialize) {
-		sessionTree.initialize({ clients: [] });
-	}
 	const appTree = container.initialObjects.appData.viewWith(appTreeConfiguration);
 	if (appTree.compatibility.canInitialize) {
 		appTree.initialize(new Items([]));
 	}
+
+	// Get the Presence data object from the container
+	const selection = new SelectionManager(
+		acquirePresenceViaDataObject(container.initialObjects.presence),
+	);
 
 	// create the root element for React
 	const app = document.createElement("div");
@@ -52,7 +55,7 @@ export async function loadApp(
 		<DndProvider backend={HTML5Backend}>
 			<ReactApp
 				items={appTree}
-				sessionTree={sessionTree}
+				selection={selection}
 				audience={services.audience}
 				container={container}
 				undoRedo={undoRedo}

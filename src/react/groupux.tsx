@@ -8,15 +8,15 @@ import { Group, Items, Note } from "../schema/app_schema.js";
 import { moveItem } from "../utils/app_helpers.js";
 import { ConnectableElement, useDrag, useDrop } from "react-dnd";
 import { DeleteButton } from "./buttonux.js";
+import type { SelectionManager } from "../utils/presence_helpers.js";
 import { dragType } from "../utils/utils.js";
-import { Session } from "../schema/session_schema.js";
 import { ItemsView } from "./canvasux.js";
 import { Tree } from "fluid-framework";
 
 export function GroupView(props: {
 	group: Group;
 	clientId: string;
-	session: Session;
+	selection: SelectionManager;
 	fluidMembers: string[];
 }): JSX.Element {
 	// copy the array of items from the group
@@ -126,7 +126,7 @@ export function GroupView(props: {
 					items={itemsArray}
 					parent={props.group.items}
 					clientId={props.clientId}
-					session={props.session}
+					selection={props.selection}
 					fluidMembers={props.fluidMembers}
 				/>
 			</div>

@@ -5,7 +5,6 @@
 
 import React, { JSX, useEffect, useState } from "react";
 import { Note, Group, Items } from "../schema/app_schema.js";
-import { Session } from "../schema/session_schema.js";
 import {
 	ConnectionState,
 	IFluidContainer,
@@ -27,10 +26,11 @@ import {
 } from "./buttonux.js";
 import { undefinedUserId } from "../utils/utils.js";
 import { undoRedo } from "../utils/undo.js";
+import type { SelectionManager } from "../utils/presence_helpers.js";
 
 export function Canvas(props: {
 	items: TreeView<typeof Items>;
-	sessionTree: TreeView<typeof Session>;
+	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
 	fluidMembers: string[];
@@ -103,19 +103,19 @@ export function Canvas(props: {
 				items={itemsArray}
 				parent={props.items.root}
 				clientId={props.currentUser}
-				session={props.sessionTree.root}
+				selection={props.selection}
 				fluidMembers={props.fluidMembers}
 			/>
 			<Floater>
 				<ButtonGroup>
 					<NewGroupButton
 						items={props.items.root}
-						session={props.sessionTree.root}
+						selection={props.selection}
 						clientId={props.currentUser}
 					/>
 					<NewNoteButton items={props.items.root} clientId={props.currentUser} />
 					<DeleteNotesButton
-						session={props.sessionTree.root}
+						selection={props.selection}
 						items={props.items.root}
 						clientId={props.currentUser}
 					/>
@@ -133,7 +133,7 @@ export function ItemsView(props: {
 	items: (Note | Group)[];
 	parent: Items;
 	clientId: string;
-	session: Session;
+	selection: SelectionManager;
 	fluidMembers: string[];
 }): JSX.Element {
 	const isRoot = Tree.parent(props.parent) === undefined;
@@ -146,7 +146,7 @@ export function ItemsView(props: {
 					key={i.id}
 					group={i}
 					clientId={props.clientId}
-					session={props.session}
+					selection={props.selection}
 					fluidMembers={props.fluidMembers}
 				/>,
 			);
@@ -157,7 +157,7 @@ export function ItemsView(props: {
 						key={i.id}
 						note={i}
 						clientId={props.clientId}
-						session={props.session}
+						selection={props.selection}
 						fluidMembers={props.fluidMembers}
 					/>,
 				);
@@ -167,7 +167,7 @@ export function ItemsView(props: {
 						key={i.id}
 						note={i}
 						clientId={props.clientId}
-						session={props.session}
+						selection={props.selection}
 						fluidMembers={props.fluidMembers}
 					/>,
 				);

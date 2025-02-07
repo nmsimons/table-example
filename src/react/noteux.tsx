@@ -7,17 +7,16 @@ import React, { JSX, RefObject, useEffect, useRef, useState } from "react";
 import { Note, Group, Items } from "../schema/app_schema.js";
 import { moveItem } from "../utils/app_helpers.js";
 import { dragType, getRotation, selectAction } from "../utils/utils.js";
-import { testRemoteNoteSelection, updateRemoteNoteSelection } from "../utils/session_helpers.js";
+import type { SelectionManager } from "../utils/presence_helpers.js";
 import { ConnectableElement, useDrag, useDrop } from "react-dnd";
 import { useTransition } from "react-transition-state";
 import { Tree } from "fluid-framework";
 import { IconButton, MiniThumb, DeleteButton } from "./buttonux.js";
-import { Session } from "../schema/session_schema.js";
 
 export function RootNoteWrapper(props: {
 	note: Note;
 	clientId: string;
-	session: Session;
+	selection: SelectionManager;
 	fluidMembers: string[];
 }): JSX.Element {
 	return (
@@ -30,7 +29,7 @@ export function RootNoteWrapper(props: {
 export function NoteView(props: {
 	note: Note;
 	clientId: string;
-	session: Session;
+	selection: SelectionManager;
 	fluidMembers: string[];
 }): JSX.Element {
 	const mounted = useRef(false);
@@ -52,35 +51,31 @@ export function NoteView(props: {
 		return <></>;
 	}
 
-	const testSelection = (
-		note: Note,
-		session: Session,
-		clientId: string,
-		fluidMembers: string[],
-	) => {
-		const result = testRemoteNoteSelection(note, session, clientId, fluidMembers);
-		setSelected(result.selected);
-		setRemoteSelected(result.remoteSelected);
+	const testSelection = () => {
+		setSelected(props.selection.testSelection(props.note.id));
+		setRemoteSelected(props.selection.testRemoteSelection(props.note.id));
 	};
 
 	const updateSelection = (action: selectAction) => {
-		updateRemoteNoteSelection(props.note, action, props.session, props.clientId);
+		if (action == selectAction.SINGLE) {
+			props.selection.updateSelection(props.note.id);
+		} else {
+			props.selection.appendSelection(props.note.id);
+		}
 	};
 
-	// Register for tree deltas when the component mounts.
-	// Any time the selection changes, the app will update
-	// We are using the treeChanged event because we are listening for all
-	// changes in the session tree.
+	// Register for updates to the selection when the component mounts.
 	useEffect(() => {
-		// Returns the cleanup function to be invoked when the component unmounts.
-		const unsubscribe = Tree.on(props.session, "treeChanged", () => {
+		const invalidate = () => {
 			setInvalSelection(invalSelection + Math.random());
-		});
-		return unsubscribe;
+		};
+		props.selection.addEventListener("selectionChanged", invalidate);
+		return () => props.selection.removeEventListener("selectionChanged", invalidate);
 	}, []);
 
 	useEffect(() => {
-		testSelection(props.note, props.session, props.clientId, props.fluidMembers);
+		console.log("updated selected state");
+		testSelection();
 	}, [invalSelection]);
 
 	// Register for tree deltas when the component mounts.
@@ -95,12 +90,12 @@ export function NoteView(props: {
 	}, []);
 
 	useEffect(() => {
-		testSelection(props.note, props.session, props.clientId, props.fluidMembers);
+		testSelection();
 	}, [props.fluidMembers]);
 
 	useEffect(() => {
 		mounted.current = true;
-		testSelection(props.note, props.session, props.clientId, props.fluidMembers);
+		testSelection();
 
 		return () => {
 			mounted.current = false;
@@ -161,9 +156,7 @@ export function NoteView(props: {
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (selected) {
-			updateSelection(selectAction.REMOVE);
-		} else if (e.shiftKey || e.ctrlKey) {
+		if (e.shiftKey || e.ctrlKey) {
 			updateSelection(selectAction.MULTI);
 		} else {
 			updateSelection(selectAction.SINGLE);
