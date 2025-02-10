@@ -134,7 +134,7 @@ export function DeleteButton(props: {
 	return (
 		<button
 			className={
-				"bg-transparent hover:bg-gray-600 text-black hover:text-white font-bold px-2 py-1 rounded inline-flex items-center h-6"
+				"bg-transparent hover:bg-gray-600 text-black hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6"
 			}
 			onClick={(e) => handleClick(e)}
 		>
@@ -161,7 +161,7 @@ export function IconButton(props: {
 				props.color +
 				" " +
 				props.background +
-				" hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded inline-flex items-center h-6 grow"
+				" hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 grow"
 			}
 			onClick={(e) => handleClick(e)}
 		>
@@ -199,7 +199,7 @@ export function ButtonGroup(props: { children: React.ReactNode }): JSX.Element {
 export function Floater(props: { children: React.ReactNode }): JSX.Element {
 	return (
 		<div className="transition transform absolute z-100 bottom-0 inset-x-0 pb-2 sm:pb-5 opacity-100 scale-100 translate-y-0 ease-out duration-500 text-white">
-			<div className="max-w-screen-md mx-auto px-2 sm:px-4">
+			<div className="max-w-(--breakpoint-md) mx-auto px-2 sm:px-4">
 				<div className="p-2 rounded-lg bg-black shadow-lg sm:p-3">
 					<div className="flex flex-row items-center justify-between flex-wrap">
 						{props.children}

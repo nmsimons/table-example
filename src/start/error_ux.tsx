@@ -10,7 +10,7 @@ export function showErrorMessage(message?: string, ...optionalParams: string[]) 
 
 	// Render the error message
 	root.render(
-		<div className="container mx-auto p-2 m-4 border-2 border-black rounded">
+		<div className="container mx-auto p-2 m-4 border-2 border-black rounded-sm">
 			<p>{message}</p>
 			<p>{optionalParams.join(" ")}</p>
 		</div>,

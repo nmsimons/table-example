@@ -211,7 +211,7 @@ export function NoteView(props: {
 function NoteSelection(props: { show: boolean }): JSX.Element {
 	if (props.show) {
 		return (
-			<div className="absolute -top-2 -left-2 h-52 w-52 rounded border-dashed border-indigo-800 border-4" />
+			<div className="absolute -top-2 -left-2 h-52 w-52 rounded-sm border-dashed border-indigo-800 border-4" />
 		);
 	} else {
 		return <></>;
