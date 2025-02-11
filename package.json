@@ -34,6 +34,7 @@
 		"@fluidframework/telemetry-utils": "^2.13.0",
 		"@fluidframework/test-runtime-utils": "^2.13.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
+		"@tanstack/react-table": "^8.20.6",
 		"axios": "^1.7.9",
 		"fluid-framework": "^2.13.0",
 		"hashids": "^2.2.10",

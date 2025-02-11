@@ -4,22 +4,21 @@
  */
 
 import React, { JSX, useEffect, useState } from "react";
-import { Items } from "../schema/app_schema.js";
+import { Table } from "../schema/app_schema.js";
 import "../output.css";
 import { IFluidContainer, IMember, IServiceAudience, TreeView } from "fluid-framework";
-import { undefinedUserId } from "../utils/utils.js";
 import { Canvas } from "./canvasux.js";
 import type { SelectionManager } from "../utils/presence_helpers.js";
 import { undoRedo } from "../utils/undo.js";
 
 export function ReactApp(props: {
-	items: TreeView<typeof Items>;
+	table: TreeView<typeof Table>;
 	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
 	undoRedo: undoRedo;
 }): JSX.Element {
-	const [currentUser, setCurrentUser] = useState(undefinedUserId);
+	const [currentUser, setCurrentUser] = useState("");
 	const [connectionState, setConnectionState] = useState("");
 	const [saved, setSaved] = useState(false);
 	const [fluidMembers, setFluidMembers] = useState<string[]>([]);
@@ -42,7 +41,7 @@ export function ReactApp(props: {
 			/>
 			<div className="flex h-[calc(100vh-48px)] flex-row ">
 				<Canvas
-					items={props.items}
+					table={props.table.root}
 					selection={props.selection}
 					audience={props.audience}
 					container={props.container}

@@ -6,7 +6,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
-import { Items, appTreeConfiguration } from "./schema/app_schema.js";
+import { Table, appTreeConfiguration } from "./schema/app_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
@@ -31,7 +31,7 @@ export async function loadApp(
 	// Initialize the SharedTree DDSes
 	const appTree = container.initialObjects.appData.viewWith(appTreeConfiguration);
 	if (appTree.compatibility.canInitialize) {
-		appTree.initialize(new Items([]));
+		appTree.initialize(new Table({ rows: [], columns: [] }));
 	}
 
 	// Get the Presence data object from the container
@@ -54,7 +54,7 @@ export async function loadApp(
 	root.render(
 		<DndProvider backend={HTML5Backend}>
 			<ReactApp
-				items={appTree}
+				table={appTree}
 				selection={selection}
 				audience={services.audience}
 				container={container}

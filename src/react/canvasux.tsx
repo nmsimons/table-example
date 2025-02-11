@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /*!
  * Copyright (c) Microsoft Corporation and contributors. All rights reserved.
  * Licensed under the MIT License.
  */
 
-import React, { JSX, useEffect, useState } from "react";
-import { Note, Group, Items } from "../schema/app_schema.js";
+import React, { JSX, use, useEffect, useState } from "react";
+import { Table, Row, Column } from "../schema/app_schema.js";
 import {
 	ConnectionState,
 	IFluidContainer,
@@ -13,23 +14,28 @@ import {
 	Tree,
 	TreeView,
 } from "fluid-framework";
-import { GroupView } from "./groupux.js";
-import { AddNoteButton, NoteView, RootNoteWrapper } from "./noteux.js";
 import {
 	Floater,
-	NewGroupButton,
-	NewNoteButton,
-	DeleteNotesButton,
+	NewRowButton,
 	ButtonGroup,
 	UndoButton,
 	RedoButton,
+	NewColumnButton,
+	NewManysRowsButton,
 } from "./buttonux.js";
-import { undefinedUserId } from "../utils/utils.js";
 import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/presence_helpers.js";
 
+import {
+	ColumnDef,
+	createColumnHelper,
+	flexRender,
+	getCoreRowModel,
+	useReactTable,
+} from "@tanstack/react-table";
+
 export function Canvas(props: {
-	items: TreeView<typeof Items>;
+	table: Table;
 	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
@@ -41,19 +47,6 @@ export function Canvas(props: {
 	setSaved: (arg: boolean) => void;
 	setFluidMembers: (arg: string[]) => void;
 }): JSX.Element {
-	const [itemsArray, setItemsArray] = useState<(Note | Group)[]>(
-		props.items.root.map((item) => item),
-	);
-
-	// Register for tree deltas when the component mounts.
-	// Any time the items array changes, the app will update.
-	useEffect(() => {
-		const unsubscribe = Tree.on(props.items.root, "nodeChanged", () => {
-			setItemsArray(props.items.root.map((item) => item));
-		});
-		return unsubscribe;
-	}, []);
-
 	useEffect(() => {
 		const updateConnectionState = () => {
 			if (props.container.connectionState === ConnectionState.Connected) {
@@ -80,12 +73,6 @@ export function Canvas(props: {
 		if (props.audience.getMyself()?.id == undefined) return;
 		if (props.audience.getMembers() == undefined) return;
 		if (props.container.connectionState !== ConnectionState.Connected) return;
-		if (props.currentUser == undefinedUserId) {
-			const user = props.audience.getMyself()?.id;
-			if (typeof user === "string") {
-				props.setCurrentUser(user);
-			}
-		}
 		props.setFluidMembers(Array.from(props.audience.getMembers().keys()));
 	};
 
@@ -99,26 +86,12 @@ export function Canvas(props: {
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<ItemsView
-				items={itemsArray}
-				parent={props.items.root}
-				clientId={props.currentUser}
-				selection={props.selection}
-				fluidMembers={props.fluidMembers}
-			/>
+			<TableView table={props.table} />
 			<Floater>
 				<ButtonGroup>
-					<NewGroupButton
-						items={props.items.root}
-						selection={props.selection}
-						clientId={props.currentUser}
-					/>
-					<NewNoteButton items={props.items.root} clientId={props.currentUser} />
-					<DeleteNotesButton
-						selection={props.selection}
-						items={props.items.root}
-						clientId={props.currentUser}
-					/>
+					<NewRowButton table={props.table} />
+					<NewManysRowsButton table={props.table} />
+					<NewColumnButton table={props.table} />
 				</ButtonGroup>
 				<ButtonGroup>
 					<UndoButton undo={() => props.undoRedo.undo()} />
@@ -129,63 +102,108 @@ export function Canvas(props: {
 	);
 }
 
-export function ItemsView(props: {
-	items: (Note | Group)[];
-	parent: Items;
-	clientId: string;
-	selection: SelectionManager;
-	fluidMembers: string[];
-}): JSX.Element {
-	const isRoot = Tree.parent(props.parent) === undefined;
+export function TableView(props: { table: Table }): JSX.Element {
+	const [rowsArray, setRowsArray] = useState<Row[]>(props.table.rows.map((row) => row));
+	const [columnsArray, setColumnsArray] = useState<Column[]>(
+		props.table.columns.map((column) => column),
+	);
 
-	const pilesArray = [];
-	for (const i of props.items) {
-		if (Tree.is(i, Group)) {
-			pilesArray.push(
-				<GroupView
-					key={i.id}
-					group={i}
-					clientId={props.clientId}
-					selection={props.selection}
-					fluidMembers={props.fluidMembers}
-				/>,
+	const [columnData, setColumnData] = useState<ColumnDef<Row, string>[]>([]);
+
+	// Register for tree deltas when the component mounts.
+	// Any time the rows change, the app will update.
+	useEffect(() => {
+		const unsubscribe = Tree.on(props.table.rows, "nodeChanged", () => {
+			setRowsArray(props.table.rows.map((row) => row));
+		});
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		const unsubscribe = Tree.on(props.table.columns, "nodeChanged", () => {
+			setColumnsArray(props.table.columns.map((column) => column));
+		});
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		// Create a column helper based on the columns in the table
+		const columnHelper = createColumnHelper<Row>();
+
+		// Create an array of ColumnDefs based on the columns in the table using
+		// the column helper
+		const headerArray: ColumnDef<Row, string>[] = [];
+
+		columnsArray.forEach((column) => {
+			headerArray.push(
+				columnHelper.accessor(
+					(row) => {
+						return row.getCell(column).value;
+					},
+					{
+						id: column.id,
+						header: column.name,
+					},
+				),
 			);
-		} else if (Tree.is(i, Note)) {
-			if (isRoot) {
-				pilesArray.push(
-					<RootNoteWrapper
-						key={i.id}
-						note={i}
-						clientId={props.clientId}
-						selection={props.selection}
-						fluidMembers={props.fluidMembers}
-					/>,
-				);
-			} else {
-				pilesArray.push(
-					<NoteView
-						key={i.id}
-						note={i}
-						clientId={props.clientId}
-						selection={props.selection}
-						fluidMembers={props.fluidMembers}
-					/>,
-				);
-			}
-		}
-	}
+		});
 
-	if (isRoot) {
-		return (
-			<div className="flex grow-0 flex-row h-full w-full flex-wrap gap-4 p-4 content-start overflow-y-scroll">
-				{pilesArray}
-				<div className="flex w-full h-24"></div>
-			</div>
-		);
-	} else {
-		pilesArray.push(
-			<AddNoteButton key="newNote" target={props.parent} clientId={props.clientId} />,
-		);
-		return <div className="flex flex-row flex-wrap gap-8 p-2">{pilesArray}</div>;
-	}
+		setColumnData(headerArray);
+	}, [columnsArray]);
+
+	const table = useReactTable({
+		data: rowsArray,
+		columns: columnData,
+		getCoreRowModel: getCoreRowModel(),
+	});
+
+	return (
+		<div className="p-2">
+			<table>
+				<thead>
+					{table.getHeaderGroups().map((headerGroup) => (
+						<tr key={headerGroup.id}>
+							{headerGroup.headers.map((header) => (
+								<th key={header.id}>
+									{header.isPlaceholder
+										? null
+										: flexRender(
+												header.column.columnDef.header,
+												header.getContext(),
+											)}
+								</th>
+							))}
+						</tr>
+					))}
+				</thead>
+				<tbody>
+					{table.getRowModel().rows.map((row) => (
+						<tr key={row.id}>
+							{row.getVisibleCells().map((cell) => (
+								<td key={cell.id}>
+									{flexRender(cell.column.columnDef.cell, cell.getContext())}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+				<tfoot>
+					{table.getFooterGroups().map((footerGroup) => (
+						<tr key={footerGroup.id}>
+							{footerGroup.headers.map((header) => (
+								<th key={header.id}>
+									{header.isPlaceholder
+										? null
+										: flexRender(
+												header.column.columnDef.footer,
+												header.getContext(),
+											)}
+								</th>
+							))}
+						</tr>
+					))}
+				</tfoot>
+			</table>
+		</div>
+	);
 }

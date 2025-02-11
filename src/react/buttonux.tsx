@@ -4,37 +4,55 @@
  */
 
 import React, { JSX } from "react";
-import { Items, Note } from "../schema/app_schema.js";
-import { moveItem, findNote } from "../utils/app_helpers.js";
+import { Table } from "../schema/app_schema.js";
 import {
 	ThumbLikeFilled,
 	DismissFilled,
-	NoteRegular,
-	DeleteRegular,
 	RectangleLandscapeRegular,
 	ArrowUndoFilled,
 	ArrowRedoFilled,
 } from "@fluentui/react-icons";
 import { Tree } from "fluid-framework";
-import type { SelectionManager } from "../utils/presence_helpers.js";
 
-export function NewGroupButton(props: {
-	items: Items;
-	selection: SelectionManager;
-	clientId: string;
-}): JSX.Element {
+export function NewRowButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Wrap the add group operation in a transaction as it adds a group and potentially moves
 		// multiple notes into the group and we want to ensure that the operation is atomic.
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
-		Tree.runTransaction(props.items, () => {
-			const group = props.items.addGroup("[new group]");
-			const ids = props.selection.getSelected();
-			for (const id of ids) {
-				const n = findNote(props.items, id);
-				if (Tree.is(n, Note)) {
-					moveItem(n, Infinity, group.items);
+		Tree.runTransaction(props.table, () => {
+			const row = props.table.appendRow();
+			// Iterate through all the columns and add a placeholder value for the new row
+			for (const column of props.table.columns) {
+				row.setValue(column, column.name);
+			}
+		});
+	};
+	return (
+		<IconButton
+			color="white"
+			background="black"
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<RectangleLandscapeRegular />}
+		>
+			Add Row
+		</IconButton>
+	);
+}
+
+export function NewManysRowsButton(props: { table: Table }): JSX.Element {
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		// Wrap the add group operation in a transaction as it adds a group and potentially moves
+		// multiple notes into the group and we want to ensure that the operation is atomic.
+		// This ensures that the revertible of the operation will undo all the changes made by the operation.
+		Tree.runTransaction(props.table, () => {
+			// Add a thousand rows at a time
+			for (let i = 0; i < 1000; i++) {
+				const row = props.table.appendRow();
+				// Iterate through all the columns and add a placeholder value for the new row
+				for (const column of props.table.columns) {
+					row.setValue(column, column.name);
 				}
 			}
 		});
@@ -46,54 +64,30 @@ export function NewGroupButton(props: {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<RectangleLandscapeRegular />}
 		>
-			Add Group
+			Add Row
 		</IconButton>
 	);
 }
 
-export function NewNoteButton(props: { items: Items; clientId: string }): JSX.Element {
+export function NewColumnButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		props.items.addNode(props.clientId);
-	};
-
-	return (
-		<IconButton
-			color="white"
-			background="black"
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<NoteRegular />}
-		>
-			Add Note
-		</IconButton>
-	);
-}
-
-export function DeleteNotesButton(props: {
-	selection: SelectionManager;
-	items: Items;
-	clientId: string;
-}): JSX.Element {
-	const handleClick = () => {
-		// Wrap the delete operation in a transaction as it potentially modifies multiple notes
-		// and we want to ensure that the operation is atomic. This ensures that the revertible of
-		// the operation will undo all the changes made by the operation.
-		Tree.runTransaction(props.items, () => {
-			const ids = props.selection.getSelected();
-			for (const i of ids) {
-				const n = findNote(props.items, i);
-				n?.delete();
-			}
+		// Wrap the add group operation in a transaction as it adds a group and potentially moves
+		// multiple notes into the group and we want to ensure that the operation is atomic.
+		// This ensures that the revertible of the operation will undo all the changes made by the operation.
+		Tree.runTransaction(props.table, () => {
+			const name = props.table.columns.length.toString();
+			props.table.appendColumn(name);
 		});
 	};
 	return (
 		<IconButton
 			color="white"
 			background="black"
-			handleClick={() => handleClick()}
-			icon={<DeleteRegular />}
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<RectangleLandscapeRegular />}
 		>
-			Delete Note
+			Add Column
 		</IconButton>
 	);
 }
