@@ -13,8 +13,8 @@ import React, { JSX, useState, useEffect } from "react";
 import { Table as FluidTable, Row as FluidRow, Column } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 
-export function TableView(props: { table: FluidTable }): JSX.Element {
-	const fluidTable = props.table;
+export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
+	const { fluidTable } = props;
 	const [rowsArray, setRowsArray] = useState<FluidRow[]>(
 		fluidTable.rows.map((row) => {
 			return row;
@@ -29,17 +29,17 @@ export function TableView(props: { table: FluidTable }): JSX.Element {
 	// Register for tree deltas when the component mounts.
 	// Any time the rows change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.table.rows, "nodeChanged", () => {
+		const unsubscribe = Tree.on(props.fluidTable.rows, "nodeChanged", () => {
 			// Set the rows array to the first 10 rows in the table
-			const arr = props.table.rows.map((row) => row);
+			const arr = props.fluidTable.rows.map((row) => row);
 			setRowsArray(arr);
 		});
 		return unsubscribe;
 	}, []);
 
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.table.columns, "nodeChanged", () => {
-			setColumnsArray(props.table.columns.map((column) => column));
+		const unsubscribe = Tree.on(props.fluidTable.columns, "nodeChanged", () => {
+			setColumnsArray(props.fluidTable.columns.map((column) => column));
 		});
 		return unsubscribe;
 	}, []);
@@ -103,7 +103,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 }
 
 export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
-	const header = props.header;
+	const { header } = props;
 	return (
 		<th key={header.id}>
 			{header.isPlaceholder
@@ -114,12 +114,12 @@ export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): J
 }
 
 export function TableBodyView(props: { table: Table<FluidRow> }): JSX.Element {
-	const table = props.table;
+	const { table } = props;
 	return <tbody>{table.getRowModel().rows.map((row) => TableRowView({ row }))}</tbody>;
 }
 
 export function TableRowView(props: { row: Row<FluidRow> }): JSX.Element {
-	const row = props.row;
+	const { row } = props;
 	return (
 		<tr key={row.id}>
 			{row.getVisibleCells().map((cell) => (

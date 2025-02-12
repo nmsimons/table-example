@@ -79,7 +79,7 @@ export function Canvas(props: {
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView table={props.table} />
+			<TableView fluidTable={props.table} />
 			<Floater>
 				<ButtonGroup>
 					<NewRowButton table={props.table} />
