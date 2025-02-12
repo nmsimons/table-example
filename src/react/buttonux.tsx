@@ -24,7 +24,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 			const row = props.table.appendNewRow();
 			// Iterate through all the columns and add a placeholder value for the new row
 			for (const column of props.table.columns) {
-				row.setValue(column, column.name);
+				row.setValue(column.id, column.name);
 			}
 		});
 	};
@@ -53,7 +53,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 				const row = props.table.createDetachedRow();
 				// Iterate through all the columns and add a placeholder value for the new row
 				for (const column of props.table.columns) {
-					row.setValue(column, column.name);
+					row.setValue(column.id, column.name);
 				}
 				rows.push(row);
 			}
@@ -68,6 +68,31 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 			icon={<RectangleLandscapeRegular />}
 		>
 			Add Row
+		</IconButton>
+	);
+}
+
+export function ChangeAValueButton(props: { table: Table }): JSX.Element {
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+
+		// Change every value in the table to a random number
+		Tree.runTransaction(props.table, () => {
+			for (const row of props.table.rows) {
+				for (const column of props.table.columns) {
+					row.setValue(column.id, Math.floor(Math.random() * 100).toString());
+				}
+			}
+		});
+	};
+	return (
+		<IconButton
+			color="white"
+			background="black"
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<RectangleLandscapeRegular />}
+		>
+			Change A Value
 		</IconButton>
 	);
 }

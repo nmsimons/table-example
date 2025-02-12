@@ -10,7 +10,11 @@ import {
 	Cell,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect } from "react";
-import { Table as FluidTable, Row as FluidRow, Column } from "../schema/app_schema.js";
+import {
+	Table as FluidTable,
+	Row as FluidRow,
+	Column as FluidColumn,
+} from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
@@ -20,7 +24,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 			return row;
 		}),
 	);
-	const [columnsArray, setColumnsArray] = useState<Column[]>(
+	const [columnsArray, setColumnsArray] = useState<FluidColumn[]>(
 		fluidTable.columns.map((column) => column),
 	);
 
@@ -29,16 +33,14 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	// Register for tree deltas when the component mounts.
 	// Any time the rows change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.fluidTable.rows, "nodeChanged", () => {
-			// Set the rows array to the first 10 rows in the table
-			const arr = props.fluidTable.rows.map((row) => row);
-			setRowsArray(arr);
+		const unsubscribe = Tree.on(props.fluidTable.rows, "treeChanged", () => {
+			setRowsArray(props.fluidTable.rows.map((row) => row));
 		});
 		return unsubscribe;
 	}, []);
 
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.fluidTable.columns, "nodeChanged", () => {
+		const unsubscribe = Tree.on(props.fluidTable.columns, "treeChanged", () => {
 			setColumnsArray(props.fluidTable.columns.map((column) => column));
 		});
 		return unsubscribe;
@@ -56,8 +58,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 			headerArray.push(
 				columnHelper.accessor(
 					(row) => {
-						const val = row.getCell(column)?.value ?? "";
-						return val;
+						return row.getCell(column.id)?.value ?? "";
 					},
 					{
 						id: column.id,
@@ -77,8 +78,8 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	});
 
 	return (
-		<div className="h-full overflow-auto w-full p-2">
-			<table>
+		<div className="h-[calc(100vh-148px)] overflow-auto w-full">
+			<table className="table-auto w-full border-collapse">
 				<TableHeadersView table={table} />
 				<TableBodyView table={table} />
 			</table>
@@ -93,8 +94,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 			{table.getHeaderGroups().map((headerGroup) => (
 				<tr key={headerGroup.id}>
 					{headerGroup.headers.map((header) => (
-						// eslint-disable-next-line react/jsx-key
-						<TableHeaderView header={header} />
+						<TableHeaderView key={header.id} header={header} />
 					))}
 				</tr>
 			))}
@@ -105,7 +105,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
 	const { header } = props;
 	return (
-		<th key={header.id}>
+		<th className="p-1 border-2 border-black" key={header.id}>
 			{header.isPlaceholder
 				? null
 				: flexRender(header.column.columnDef.header, header.getContext())}
@@ -123,14 +123,28 @@ export function TableRowView(props: { row: Row<FluidRow> }): JSX.Element {
 	return (
 		<tr key={row.id}>
 			{row.getVisibleCells().map((cell) => (
-				// eslint-disable-next-line react/jsx-key
-				<TableCellView cell={cell} />
+				<TableCellView key={cell.id} cell={cell} />
 			))}
 		</tr>
 	);
 }
 
 export function TableCellView(props: { cell: Cell<FluidRow, string> }): JSX.Element {
-	const cell = props.cell;
-	return <td key={cell.id}>{cell.renderValue()}</td>;
+	const { cell } = props;
+	const data = cell.row.original;
+
+	// handle a change event in the cell
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		data.setValue(cell.column.id, e.target.value);
+	};
+
+	return (
+		<td className="border-2 border-black p-1" key={cell.id}>
+			<input
+				className="outline-none"
+				value={cell.renderValue() ?? ""}
+				onChange={handleChange}
+			></input>
+		</td>
+	);
 }
