@@ -105,7 +105,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
 	const { header } = props;
 	return (
-		<th className="p-1 border-2 border-black" key={header.id}>
+		<th className="p-1 border-2 border-black">
 			{header.isPlaceholder
 				? null
 				: flexRender(header.column.columnDef.header, header.getContext())}
@@ -139,7 +139,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, string> }): JSX.Elem
 	};
 
 	return (
-		<td className="border-2 border-black p-1" key={cell.id}>
+		<td className="border-2 border-black p-1">
 			<input
 				className="outline-none"
 				value={cell.renderValue() ?? ""}

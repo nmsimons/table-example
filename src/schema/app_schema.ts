@@ -52,8 +52,8 @@ export class Table extends sf.object("Table", {
 	 *  Add a row to the table
 	 **/
 	appendNewRow(): Row {
-		const row = new Row({ cells: {} });
-		this.rows.insertAtEnd(row);
+		const row = this.createDetachedRow();
+		this.appendDetachedRow(row);
 		return row;
 	}
 
@@ -61,8 +61,8 @@ export class Table extends sf.object("Table", {
 	 * Insert a row at a specific location
 	 **/
 	insertNewRow(index: number): Row {
-		const row = new Row({ cells: {} });
-		this.rows.insertAt(index, row);
+		const row = this.createDetachedRow();
+		this.insertDetachedRow(index, row);
 		return row;
 	}
 

@@ -21,11 +21,12 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 		// multiple notes into the group and we want to ensure that the operation is atomic.
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
-			const row = props.table.appendNewRow();
+			const row = props.table.createDetachedRow();
 			// Iterate through all the columns and add a placeholder value for the new row
 			for (const column of props.table.columns) {
 				row.setValue(column.id, column.name);
 			}
+			props.table.appendDetachedRow(row);
 		});
 	};
 	return (
