@@ -653,6 +653,12 @@
   .h-screen {
     height: 100vh;
   }
+  .max-h-80 {
+    max-height: calc(var(--spacing) * 80);
+  }
+  .max-h-full {
+    max-height: 100%;
+  }
   .min-h-64 {
     min-height: calc(var(--spacing) * 64);
   }
@@ -673,6 +679,9 @@
   }
   .max-w-2xl {
     max-width: var(--container-2xl);
+  }
+  .max-w-full {
+    max-width: 100%;
   }
   .flex-shrink {
     flex-shrink: 1;
@@ -771,6 +780,9 @@
   }
   .gap-8 {
     gap: calc(var(--spacing) * 8);
+  }
+  .overflow-auto {
+    overflow: auto;
   }
   .overflow-hidden {
     overflow: hidden;

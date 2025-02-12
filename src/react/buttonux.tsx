@@ -21,7 +21,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 		// multiple notes into the group and we want to ensure that the operation is atomic.
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
-			const row = props.table.appendRow();
+			const row = props.table.appendNewRow();
 			// Iterate through all the columns and add a placeholder value for the new row
 			for (const column of props.table.columns) {
 				row.setValue(column, column.name);
@@ -48,13 +48,16 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
 			// Add a thousand rows at a time
-			for (let i = 0; i < 1000; i++) {
-				const row = props.table.appendRow();
+			const rows = [];
+			for (let i = 0; i < 100; i++) {
+				const row = props.table.createDetachedRow();
 				// Iterate through all the columns and add a placeholder value for the new row
 				for (const column of props.table.columns) {
 					row.setValue(column, column.name);
 				}
+				rows.push(row);
 			}
+			props.table.appendMultipleDetachedRows(rows);
 		});
 	};
 	return (
@@ -77,7 +80,7 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
 			const name = props.table.columns.length.toString();
-			props.table.appendColumn(name);
+			props.table.appendNewColumn(name);
 		});
 	};
 	return (
