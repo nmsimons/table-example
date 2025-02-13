@@ -130,6 +130,24 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 	);
 }
 
+// Delete all the rows in the table
+export function DeleteAllRowsButton(props: { table: Table }): JSX.Element {
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		props.table.deleteAllRows();
+	};
+	return (
+		<IconButton
+			color="white"
+			background="black"
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<DismissFilled />}
+		>
+			Delete All Rows
+		</IconButton>
+	);
+}
+
 export function UndoButton(props: { undo: () => void }): JSX.Element {
 	return (
 		<IconButton

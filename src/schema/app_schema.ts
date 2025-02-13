@@ -148,6 +148,21 @@ export class Table extends sf.object("Table", {
 	}
 
 	/**
+	 * Delete a row from the table
+	 * @param index The index of the row to delete
+	 */
+	deleteRow(index: number): void {
+		this.rows.removeAt(index);
+	}
+
+	/**
+	 * Delete all rows from the table
+	 * */
+	deleteAllRows(): void {
+		this.rows.removeRange();
+	}
+
+	/**
 	 * Create a Row before inserting it into the table
 	 * */
 	createDetachedRow(): Row {
