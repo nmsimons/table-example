@@ -19,66 +19,39 @@ import { Tree } from "fluid-framework";
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
-	const [rowsArray, setRowsArray] = useState<FluidRow[]>(
+	const [data, setData] = useState<FluidRow[]>(
 		fluidTable.rows.map((row) => {
 			return row;
 		}),
 	);
-	const [columnsArray, setColumnsArray] = useState<FluidColumn[]>(
-		fluidTable.columns.map((column) => column),
+	const [columns, setColumns] = useState<ColumnDef<FluidRow, string>[]>(
+		updateColumnData(fluidTable.columns.map((column) => column)),
 	);
 
-	const [columnData, setColumnData] = useState<ColumnDef<FluidRow, string>[]>([]);
-
-	// Register for tree deltas when the component mounts.
-	// Any time the rows change, the app will update.
+	// Register for tree deltas when the component mounts. Any time the rows change, the app will update.
 	useEffect(() => {
 		const unsubscribe = Tree.on(props.fluidTable.rows, "treeChanged", () => {
-			setRowsArray(props.fluidTable.rows.map((row) => row));
+			setData(props.fluidTable.rows.map((row) => row));
 		});
 		return unsubscribe;
-	}, []);
+	}, [fluidTable]);
 
+	// Register for tree deltas when the component mounts. Any time the columns change, the app will update.
 	useEffect(() => {
 		const unsubscribe = Tree.on(props.fluidTable.columns, "treeChanged", () => {
-			setColumnsArray(props.fluidTable.columns.map((column) => column));
+			setColumns(updateColumnData(props.fluidTable.columns.map((column) => column)));
 		});
 		return unsubscribe;
-	}, []);
-
-	useEffect(() => {
-		// Create a column helper based on the columns in the table
-		const columnHelper = createColumnHelper<FluidRow>();
-
-		// Create an array of ColumnDefs based on the columns in the table using
-		// the column helper
-		const headerArray: ColumnDef<FluidRow, string>[] = [];
-
-		columnsArray.forEach((column) => {
-			headerArray.push(
-				columnHelper.accessor(
-					(row) => {
-						return row.getCell(column.id)?.value ?? "";
-					},
-					{
-						id: column.id,
-						header: column.name,
-					},
-				),
-			);
-		});
-
-		setColumnData(headerArray);
-	}, [columnsArray]);
+	}, [fluidTable]);
 
 	const table = useReactTable({
-		data: rowsArray,
-		columns: columnData,
+		data,
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 	});
 
 	return (
-		<div className="h-[calc(100vh-148px)] overflow-auto w-full">
+		<div className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black">
 			<table className="table-auto w-full border-collapse">
 				<TableHeadersView table={table} />
 				<TableBodyView table={table} />
@@ -105,7 +78,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
 	const { header } = props;
 	return (
-		<th className="p-1 border-2 border-black">
+		<th className="p-1 border-2 border-gray-200 border-collapse">
 			{header.isPlaceholder
 				? null
 				: flexRender(header.column.columnDef.header, header.getContext())}
@@ -139,12 +112,37 @@ export function TableCellView(props: { cell: Cell<FluidRow, string> }): JSX.Elem
 	};
 
 	return (
-		<td className="border-2 border-black p-1">
+		<td className="border-2 border-gray-200 border-collapse">
 			<input
-				className="outline-none"
+				className="p-1 outline-none w-full h-full"
 				value={cell.renderValue() ?? ""}
 				onChange={handleChange}
 			></input>
 		</td>
 	);
 }
+
+const updateColumnData = (columnsArray: FluidColumn[]) => {
+	// Create a column helper based on the columns in the table
+	const columnHelper = createColumnHelper<FluidRow>();
+
+	// Create an array of ColumnDefs based on the columns in the table using
+	// the column helper
+	const headerArray: ColumnDef<FluidRow, string>[] = [];
+
+	columnsArray.forEach((column) => {
+		headerArray.push(
+			columnHelper.accessor(
+				(row) => {
+					return row.getCell(column.id)?.value ?? "";
+				},
+				{
+					id: column.id,
+					header: column.name,
+				},
+			),
+		);
+	});
+
+	return headerArray;
+};

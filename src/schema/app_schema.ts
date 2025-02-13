@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TreeViewConfiguration, SchemaFactory, TreeArrayNode } from "fluid-framework";
+import { TreeViewConfiguration, SchemaFactory, TreeArrayNode, Tree } from "fluid-framework";
 
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
@@ -12,14 +12,20 @@ import { TreeViewConfiguration, SchemaFactory, TreeArrayNode } from "fluid-frame
 // As this schema uses a recursive type, the beta SchemaFactoryRecursive is used instead of just SchemaFactory.
 const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 
+/**
+ * The Cell schema which should eventally support more types than just strings
+ */
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
 	value: sf.string,
 }) {}
 
+/**
+ * The Row schema - this is a map of Cells where the key is the column id
+ */
 export class Row extends sf.object("Row", {
 	id: sf.identifier,
-	cells: sf.map(Cell),
+	cells: sf.map(Cell), // The keys of this map are the column ids
 }) {
 	// Set the value of a cell. First test if it exists. If it doesn't exist, create it.
 	setValue(columnId: string, value: string): Cell {
@@ -33,24 +39,54 @@ export class Row extends sf.object("Row", {
 		return cell;
 	}
 
-	// Get a cell by the column id
+	/** Get a cell by the column id
+	 * @param columnId The id of the column
+	 * @returns The cell if it exists, otherwise undefined
+	 * */
 	getCell(columnId: string): Cell | undefined {
 		return this.cells.get(columnId);
 	}
+
+	/**
+	 * Move a row to a new location
+	 * @param index The index to move the row to
+	 * */
+	moveTo(index: number): void {
+		const parent = Tree.parent(this);
+		if (Tree.is(parent, Rows)) {
+			parent.insertAt(index, this);
+		}
+	}
 }
 
+/**
+ * The Column schema - this can include more properties as needed
+ */
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
 }) {}
 
+/**
+ * The Rows schema - an array of Row objects
+ */
+export class Rows extends sf.array("Rows", Row) {}
+
+/**
+ * The Columns schema - an array of Column objects
+ */
+export class Columns extends sf.array("Columns", Column) {}
+
+/**
+ * The Table schema
+ * */
 export class Table extends sf.object("Table", {
-	rows: sf.array("Rows", Row),
-	columns: sf.array("Columns", Column),
+	rows: Rows,
+	columns: Columns,
 }) {
 	/**
 	 *  Add a row to the table
-	 **/
+	 * */
 	appendNewRow(): Row {
 		const row = this.createDetachedRow();
 		this.appendDetachedRow(row);
@@ -59,7 +95,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert a row at a specific location
-	 **/
+	 * */
 	insertNewRow(index: number): Row {
 		const row = this.createDetachedRow();
 		this.insertDetachedRow(index, row);
@@ -68,14 +104,14 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Create a Row before inserting it into the table
-	 **/
+	 * */
 	createDetachedRow(): Row {
 		return new Row({ cells: {} });
 	}
 
 	/**
 	 * Insert a detached Row into the table
-	 **/
+	 * */
 	insertDetachedRow(index: number, row: Row): void {
 		this.rows.insertAt(index, row);
 	}
@@ -89,21 +125,21 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert multiple detached Rows into the table
-	 **/
+	 * */
 	insertMultipleDetachedRows(index: number, rows: Row[]): void {
 		this.rows.insertAt(index, TreeArrayNode.spread(rows));
 	}
 
 	/**
 	 * Append multiple detached Rows into the table
-	 **/
+	 * */
 	appendMultipleDetachedRows(rows: Row[]): void {
 		this.rows.insertAtEnd(TreeArrayNode.spread(rows));
 	}
 
 	/**
 	 * Add a column to the table
-	 **/
+	 * */
 	appendNewColumn(name: string): Column {
 		const column = new Column({ name });
 		this.columns.insertAtEnd(column);
@@ -112,7 +148,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert a new column at a specific location
-	 **/
+	 * */
 	insertNewColumn(index: number, name: string): Column {
 		const column = new Column({ name });
 		this.columns.insertAt(index, column);
