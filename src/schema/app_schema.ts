@@ -27,7 +27,12 @@ export class Row extends sf.object("Row", {
 	id: sf.identifier,
 	cells: sf.map(Cell), // The keys of this map are the column ids
 }) {
-	// Set the value of a cell. First test if it exists. If it doesn't exist, create it.
+	/**
+	 * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
+	 * @param columnId The id of the column
+	 * @param value The value to set
+	 * @returns The cell that was set
+	 * */
 	setValue(columnId: string, value: string): Cell {
 		let cell = this.cells.get(columnId);
 		if (cell) {
@@ -52,15 +57,38 @@ export class Row extends sf.object("Row", {
 	 * @param index The index to move the row to
 	 * */
 	moveTo(index: number): void {
+		const rows = this.getRows();
+		if (rows) {
+			rows.insertAt(index, this);
+		}
+	}
+
+	/**
+	 * Get the parent Rows node
+	 */
+	getRows(): Rows | undefined {
 		const parent = Tree.parent(this);
 		if (Tree.is(parent, Rows)) {
-			parent.insertAt(index, this);
+			return parent;
+		}
+	}
+
+	/**
+	 * Get the parent Table node
+	 * */
+	getTable(): Table | undefined {
+		const rows = this.getRows();
+		if (rows) {
+			const table = Tree.parent(rows);
+			if (Tree.is(table, Table)) {
+				return table;
+			}
 		}
 	}
 }
 
 /**
- * The Column schema - this can include more properties as needed
+ * The Column schema - this can include more properties as needed *
  */
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
@@ -95,6 +123,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert a row at a specific location
+	 * @param index The index to insert the row at
 	 * */
 	insertNewRow(index: number): Row {
 		const row = this.createDetachedRow();
@@ -111,6 +140,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert a detached Row into the table
+	 * @param index The index to insert the row at
 	 * */
 	insertDetachedRow(index: number, row: Row): void {
 		this.rows.insertAt(index, row);
@@ -118,13 +148,16 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Append a detached Row into the table
-	 **/
+	 * @param row The row to append
+	 * */
 	appendDetachedRow(row: Row): void {
 		this.rows.insertAtEnd(row);
 	}
 
 	/**
 	 * Insert multiple detached Rows into the table
+	 * @param index The index to insert the rows at
+	 * @param rows The rows to insert
 	 * */
 	insertMultipleDetachedRows(index: number, rows: Row[]): void {
 		this.rows.insertAt(index, TreeArrayNode.spread(rows));
@@ -132,6 +165,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Append multiple detached Rows into the table
+	 * @param rows The rows to append
 	 * */
 	appendMultipleDetachedRows(rows: Row[]): void {
 		this.rows.insertAtEnd(TreeArrayNode.spread(rows));
@@ -139,6 +173,7 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Add a column to the table
+	 * @param name The name of the column
 	 * */
 	appendNewColumn(name: string): Column {
 		const column = new Column({ name });
@@ -148,6 +183,8 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Insert a new column at a specific location
+	 * @param index The index to insert the column at
+	 * @param name The name of the column
 	 * */
 	insertNewColumn(index: number, name: string): Column {
 		const column = new Column({ name });

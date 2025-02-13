@@ -44,6 +44,9 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 		return unsubscribe;
 	}, [fluidTable]);
 
+	// The virtualizer will need a reference to the scrollable container element
+	const tableContainerRef = React.useRef<HTMLDivElement>(null);
+
 	const table = useReactTable({
 		data,
 		columns,
@@ -51,7 +54,10 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	});
 
 	return (
-		<div className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black">
+		<div
+			ref={tableContainerRef}
+			className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black"
+		>
 			<table className="table-auto w-full border-collapse">
 				<TableHeadersView table={table} />
 				<TableBodyView table={table} />
@@ -63,7 +69,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element {
 	const table = props.table;
 	return (
-		<thead>
+		<thead className="bg-gray-200 sticky top-0">
 			{table.getHeaderGroups().map((headerGroup) => (
 				<tr key={headerGroup.id}>
 					{headerGroup.headers.map((header) => (
@@ -78,7 +84,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
 	const { header } = props;
 	return (
-		<th className="p-1 border-2 border-gray-200 border-collapse">
+		<th className="p-1">
 			{header.isPlaceholder
 				? null
 				: flexRender(header.column.columnDef.header, header.getContext())}
