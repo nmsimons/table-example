@@ -4,15 +4,35 @@
  */
 
 import React, { JSX } from "react";
-import { Table } from "../schema/app_schema.js";
+import { Row, Table } from "../schema/app_schema.js";
 import {
 	ThumbLikeFilled,
 	DismissFilled,
-	RectangleLandscapeRegular,
 	ArrowUndoFilled,
 	ArrowRedoFilled,
+	ColumnFilled,
+	InsertRegular,
+	InsertFilled,
+	TableInsertColumnFilled,
 } from "@fluentui/react-icons";
 import { Tree } from "fluid-framework";
+
+export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		props.table.appendNewRow();
+	};
+	return (
+		<IconButton
+			color="white"
+			background="black"
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<InsertRegular />}
+		>
+			Add Empty Row
+		</IconButton>
+	);
+}
 
 export function NewRowButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
@@ -21,11 +41,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 		// multiple notes into the group and we want to ensure that the operation is atomic.
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
-			const row = props.table.createDetachedRow();
-			// Iterate through all the columns and add a placeholder value for the new row
-			for (const column of props.table.columns) {
-				row.setValue(column.id, column.name);
-			}
+			const row = getRowWithValues(props.table);
 			props.table.appendDetachedRow(row);
 		});
 	};
@@ -34,7 +50,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<RectangleLandscapeRegular />}
+			icon={<InsertFilled />}
 		>
 			Add Row
 		</IconButton>
@@ -51,11 +67,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 			// Add a thousand rows at a time
 			const rows = [];
 			for (let i = 0; i < 1000; i++) {
-				const row = props.table.createDetachedRow();
-				// Iterate through all the columns and add a placeholder value for the new row
-				for (const column of props.table.columns) {
-					row.setValue(column.id, column.name);
-				}
+				const row = getRowWithValues(props.table);
 				rows.push(row);
 			}
 			props.table.appendMultipleDetachedRows(rows);
@@ -66,37 +78,29 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<RectangleLandscapeRegular />}
+			icon={<TableInsertColumnFilled />}
 		>
-			Add Row
+			Add 1000
 		</IconButton>
 	);
 }
 
-export function ChangeAValueButton(props: { table: Table }): JSX.Element {
-	const handleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-
-		// Change every value in the table to a random number
-		Tree.runTransaction(props.table, () => {
-			for (const row of props.table.rows) {
-				for (const column of props.table.columns) {
-					row.setValue(column.id, Math.floor(Math.random() * 100).toString());
-				}
-			}
-		});
-	};
-	return (
-		<IconButton
-			color="white"
-			background="black"
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<RectangleLandscapeRegular />}
-		>
-			Change A Value
-		</IconButton>
-	);
-}
+const getRowWithValues = (table: Table): Row => {
+	const row = table.createDetachedRow();
+	// Iterate through all the columns and add a random value for the new row
+	// If the column is a number, we will add a random number, otherwise we will add a random string
+	// If the column is a boolean, we will add a random boolean
+	for (const column of table.columns) {
+		if (column.type === "number") {
+			row.setValue(column.id, Math.floor(Math.random() * 1000));
+		} else if (column.type === "boolean") {
+			row.setValue(column.id, Math.random() > 0.5);
+		} else {
+			row.setValue(column.id, Math.random().toString(36).substring(7));
+		}
+	}
+	return row;
+};
 
 export function NewColumnButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
@@ -106,7 +110,16 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
 			const name = props.table.columns.length.toString();
-			props.table.appendNewColumn(name);
+
+			// Add a new column to the table
+			// Make the column type a string if the name is even, otherwise make it a number or a boolean
+			if (parseInt(name) % 2 === 0) {
+				props.table.appendNewColumn(name).setType("number");
+			} else if (parseInt(name) % 3 === 0) {
+				props.table.appendNewColumn(name).setType("boolean");
+			} else {
+				props.table.appendNewColumn(name).setType("string");
+			}
 		});
 	};
 	return (
@@ -114,7 +127,7 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<RectangleLandscapeRegular />}
+			icon={<ColumnFilled />}
 		>
 			Add Column
 		</IconButton>

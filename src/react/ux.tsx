@@ -6,7 +6,7 @@
 import React, { JSX, useEffect, useState } from "react";
 import { Table } from "../schema/app_schema.js";
 import "../output.css";
-import { IFluidContainer, IMember, IServiceAudience, TreeView } from "fluid-framework";
+import { IFluidContainer, IMember, IServiceAudience, Tree, TreeView } from "fluid-framework";
 import { Canvas } from "./canvasux.js";
 import type { SelectionManager } from "../utils/presence_helpers.js";
 import { undoRedo } from "../utils/undo.js";
@@ -38,6 +38,7 @@ export function ReactApp(props: {
 				connectionState={connectionState}
 				fluidMembers={fluidMembers}
 				clientId={currentUser}
+				table={props.table.root}
 			/>
 			<div className="flex h-[calc(100vh-48px)] flex-row ">
 				<Canvas
@@ -63,13 +64,24 @@ export function Header(props: {
 	connectionState: string;
 	fluidMembers: string[];
 	clientId: string;
+	table: Table;
 }): JSX.Element {
+	// Update when the table changes
+	const [rowCount, setRowCount] = useState(props.table.rows.length);
+
+	useEffect(() => {
+		const unsubscribe = Tree.on(props.table, "treeChanged", () => {
+			setRowCount(props.table.rows.length);
+		});
+		return unsubscribe;
+	}, [props.table]);
+
 	return (
 		<div className="h-[48px] flex shrink-0 flex-row items-center justify-between bg-black text-base text-white z-40 w-full">
 			<div className="flex m-2">Table</div>
 			<div className="flex m-2 ">
-				{props.saved ? "saved" : "not saved"} | {props.connectionState} | users:{" "}
-				{props.fluidMembers.length}
+				{rowCount} rows | {props.saved ? "saved" : "not saved"} | {props.connectionState} |
+				users: {props.fluidMembers.length}
 			</div>
 		</div>
 	);

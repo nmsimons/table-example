@@ -17,7 +17,7 @@ const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
  */
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
-	value: sf.string,
+	value: [sf.string, sf.number, sf.boolean],
 }) {}
 
 /**
@@ -33,7 +33,7 @@ export class Row extends sf.object("Row", {
 	 * @param value The value to set
 	 * @returns The cell that was set
 	 * */
-	setValue(columnId: string, value: string): Cell {
+	setValue(columnId: string, value: string | number | boolean): Cell {
 		let cell = this.cells.get(columnId);
 		if (cell) {
 			cell.value = value;
@@ -93,7 +93,23 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-}) {}
+	type: sf.optional(sf.string), // must be "string", "number", or "boolean"
+}) {
+	// Sets the value of type to string, boolean, or number
+	setType(type: "string" | "boolean" | "number"): void {
+		if (type === "string" || type === "number" || type === "boolean") {
+			this.type = type;
+		}
+	}
+
+	// Gets the value of type
+	getType(): string {
+		if (!this.type) {
+			return "string";
+		}
+		return this.type;
+	}
+}
 
 /**
  * The Rows schema - an array of Row objects

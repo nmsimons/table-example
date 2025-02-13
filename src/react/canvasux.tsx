@@ -21,7 +21,7 @@ import {
 	RedoButton,
 	NewColumnButton,
 	NewManysRowsButton,
-	ChangeAValueButton,
+	NewEmptyRowButton,
 } from "./buttonux.js";
 import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/presence_helpers.js";
@@ -83,10 +83,10 @@ export function Canvas(props: {
 			<TableView fluidTable={props.table} />
 			<Floater>
 				<ButtonGroup>
+					<NewColumnButton table={props.table} />
+					<NewEmptyRowButton table={props.table} />
 					<NewRowButton table={props.table} />
 					<NewManysRowsButton table={props.table} />
-					<NewColumnButton table={props.table} />
-					<ChangeAValueButton table={props.table} />
 				</ButtonGroup>
 				<ButtonGroup>
 					<UndoButton undo={() => props.undoRedo.undo()} />
