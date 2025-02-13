@@ -35,6 +35,7 @@
 		"@fluidframework/test-runtime-utils": "^2.13.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@tanstack/react-table": "^8.20.6",
+		"@tanstack/react-virtual": "^3.13.0",
 		"axios": "^1.7.9",
 		"fluid-framework": "^2.13.0",
 		"hashids": "^2.2.10",

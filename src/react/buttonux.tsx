@@ -50,7 +50,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 		Tree.runTransaction(props.table, () => {
 			// Add a thousand rows at a time
 			const rows = [];
-			for (let i = 0; i < 100; i++) {
+			for (let i = 0; i < 1000; i++) {
 				const row = props.table.createDetachedRow();
 				// Iterate through all the columns and add a placeholder value for the new row
 				for (const column of props.table.columns) {

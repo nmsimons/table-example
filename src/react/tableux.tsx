@@ -16,6 +16,7 @@ import {
 	Column as FluidColumn,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
+import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
@@ -60,7 +61,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 		>
 			<table className="table-auto w-full border-collapse">
 				<TableHeadersView table={table} />
-				<TableBodyView table={table} />
+				<TableBodyView table={table} tableContainerRef={tableContainerRef} />
 			</table>
 		</div>
 	);
@@ -92,15 +93,67 @@ export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): J
 	);
 }
 
-export function TableBodyView(props: { table: Table<FluidRow> }): JSX.Element {
-	const { table } = props;
-	return <tbody>{table.getRowModel().rows.map((row) => TableRowView({ row }))}</tbody>;
+export function TableBodyView(props: {
+	table: Table<FluidRow>;
+	tableContainerRef: React.RefObject<HTMLDivElement | null>;
+}): JSX.Element {
+	const { table, tableContainerRef } = props;
+	const { rows } = table.getRowModel();
+
+	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+		count: rows.length,
+		estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
+		getScrollElement: () => tableContainerRef.current,
+		//measure dynamic row height, except in firefox because it measures table border height incorrectly
+		measureElement:
+			typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
+				? (element) => element?.getBoundingClientRect().height
+				: undefined,
+		overscan: 5,
+	});
+
+	return (
+		<tbody
+			style={{
+				display: "grid",
+				height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+				position: "relative", //needed for absolute positioning of rows
+			}}
+		>
+			{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+				const row = rows[virtualRow.index] as Row<FluidRow>;
+				return (
+					<TableRowView
+						key={row.id}
+						row={row}
+						virtualRow={virtualRow}
+						rowVirtualizer={rowVirtualizer}
+					/>
+				);
+			})}
+		</tbody>
+	);
 }
 
-export function TableRowView(props: { row: Row<FluidRow> }): JSX.Element {
-	const { row } = props;
+export function TableRowView(props: {
+	row: Row<FluidRow>;
+	virtualRow: VirtualItem;
+	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
+}): JSX.Element {
+	const { row, virtualRow, rowVirtualizer } = props;
 	return (
-		<tr key={row.id}>
+		<tr
+			className="border-2 border-gray-200 border-collapse w-full"
+			key={row.id}
+			data-index={virtualRow.index} //needed for dynamic row height measurement
+			ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+			style={{
+				display: "flex",
+				position: "absolute",
+				transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+				width: "100%",
+			}}
+		>
 			{row.getVisibleCells().map((cell) => (
 				<TableCellView key={cell.id} cell={cell} />
 			))}
@@ -118,7 +171,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, string> }): JSX.Elem
 	};
 
 	return (
-		<td className="border-2 border-gray-200 border-collapse">
+		<td className="border-2 border-gray-200 border-collapse w-full h-full">
 			<input
 				className="p-1 outline-none w-full h-full"
 				value={cell.renderValue() ?? ""}
