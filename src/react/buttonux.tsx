@@ -105,22 +105,18 @@ const getRowWithValues = (table: Table): Row => {
 export function NewColumnButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		// Wrap the add group operation in a transaction as it adds a group and potentially moves
-		// multiple notes into the group and we want to ensure that the operation is atomic.
-		// This ensures that the revertible of the operation will undo all the changes made by the operation.
-		Tree.runTransaction(props.table, () => {
-			const name = props.table.columns.length.toString();
 
-			// Add a new column to the table
-			// Make the column type a string if the name is even, otherwise make it a number or a boolean
-			if (parseInt(name) % 2 === 0) {
-				props.table.appendNewColumn(name).setType("number");
-			} else if (parseInt(name) % 3 === 0) {
-				props.table.appendNewColumn(name).setType("boolean");
-			} else {
-				props.table.appendNewColumn(name).setType("string");
-			}
-		});
+		const name = props.table.columns.length.toString();
+
+		// Add a new column to the table
+		// Make the column type a string if the name is even, otherwise make it a number or a boolean
+		if (parseInt(name) % 2 === 0) {
+			props.table.appendNewColumn(name).setType("number");
+		} else if (parseInt(name) % 3 === 0) {
+			props.table.appendNewColumn(name).setType("boolean");
+		} else {
+			props.table.appendNewColumn(name).setType("string");
+		}
 	};
 	return (
 		<IconButton

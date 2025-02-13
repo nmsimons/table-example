@@ -31,19 +31,21 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 
 	// Register for tree deltas when the component mounts. Any time the rows change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.fluidTable.rows, "treeChanged", () => {
-			setData(props.fluidTable.rows.map((row) => row));
+		const unsubscribe = Tree.on(fluidTable.rows, "treeChanged", () => {
+			console.log("rows changed");
+			setData(fluidTable.rows.map((row) => row));
 		});
 		return unsubscribe;
-	}, [fluidTable]);
+	}, [fluidTable.rows]);
 
 	// Register for tree deltas when the component mounts. Any time the columns change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.fluidTable.columns, "treeChanged", () => {
-			setColumns(updateColumnData(props.fluidTable.columns.map((column) => column)));
+		const unsubscribe = Tree.on(fluidTable.columns, "treeChanged", () => {
+			console.log("columns changed");
+			setColumns(updateColumnData(fluidTable.columns.map((column) => column)));
 		});
 		return unsubscribe;
-	}, [fluidTable]);
+	}, [fluidTable.columns]);
 
 	// The virtualizer will need a reference to the scrollable container element
 	const tableContainerRef = React.useRef<HTMLDivElement>(null);
