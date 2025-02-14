@@ -110,21 +110,8 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-	type: sf.optional(sf.string), // must be "string", "number", or "boolean"
+	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
-	// Sets the value of type to string, boolean, or number
-	setType(type: "string" | "boolean" | "number") {
-		if (type === "string" || type === "number" || type === "boolean") {
-			this.type = type;
-		}
-	}
-
-	// Gets the value of type
-	getType(): "string" | "boolean" | "number" {
-		if (this.type === undefined) return "string";
-		return this.type as "string" | "boolean" | "number";
-	}
-
 	get parent(): Table {
 		const parent = Tree.parent(this);
 		if (parent) {
@@ -134,6 +121,19 @@ export class Column extends sf.object("Column", {
 			}
 		}
 		throw new Error("Column is not in a table");
+	}
+}
+
+export class ColumnHelper {
+	// Sets the value of type to string, boolean, or number
+	static setType(column: Column, type: "string" | "boolean" | "number") {
+		column.props.set("type", type);
+	}
+
+	// Gets the value of type
+	static getType(column: Column): "string" | "boolean" | "number" {
+		if (column.props.get("type") === undefined) return "string";
+		return column.props.get("type") as "string" | "boolean" | "number";
 	}
 }
 
@@ -223,7 +223,7 @@ export class Table extends sf.object("Table", {
 	 * @param name The name of the column
 	 * */
 	appendNewColumn(name: string): Column {
-		const column = new Column({ name });
+		const column = new Column({ name, props: {} });
 		this.columns.insertAtEnd(column);
 		return column;
 	}
@@ -234,7 +234,7 @@ export class Table extends sf.object("Table", {
 	 * @param name The name of the column
 	 * */
 	insertNewColumn(index: number, name: string): Column {
-		const column = new Column({ name });
+		const column = new Column({ name, props: {} });
 		this.columns.insertAt(index, column);
 		return column;
 	}

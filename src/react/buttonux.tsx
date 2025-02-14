@@ -4,7 +4,7 @@
  */
 
 import React, { JSX } from "react";
-import { Row, Table } from "../schema/app_schema.js";
+import { ColumnHelper, Row, Table } from "../schema/app_schema.js";
 import {
 	ThumbLikeFilled,
 	DismissFilled,
@@ -91,9 +91,11 @@ const getRowWithValues = (table: Table): Row => {
 	// If the column is a number, we will add a random number, otherwise we will add a random string
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
-		if (column.type === "number") {
+		const type = ColumnHelper.getType(column);
+
+		if (type === "number") {
 			row.setValue(column.id, Math.floor(Math.random() * 1000));
-		} else if (column.type === "boolean") {
+		} else if (type === "boolean") {
 			row.setValue(column.id, Math.random() > 0.5);
 		} else {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
@@ -111,11 +113,11 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		// Add a new column to the table
 		// Make the column type a string if the name is even, otherwise make it a number or a boolean
 		if (parseInt(name) % 2 === 0) {
-			props.table.appendNewColumn(name).setType("number");
+			ColumnHelper.setType(props.table.appendNewColumn(name), "string");
 		} else if (parseInt(name) % 3 === 0) {
-			props.table.appendNewColumn(name).setType("boolean");
+			ColumnHelper.setType(props.table.appendNewColumn(name), "number");
 		} else {
-			props.table.appendNewColumn(name).setType("string");
+			ColumnHelper.setType(props.table.appendNewColumn(name), "boolean");
 		}
 	};
 	return (

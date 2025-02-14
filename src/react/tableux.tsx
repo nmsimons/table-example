@@ -14,6 +14,7 @@ import {
 	Table as FluidTable,
 	Row as FluidRow,
 	Column as FluidColumn,
+	ColumnHelper,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
@@ -184,7 +185,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 	const value = data.getCell(cell.column.id)?.value;
 
 	// Get the specified column type
-	const columnType = data.parent.getColumn(cell.column.id).getType();
+	const columnType = ColumnHelper.getType(data.parent.getColumn(cell.column.id));
 
 	if (value === undefined) {
 		// Test using the type property
