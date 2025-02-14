@@ -32,7 +32,6 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	// Register for tree deltas when the component mounts. Any time the rows change, the app will update.
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidTable.rows, "treeChanged", () => {
-			console.log("rows changed");
 			setData(fluidTable.rows.map((row) => row));
 		});
 		return unsubscribe;
@@ -41,7 +40,6 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	// Register for tree deltas when the component mounts. Any time the columns change, the app will update.
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidTable.columns, "treeChanged", () => {
-			console.log("columns changed");
 			setColumns(updateColumnData(fluidTable.columns.map((column) => column)));
 		});
 		return unsubscribe;
