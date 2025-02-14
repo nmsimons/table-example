@@ -35,9 +35,9 @@ export class Cell extends sf.object("Cell", {
 	 * Property getter to get the column that the cell is in
 	 */
 	get column(): Column {
-		const table = this.parent.parent?.parent;
+		const table = this.parent.parent;
 		if (table) {
-			const column = table.columns.get(this.columnId);
+			const column = table.getColumn(this.columnId);
 			if (column) {
 				return column;
 			}
@@ -83,20 +83,24 @@ export class Row extends sf.object("Row", {
 	 * @param index The index to move the row to
 	 * */
 	moveTo(index: number): void {
-		const rows = this.parent;
+		const rows = this.parent?.rows;
 		if (rows) {
 			rows.insertAt(index, this);
 		}
 	}
 
 	/**
-	 * Get the parent Rows node
+	 * Get the parent Table
 	 */
-	get parent(): Rows | undefined {
+	get parent(): Table {
 		const parent = Tree.parent(this);
-		if (Tree.is(parent, Rows)) {
-			return parent;
+		if (parent) {
+			const grandparent = Tree.parent(parent);
+			if (Tree.is(grandparent, Table)) {
+				return grandparent;
+			}
 		}
+		throw new Error("Row is not in a table");
 	}
 }
 
@@ -109,56 +113,27 @@ export class Column extends sf.object("Column", {
 	type: sf.optional(sf.string), // must be "string", "number", or "boolean"
 }) {
 	// Sets the value of type to string, boolean, or number
-	set cellType(type: "string" | "boolean" | "number") {
+	setType(type: "string" | "boolean" | "number") {
 		if (type === "string" || type === "number" || type === "boolean") {
 			this.type = type;
 		}
 	}
 
 	// Gets the value of type
-	get cellType(): string {
-		return this.type ?? "string";
+	getType(): "string" | "boolean" | "number" {
+		if (this.type === undefined) return "string";
+		return this.type as "string" | "boolean" | "number";
 	}
-}
 
-/**
- * The Rows schema - an array of Row objects
- */
-export class Rows extends sf.array("Rows", Row) {
-	/**
-	 * Get the parent Table node
-	 */
 	get parent(): Table {
 		const parent = Tree.parent(this);
-		if (Tree.is(parent, Table)) {
-			return parent;
+		if (parent) {
+			const grandparent = Tree.parent(parent);
+			if (Tree.is(grandparent, Table)) {
+				return grandparent;
+			}
 		}
-		throw new Error("Rows must be a child of a Table");
-	}
-}
-
-/**
- * The Columns schema - an array of Column objects
- */
-export class Columns extends sf.array("Columns", Column) {
-	/**
-	 * Get a column by the id
-	 * @param id The id of the column
-	 * @returns The column if it exists, otherwise undefined
-	 */
-	get(id: string): Column | undefined {
-		return this.find((column) => column.id === id);
-	}
-
-	/**
-	 * Get the parent Table node
-	 */
-	get parent(): Table {
-		const parent = Tree.parent(this);
-		if (Tree.is(parent, Table)) {
-			return parent;
-		}
-		throw new Error("Columns must be a child of a Table");
+		throw new Error("Column is not in a table");
 	}
 }
 
@@ -166,8 +141,8 @@ export class Columns extends sf.array("Columns", Column) {
  * The Table schema
  * */
 export class Table extends sf.object("Table", {
-	rows: Rows,
-	columns: Columns,
+	rows: sf.array(Row),
+	columns: sf.array(Column),
 }) {
 	/**
 	 *  Add a row to the table
@@ -262,6 +237,15 @@ export class Table extends sf.object("Table", {
 		const column = new Column({ name });
 		this.columns.insertAt(index, column);
 		return column;
+	}
+
+	/**
+	 * Get a column by the id
+	 */
+	getColumn(id: string): Column {
+		const column = this.columns.find((column) => column.id === id);
+		if (column) return column;
+		throw new Error("Column not found");
 	}
 }
 
