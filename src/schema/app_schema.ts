@@ -43,8 +43,7 @@ export class Cell extends sf.object("Cell", {
 		throw new Error("Column not found");
 	}
 
-	// Get the key from the parent map this cell is in
-	get columnId(): string {
+	private get columnId(): string {
 		for (const [key, value] of this.parent.cells.entries()) {
 			if (value === this) {
 				return key;
