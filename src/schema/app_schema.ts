@@ -18,7 +18,33 @@ const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
 	value: [sf.string, sf.number, sf.boolean],
-}) {}
+	columnId: sf.string,
+}) {
+	/**
+	 * Property getter to get the row that the cell is in
+	 */
+	get parent(): Row {
+		const parent = Tree.parent(this);
+		if (Tree.is(parent, Row)) {
+			return parent;
+		}
+		throw new Error("Cell is not in a row");
+	}
+
+	/**
+	 * Property getter to get the column that the cell is in
+	 */
+	get column(): Column {
+		const table = this.parent.parent?.parent;
+		if (table) {
+			const column = table.columns.get(this.columnId);
+			if (column) {
+				return column;
+			}
+		}
+		throw new Error("Cell is not in a column");
+	}
+}
 
 /**
  * The Row schema - this is a map of Cells where the key is the column id
@@ -38,7 +64,7 @@ export class Row extends sf.object("Row", {
 		if (cell) {
 			cell.value = value;
 		} else {
-			cell = new Cell({ value });
+			cell = new Cell({ value, columnId });
 			this.cells.set(columnId, cell);
 		}
 		return cell;
@@ -57,7 +83,7 @@ export class Row extends sf.object("Row", {
 	 * @param index The index to move the row to
 	 * */
 	moveTo(index: number): void {
-		const rows = this.getRows();
+		const rows = this.parent;
 		if (rows) {
 			rows.insertAt(index, this);
 		}
@@ -66,23 +92,10 @@ export class Row extends sf.object("Row", {
 	/**
 	 * Get the parent Rows node
 	 */
-	getRows(): Rows | undefined {
+	get parent(): Rows | undefined {
 		const parent = Tree.parent(this);
 		if (Tree.is(parent, Rows)) {
 			return parent;
-		}
-	}
-
-	/**
-	 * Get the parent Table node
-	 * */
-	getTable(): Table | undefined {
-		const rows = this.getRows();
-		if (rows) {
-			const table = Tree.parent(rows);
-			if (Tree.is(table, Table)) {
-				return table;
-			}
 		}
 	}
 }
@@ -96,30 +109,58 @@ export class Column extends sf.object("Column", {
 	type: sf.optional(sf.string), // must be "string", "number", or "boolean"
 }) {
 	// Sets the value of type to string, boolean, or number
-	setType(type: "string" | "boolean" | "number"): void {
+	set cellType(type: "string" | "boolean" | "number") {
 		if (type === "string" || type === "number" || type === "boolean") {
 			this.type = type;
 		}
 	}
 
 	// Gets the value of type
-	getType(): string {
-		if (!this.type) {
-			return "string";
-		}
-		return this.type;
+	get cellType(): string {
+		return this.type ?? "string";
 	}
 }
 
 /**
  * The Rows schema - an array of Row objects
  */
-export class Rows extends sf.array("Rows", Row) {}
+export class Rows extends sf.array("Rows", Row) {
+	/**
+	 * Get the parent Table node
+	 */
+	get parent(): Table {
+		const parent = Tree.parent(this);
+		if (Tree.is(parent, Table)) {
+			return parent;
+		}
+		throw new Error("Rows must be a child of a Table");
+	}
+}
 
 /**
  * The Columns schema - an array of Column objects
  */
-export class Columns extends sf.array("Columns", Column) {}
+export class Columns extends sf.array("Columns", Column) {
+	/**
+	 * Get a column by the id
+	 * @param id The id of the column
+	 * @returns The column if it exists, otherwise undefined
+	 */
+	get(id: string): Column | undefined {
+		return this.find((column) => column.id === id);
+	}
+
+	/**
+	 * Get the parent Table node
+	 */
+	get parent(): Table {
+		const parent = Tree.parent(this);
+		if (Tree.is(parent, Table)) {
+			return parent;
+		}
+		throw new Error("Columns must be a child of a Table");
+	}
+}
 
 /**
  * The Table schema

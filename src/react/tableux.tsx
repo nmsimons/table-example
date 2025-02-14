@@ -186,10 +186,10 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 	const value = data.getCell(cell.column.id)?.value;
 
 	// Get the specified column type
-	const columnType = data
-		.getTable()
-		?.columns.find((value) => value.id === cell.column.id)
-		?.getType() as "string" | "number" | "boolean";
+	const columnType = data.parent?.parent.columns.get(cell.column.id)?.cellType as
+		| "string"
+		| "number"
+		| "boolean";
 
 	if (value === undefined) {
 		// Test using the type property

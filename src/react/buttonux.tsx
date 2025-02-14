@@ -91,9 +91,9 @@ const getRowWithValues = (table: Table): Row => {
 	// If the column is a number, we will add a random number, otherwise we will add a random string
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
-		if (column.type === "number") {
+		if (column.cellType === "number") {
 			row.setValue(column.id, Math.floor(Math.random() * 1000));
-		} else if (column.type === "boolean") {
+		} else if (column.cellType === "boolean") {
 			row.setValue(column.id, Math.random() > 0.5);
 		} else {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
@@ -111,11 +111,11 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		// Add a new column to the table
 		// Make the column type a string if the name is even, otherwise make it a number or a boolean
 		if (parseInt(name) % 2 === 0) {
-			props.table.appendNewColumn(name).setType("number");
+			props.table.appendNewColumn(name).cellType = "number";
 		} else if (parseInt(name) % 3 === 0) {
-			props.table.appendNewColumn(name).setType("boolean");
+			props.table.appendNewColumn(name).cellType = "boolean";
 		} else {
-			props.table.appendNewColumn(name).setType("string");
+			props.table.appendNewColumn(name).cellType = "string";
 		}
 	};
 	return (
@@ -143,7 +143,7 @@ export function DeleteAllRowsButton(props: { table: Table }): JSX.Element {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<DismissFilled />}
 		>
-			Delete All Rows
+			Clear
 		</IconButton>
 	);
 }
