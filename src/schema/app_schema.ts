@@ -18,31 +18,39 @@ const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
 	value: [sf.string, sf.number, sf.boolean],
-	columnId: sf.string,
 }) {
 	/**
 	 * Property getter to get the row that the cell is in
 	 */
 	get parent(): Row {
 		const parent = Tree.parent(this);
-		if (Tree.is(parent, Row)) {
-			return parent;
+		if (parent !== undefined) {
+			const grandparent = Tree.parent(parent);
+			if (Tree.is(grandparent, Row)) {
+				return grandparent;
+			}
 		}
 		throw new Error("Cell is not in a row");
 	}
 
 	/**
-	 * Property getter to get the column that the cell is in
-	 */
+	 * Get the column the cell is in
+	 * */
 	get column(): Column {
 		const table = this.parent.parent;
-		if (table) {
-			const column = table.getColumn(this.columnId);
-			if (column) {
-				return column;
+		const column = table.columns.find((column) => column.id === this.columnId);
+		if (Tree.is(column, Column)) return column;
+		throw new Error("Column not found");
+	}
+
+	// Get the key from the parent map this cell is in
+	get columnId(): string {
+		for (const [key, value] of this.parent.cells.entries()) {
+			if (value === this) {
+				return key;
 			}
 		}
-		throw new Error("Cell is not in a column");
+		throw new Error("ColumnId not found");
 	}
 }
 
@@ -64,7 +72,7 @@ export class Row extends sf.object("Row", {
 		if (cell) {
 			cell.value = value;
 		} else {
-			cell = new Cell({ value, columnId });
+			cell = new Cell({ value });
 			this.cells.set(columnId, cell);
 		}
 		return cell;
