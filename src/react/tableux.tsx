@@ -108,16 +108,18 @@ export function TableHeaderView(props: {
 			}}
 			className="p-1"
 		>
-			<div>
-				{header.isPlaceholder
-					? null
-					: flexRender(header.column.columnDef.header, header.getContext())}
+			<div className="flex flex-row items-center justify-center w-full">
+				<div className="flex items-center justify-center w-full">
+					{header.isPlaceholder
+						? null
+						: flexRender(header.column.columnDef.header, header.getContext())}
+				</div>
+				<DeleteButton
+					handleClick={() => {
+						column.parent.deleteColumn(column.id);
+					}}
+				/>
 			</div>
-			<DeleteButton
-				handleClick={() => {
-					column.parent.deleteColumn(column.id);
-				}}
-			/>
 		</th>
 	);
 }
