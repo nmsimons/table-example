@@ -253,6 +253,8 @@ export class Table extends sf.object("Table", {
 		if (column) {
 			const index = this.columns.indexOf(column);
 			this.columns.removeAt(index);
+			// TODO Remove the column from each row
+			// Doing this in a transaction is too slow
 		}
 	}
 }
