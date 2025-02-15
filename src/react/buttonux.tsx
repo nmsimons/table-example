@@ -108,13 +108,14 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 
-		const name = props.table.columns.length.toString();
+		const index = props.table.columns.length + 1;
+		const name = `Column ${index.toString()}`;
 
 		// Add a new column to the table
 		// Make the column type a string if the name is even, otherwise make it a number or a boolean
-		if (parseInt(name) % 2 === 0) {
+		if (index % 2 === 0) {
 			props.table.appendNewColumn(name, "");
-		} else if (parseInt(name) % 3 === 0) {
+		} else if (index % 3 === 0) {
 			props.table.appendNewColumn(name, 0);
 		} else {
 			props.table.appendNewColumn(name, false);

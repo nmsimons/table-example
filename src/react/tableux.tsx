@@ -17,6 +17,7 @@ import {
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
+import { DeleteButton } from "./buttonux.js";
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
@@ -60,15 +61,19 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 			className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black"
 		>
 			<table style={{ display: "grid" }} className="table-auto w-full border-collapse">
-				<TableHeadersView table={table} />
+				<TableHeadersView table={table} fluidTable={fluidTable} />
 				<TableBodyView table={table} tableContainerRef={tableContainerRef} />
 			</table>
 		</div>
 	);
 }
 
-export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element {
-	const table = props.table;
+export function TableHeadersView(props: {
+	table: Table<FluidRow>;
+	fluidTable: FluidTable;
+}): JSX.Element {
+	const { table, fluidTable } = props;
+
 	return (
 		<thead
 			style={{
@@ -80,7 +85,7 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 			{table.getHeaderGroups().map((headerGroup) => (
 				<tr style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
 					{headerGroup.headers.map((header) => (
-						<TableHeaderView key={header.id} header={header} />
+						<TableHeaderView key={header.id} header={header} fluidTable={fluidTable} />
 					))}
 				</tr>
 			))}
@@ -88,8 +93,13 @@ export function TableHeadersView(props: { table: Table<FluidRow> }): JSX.Element
 	);
 }
 
-export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): JSX.Element {
-	const { header } = props;
+export function TableHeaderView(props: {
+	header: Header<FluidRow, unknown>;
+	fluidTable: FluidTable;
+}): JSX.Element {
+	const { header, fluidTable } = props;
+	const column = fluidTable.getColumn(header.column.id);
+
 	return (
 		<th
 			style={{
@@ -98,9 +108,16 @@ export function TableHeaderView(props: { header: Header<FluidRow, unknown> }): J
 			}}
 			className="p-1"
 		>
-			{header.isPlaceholder
-				? null
-				: flexRender(header.column.columnDef.header, header.getContext())}
+			<div>
+				{header.isPlaceholder
+					? null
+					: flexRender(header.column.columnDef.header, header.getContext())}
+			</div>
+			<DeleteButton
+				handleClick={() => {
+					column.parent.deleteColumn(column.id);
+				}}
+			/>
 		</th>
 	);
 }

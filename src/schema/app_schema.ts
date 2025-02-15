@@ -242,6 +242,19 @@ export class Table extends sf.object("Table", {
 		if (column) return column;
 		throw new Error("Column not found");
 	}
+
+	/**
+	 * Delete a column from the table
+	 */
+	deleteColumn(id: string): void {
+		// Find the column by id
+		const column = this.columns.find((column) => column.id === id);
+		// Get the index of the column
+		if (column) {
+			const index = this.columns.indexOf(column);
+			this.columns.removeAt(index);
+		}
+	}
 }
 
 /**
