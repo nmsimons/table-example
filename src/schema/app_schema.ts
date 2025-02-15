@@ -132,13 +132,6 @@ export class Column extends sf.object("Column", {
 	}
 }
 
-export class ColumnHelper {
-	// Gets the type of the default value
-	static getType(column: Column): string {
-		return typeof column.defaultValue;
-	}
-}
-
 /**
  * The Table schema
  * */

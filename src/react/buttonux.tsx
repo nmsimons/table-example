@@ -4,7 +4,7 @@
  */
 
 import React, { JSX } from "react";
-import { ColumnHelper, Row, Table } from "../schema/app_schema.js";
+import { Row, Table } from "../schema/app_schema.js";
 import {
 	ThumbLikeFilled,
 	DismissFilled,
@@ -91,13 +91,13 @@ const getRowWithValues = (table: Table): Row => {
 	// If the column is a number, we will add a random number, otherwise we will add a random string
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
-		const type = ColumnHelper.getType(column);
+		const type = typeof column.defaultValue;
 
 		if (type === "number") {
 			row.setValue(column.id, Math.floor(Math.random() * 1000));
 		} else if (type === "boolean") {
 			row.setValue(column.id, Math.random() > 0.5);
-		} else {
+		} else if (type === "string") {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
 		}
 	}

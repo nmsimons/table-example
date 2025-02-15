@@ -14,7 +14,6 @@ import {
 	Table as FluidTable,
 	Row as FluidRow,
 	Column as FluidColumn,
-	ColumnHelper,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
@@ -182,30 +181,36 @@ export function TableRowView(props: {
 export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	const data = cell.row.original;
+	const defaultValue = data.parent.getColumn(cell.column.id).defaultValue;
 	const value = data.getCell(cell.column.id)?.value;
-
-	// Get the specified column type
-	const columnType = ColumnHelper.getType(data.parent.getColumn(cell.column.id)) as
-		| "string"
-		| "number"
-		| "boolean";
 
 	if (value === undefined) {
 		// Test using the type property
-		if (columnType === "boolean") {
-			return <CellInputBoolean value={false} cell={cell} />;
-		} else if (columnType === "number") {
-			return <CellInputStringAndNumber value={0} cell={cell} type={columnType} />;
-		} else {
-			return <CellInputStringAndNumber value={""} cell={cell} type={columnType} />;
+		if (typeof defaultValue === "boolean") {
+			return <CellInputBoolean value={defaultValue} cell={cell} />;
+		} else if (typeof defaultValue === "number" || typeof defaultValue === "string") {
+			return (
+				<CellInputStringAndNumber
+					value={defaultValue}
+					cell={cell}
+					type={typeof defaultValue as "string" | "number"}
+				/>
+			);
 		}
 	} else {
 		if (typeof value === "boolean") {
 			return <CellInputBoolean value={value} cell={cell} />;
 		} else {
-			return <CellInputStringAndNumber value={value} cell={cell} type={columnType} />;
+			return (
+				<CellInputStringAndNumber
+					value={value}
+					cell={cell}
+					type={typeof defaultValue as "string" | "number"}
+				/>
+			);
 		}
 	}
+	return <></>;
 }
 
 // Input field for a cell with a boolean value
