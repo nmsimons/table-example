@@ -175,7 +175,6 @@ export function TableRowView(props: {
 
 	return (
 		<tr
-			id={row.id}
 			key={row.id}
 			data-index={virtualRow.index} //needed for dynamic row height measurement
 			ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
@@ -249,6 +248,7 @@ export function CellInputBoolean(props: {
 
 	return (
 		<input
+			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
 			className="p-1 outline-none w-full h-full"
 			type="checkbox"
 			checked={value ?? false}
@@ -273,6 +273,7 @@ export function CellInputStringAndNumber(props: {
 
 	return (
 		<input
+			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
 			className="p-1 outline-none w-full h-full"
 			type={type}
 			value={value ?? ""}
