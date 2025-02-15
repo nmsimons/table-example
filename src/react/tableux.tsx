@@ -133,7 +133,7 @@ export function TableBodyView(props: {
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
 		count: rows.length,
-		estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
+		estimateSize: () => 48, //estimate row height for accurate scrollbar dragging
 		getScrollElement: () => tableContainerRef.current,
 		//measure dynamic row height, except in firefox because it measures table border height incorrectly
 		measureElement:
@@ -172,8 +172,10 @@ export function TableRowView(props: {
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer } = props;
+
 	return (
 		<tr
+			id={row.id}
 			key={row.id}
 			data-index={virtualRow.index} //needed for dynamic row height measurement
 			ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
