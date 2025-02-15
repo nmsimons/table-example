@@ -117,6 +117,7 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
+	defaultValue: [sf.string, sf.number, sf.boolean],
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	get parent(): Table {
@@ -132,15 +133,9 @@ export class Column extends sf.object("Column", {
 }
 
 export class ColumnHelper {
-	// Sets the value of type to string, boolean, or number
-	static setType(column: Column, type: "string" | "boolean" | "number") {
-		column.props.set("type", type);
-	}
-
-	// Gets the value of type
-	static getType(column: Column): "string" | "boolean" | "number" {
-		if (column.props.get("type") === undefined) return "string";
-		return column.props.get("type") as "string" | "boolean" | "number";
+	// Gets the type of the default value
+	static getType(column: Column): string {
+		return typeof column.defaultValue;
 	}
 }
 
@@ -229,8 +224,8 @@ export class Table extends sf.object("Table", {
 	 * Add a column to the table
 	 * @param name The name of the column
 	 * */
-	appendNewColumn(name: string): Column {
-		const column = new Column({ name, props: {} });
+	appendNewColumn(name: string, defaultValue: string | number | boolean): Column {
+		const column = new Column({ name, props: {}, defaultValue });
 		this.columns.insertAtEnd(column);
 		return column;
 	}
@@ -240,8 +235,8 @@ export class Table extends sf.object("Table", {
 	 * @param index The index to insert the column at
 	 * @param name The name of the column
 	 * */
-	insertNewColumn(index: number, name: string): Column {
-		const column = new Column({ name, props: {} });
+	insertNewColumn(index: number, name: string, defaultValue: string | number | boolean): Column {
+		const column = new Column({ name, props: {}, defaultValue });
 		this.columns.insertAt(index, column);
 		return column;
 	}

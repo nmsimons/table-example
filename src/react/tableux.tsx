@@ -185,7 +185,10 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 	const value = data.getCell(cell.column.id)?.value;
 
 	// Get the specified column type
-	const columnType = ColumnHelper.getType(data.parent.getColumn(cell.column.id));
+	const columnType = ColumnHelper.getType(data.parent.getColumn(cell.column.id)) as
+		| "string"
+		| "number"
+		| "boolean";
 
 	if (value === undefined) {
 		// Test using the type property

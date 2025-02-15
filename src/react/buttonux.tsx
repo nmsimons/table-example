@@ -113,11 +113,11 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		// Add a new column to the table
 		// Make the column type a string if the name is even, otherwise make it a number or a boolean
 		if (parseInt(name) % 2 === 0) {
-			ColumnHelper.setType(props.table.appendNewColumn(name), "string");
+			props.table.appendNewColumn(name, "");
 		} else if (parseInt(name) % 3 === 0) {
-			ColumnHelper.setType(props.table.appendNewColumn(name), "number");
+			props.table.appendNewColumn(name, 0);
 		} else {
-			ColumnHelper.setType(props.table.appendNewColumn(name), "boolean");
+			props.table.appendNewColumn(name, false);
 		}
 	};
 	return (
