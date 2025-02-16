@@ -13,11 +13,39 @@ import { TreeViewConfiguration, SchemaFactory, TreeArrayNode, Tree } from "fluid
 const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 
 /**
+ * A SharedTree object date-time without a timezone in RFC3339 format.
+ */
+export class DateTime extends sf.object("DateTime", {
+	raw: sf.string,
+}) {
+	/**
+	 * Get the date-time
+	 */
+	get value(): Date {
+		return new Date(this.raw);
+	}
+
+	/**
+	 * Set the raw date-time string
+	 */
+	set value(value: Date) {
+		// Test if the value is a valid date
+		if (isNaN(value.getTime())) {
+			return;
+		}
+		this.raw = value.toISOString();
+	}
+}
+
+// Table schema - I wish I could create something like this for the Cell value and Column defaultValue
+type typeDefinition = string | number | boolean | DateTime;
+
+/**
  * The Cell schema which should eventally support more types than just strings
  */
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
-	value: [sf.string, sf.number, sf.boolean],
+	value: [sf.string, sf.number, sf.boolean, DateTime],
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
@@ -64,19 +92,19 @@ export class Row extends sf.object("Row", {
 }) {
 	/**
 	 * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
+	 * This will overwrite the value of the cell so if the value isn't a primitive, don't use this.
 	 * @param columnId The id of the column
 	 * @param value The value to set
 	 * @returns The cell that was set
 	 * */
 	setValue(columnId: string, value: string | number | boolean): Cell {
-		let cell = this.cells.get(columnId);
+		const cell = this.cells.get(columnId);
 		if (cell) {
 			cell.value = value;
+			return cell;
 		} else {
-			cell = new Cell({ value, props: {} });
-			this.cells.set(columnId, cell);
+			return this.initializeCell(columnId, value);
 		}
-		return cell;
 	}
 
 	/** Get a cell by the column id
@@ -85,6 +113,42 @@ export class Row extends sf.object("Row", {
 	 * */
 	getCell(columnId: string): Cell | undefined {
 		return this.cells.get(columnId);
+	}
+
+	/**
+	 * Initialize a cell with a value if it doesn't exist. If it does exist, return the cell without changing it
+	 */
+	initializeCell(columnId: string, value: typeDefinition): Cell {
+		let cell = this.cells.get(columnId);
+		if (cell) {
+			return cell;
+		} else {
+			cell = new Cell({ value, props: {} });
+			this.cells.set(columnId, cell);
+		}
+		return cell;
+	}
+
+	/**
+	 * Delete a cell from the row
+	 * @param columnId The id of the column
+	 */
+	deleteCell(columnId: string): void {
+		this.cells.delete(columnId);
+	}
+
+	/**
+	 * Get the value of a cell by the column id
+	 * @param columnId The id of the column
+	 * @returns The value of the cell if it exists, otherwise return the default value of the column
+	 */
+	getValue(columnId: string): typeDefinition | null {
+		const cell = this.cells.get(columnId);
+		if (cell) {
+			return cell.value;
+		}
+		const column = this.parent.getColumn(columnId);
+		return column.defaultValue;
 	}
 
 	/**
@@ -119,7 +183,8 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-	defaultValue: [sf.string, sf.number, sf.boolean],
+	defaultValue: [sf.string, sf.number, sf.boolean, DateTime, sf.null],
+	hint: sf.optional(sf.string),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	get parent(): Table {
@@ -219,8 +284,8 @@ export class Table extends sf.object("Table", {
 	 * Add a column to the table
 	 * @param name The name of the column
 	 * */
-	appendNewColumn(name: string, defaultValue: string | number | boolean): Column {
-		const column = new Column({ name, props: {}, defaultValue });
+	appendNewColumn(name: string, defaultValue: typeDefinition | null, hint?: string): Column {
+		const column = new Column({ name, props: {}, defaultValue, hint });
 		this.columns.insertAtEnd(column);
 		return column;
 	}
@@ -230,8 +295,13 @@ export class Table extends sf.object("Table", {
 	 * @param index The index to insert the column at
 	 * @param name The name of the column
 	 * */
-	insertNewColumn(index: number, name: string, defaultValue: string | number | boolean): Column {
-		const column = new Column({ name, props: {}, defaultValue });
+	insertNewColumn(
+		index: number,
+		name: string,
+		defaultValue: typeDefinition | null,
+		hint?: string,
+	): Column {
+		const column = new Column({ name, props: {}, defaultValue, hint });
 		this.columns.insertAt(index, column);
 		return column;
 	}

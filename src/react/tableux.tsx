@@ -18,6 +18,7 @@ import {
 	Table as FluidTable,
 	Row as FluidRow,
 	Column as FluidColumn,
+	DateTime,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
@@ -311,35 +312,25 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	const data = cell.row.original;
-	const defaultValue = data.parent.getColumn(cell.column.id).defaultValue;
-	const value = data.getCell(cell.column.id)?.value;
+	const fluidColumn = data.parent.getColumn(cell.column.id);
+	const value = data.getValue(cell.column.id);
 
-	if (value === undefined) {
-		// Test using the type property
-		if (typeof defaultValue === "boolean") {
-			return <CellInputBoolean value={defaultValue} cell={cell} />;
-		} else if (typeof defaultValue === "number" || typeof defaultValue === "string") {
-			return (
-				<CellInputStringAndNumber
-					value={defaultValue}
-					cell={cell}
-					type={typeof defaultValue as "string" | "number"}
-				/>
-			);
-		}
-	} else {
-		if (typeof value === "boolean") {
-			return <CellInputBoolean value={value} cell={cell} />;
-		} else {
-			return (
-				<CellInputStringAndNumber
-					value={value}
-					cell={cell}
-					type={typeof defaultValue as "string" | "number"}
-				/>
-			);
-		}
+	if (typeof value === "boolean") {
+		return <CellInputBoolean value={value} cell={cell} />;
+	} else if (typeof value === "number" || typeof value === "string") {
+		return (
+			<CellInputStringAndNumber
+				value={value}
+				cell={cell}
+				type={typeof fluidColumn.defaultValue as "string" | "number"}
+			/>
+		);
+	} else if (value === null && fluidColumn.hint === "date") {
+		return <CellInputDate value={value} cell={cell} />;
+	} else if (value instanceof DateTime) {
+		return <CellInputDate value={value} cell={cell} />;
 	}
+
 	return <></>;
 }
 
@@ -371,7 +362,7 @@ export function CellInputBoolean(props: {
 export function CellInputStringAndNumber(props: {
 	value: string | number;
 	cell: Cell<FluidRow, cellValue>;
-	type: "string" | "number" | "boolean";
+	type: "string" | "number";
 }): JSX.Element {
 	const { value, cell, type } = props;
 	const data = cell.row.original;
@@ -392,7 +383,48 @@ export function CellInputStringAndNumber(props: {
 	);
 }
 
-type cellValue = string | number | boolean;
+export function CellInputDate(props: {
+	value: DateTime | null;
+	cell: Cell<FluidRow, cellValue>;
+}): JSX.Element {
+	const { value, cell } = props;
+	const data = cell.row.original;
+
+	const date = value?.value?.toISOString().split("T")[0] ?? "";
+
+	// handle a change event in the cell
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const fluidCell = data.getCell(cell.column.id);
+		// Test if the target value is a valid date
+		if (isNaN(Date.parse(e.target.value))) {
+			if (fluidCell !== undefined) {
+				if (Tree.is(fluidCell.value, DateTime)) {
+					data.deleteCell(cell.column.id);
+					return;
+				}
+			}
+		}
+		if (fluidCell === undefined) {
+			data.initializeCell(cell.column.id, new DateTime({ raw: e.target.value }));
+		} else {
+			if (Tree.is(fluidCell.value, DateTime)) {
+				fluidCell.value.value = new Date(e.target.value);
+			}
+		}
+	};
+
+	return (
+		<input
+			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
+			className="outline-none w-full h-full"
+			type="date"
+			value={date}
+			onChange={handleChange}
+		></input>
+	);
+}
+
+type cellValue = string | number | boolean | DateTime;
 
 const updateColumnData = (columnsArray: FluidColumn[]) => {
 	// Create a column helper based on the columns in the table

@@ -4,7 +4,7 @@
  */
 
 import React, { JSX } from "react";
-import { Row, Table } from "../schema/app_schema.js";
+import { DateTime, Row, Table } from "../schema/app_schema.js";
 import {
 	DismissFilled,
 	ArrowUndoFilled,
@@ -98,12 +98,18 @@ const getRowWithValues = (table: Table): Row => {
 			row.setValue(column.id, Math.random() > 0.5);
 		} else if (type === "string") {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
+		} else if (column.defaultValue === null && column.hint === "date") {
+			// Add a random date
+			const dateTime = new DateTime({ raw: new Date().toISOString() });
+			row.initializeCell(column.id, dateTime);
 		}
 	}
 	return row;
 };
 
 export function NewColumnButton(props: { table: Table }): JSX.Element {
+	const { table } = props;
+
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 
@@ -111,13 +117,14 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		const name = `Column ${index.toString()}`;
 
 		// Add a new column to the table
-		// Make the column type a string if the name is even, otherwise make it a number or a boolean
-		if (index % 2 === 0) {
-			props.table.appendNewColumn(name, "");
-		} else if (index % 3 === 0) {
-			props.table.appendNewColumn(name, 0);
+		if (index % 4 === 1) {
+			table.appendNewColumn(name, "");
+		} else if (index % 4 === 2) {
+			table.appendNewColumn(name, 0);
+		} else if (index % 4 === 3) {
+			table.appendNewColumn(name, false);
 		} else {
-			props.table.appendNewColumn(name, false);
+			table.appendNewColumn(name, null, "date");
 		}
 	};
 	return (
