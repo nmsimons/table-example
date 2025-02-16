@@ -18,6 +18,7 @@ const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
 	value: [sf.string, sf.number, sf.boolean],
+	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
 	 * Property getter to get the row that the cell is in
@@ -71,7 +72,7 @@ export class Row extends sf.object("Row", {
 		if (cell) {
 			cell.value = value;
 		} else {
-			cell = new Cell({ value });
+			cell = new Cell({ value, props: {} });
 			this.cells.set(columnId, cell);
 		}
 		return cell;
