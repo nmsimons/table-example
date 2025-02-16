@@ -60,6 +60,7 @@ export class Cell extends sf.object("Cell", {
 export class Row extends sf.object("Row", {
 	id: sf.identifier,
 	cells: sf.map(Cell), // The keys of this map are the column ids
+	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
 	 * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
@@ -178,7 +179,7 @@ export class Table extends sf.object("Table", {
 	 * Create a Row before inserting it into the table
 	 * */
 	createDetachedRow(): Row {
-		return new Row({ cells: {} });
+		return new Row({ cells: {}, props: {} });
 	}
 
 	/**
