@@ -22,7 +22,14 @@ import {
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { DeleteButton, IconButton } from "./buttonux.js";
-import { ArrowSortDownFilled, ArrowSortFilled, ArrowSortUpFilled } from "@fluentui/react-icons";
+import {
+	ArrowSortDownFilled,
+	ArrowSortFilled,
+	ArrowSortUpFilled,
+	ReOrderDotsVertical16Filled,
+} from "@fluentui/react-icons";
+
+const leftColumnWidth = "20px"; // Width of the index column
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
@@ -64,9 +71,12 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	return (
 		<div
 			ref={tableContainerRef}
-			className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black"
+			className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black rounded-sm shadow-sm"
 		>
-			<table style={{ display: "grid" }} className="table-auto w-full border-collapse">
+			<table
+				style={{ display: "grid" }}
+				className="table-auto w-full border-collapse rounded-md"
+			>
 				<TableHeadersView table={table} fluidTable={fluidTable} />
 				<TableBodyView table={table} tableContainerRef={tableContainerRef} />
 			</table>
@@ -86,16 +96,37 @@ export function TableHeadersView(props: {
 				display: "grid",
 				zIndex: 1,
 			}}
-			className="bg-gray-200 sticky top-0"
+			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center"
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<tr style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
-					{headerGroup.headers.map((header) => (
-						<TableHeaderView key={header.id} header={header} fluidTable={fluidTable} />
-					))}
+					{headerGroup.headers.map((header) =>
+						header.id === "index" ? (
+							<IndexHeaderView key="index" />
+						) : (
+							<TableHeaderView
+								key={header.id}
+								header={header}
+								fluidTable={fluidTable}
+							/>
+						),
+					)}
 				</tr>
 			))}
 		</thead>
+	);
+}
+
+export function IndexHeaderView(): JSX.Element {
+	return (
+		<th
+			style={{
+				display: "flex",
+				minWidth: leftColumnWidth,
+				width: leftColumnWidth,
+			}}
+			className="p-1"
+		></th>
 	);
 }
 
@@ -235,22 +266,49 @@ export function TableRowView(props: {
 				width: "100%",
 			}}
 		>
-			{row.getVisibleCells().map((cell) => (
-				<td
-					key={cell.id}
-					style={{ display: "flex", width: "100%" }}
-					className="border-1 border-gray-300"
-				>
-					<div className="p-1 w-full h-full">
+			{row
+				.getVisibleCells()
+				.map((cell) =>
+					cell.column.id === "index" ? (
+						<IndexCellView key="index" />
+					) : (
 						<TableCellView key={cell.id} cell={cell} />
-					</div>
-				</td>
-			))}
+					),
+				)}
 		</tr>
 	);
 }
 
+export function IndexCellView(): JSX.Element {
+	return (
+		// Center the div in the cell and center the icon in the div
+		<td
+			style={{
+				display: "flex",
+				minWidth: leftColumnWidth,
+				width: leftColumnWidth,
+			}}
+			className="border-1 border-gray-300 bg-gray-100 hover:bg-gray-200"
+		>
+			<div className="flex w-full h-full justify-center items-center text-gray-300 hover:text-gray-600">
+				<ReOrderDotsVertical16Filled />
+			</div>
+		</td>
+	);
+}
+
 export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
+	const { cell } = props;
+	return (
+		<td style={{ display: "flex", width: "100%" }} className="border-1 border-gray-300">
+			<div className="p-1 w-full h-full">
+				<TableCellViewContent key={cell.id} cell={cell} />
+			</div>
+		</td>
+	);
+}
+
+export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	const data = cell.row.original;
 	const defaultValue = data.parent.getColumn(cell.column.id).defaultValue;
@@ -340,9 +398,15 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	// Create a column helper based on the columns in the table
 	const columnHelper = createColumnHelper<FluidRow>();
 
+	const d = columnHelper.display({
+		id: "index",
+	});
+
 	// Create an array of ColumnDefs based on the columns in the table using
 	// the column helper
 	const headerArray: ColumnDef<FluidRow, cellValue>[] = [];
+
+	headerArray.push(d);
 
 	columnsArray.forEach((column) => {
 		const sortingConfig = getSortingConfig(column);
