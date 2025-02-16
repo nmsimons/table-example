@@ -8,6 +8,9 @@ import {
 	Header,
 	Row,
 	Cell,
+	getSortedRowModel,
+	SortingFnOption,
+	SortDirection,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect } from "react";
 import {
@@ -53,6 +56,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(), //provide a sorting row model
 	});
 
 	return (
@@ -100,6 +104,20 @@ export function TableHeaderView(props: {
 	const { header, fluidTable } = props;
 	const column = fluidTable.getColumn(header.column.id);
 
+	const [sorted, setSorted] = useState(header.column.getIsSorted());
+
+	// Handle clicks on the header to sort by the column
+	const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
+		const sortingFn = header.column.getToggleSortingHandler();
+		if (sortingFn) {
+			sortingFn(e);
+		}
+	};
+
+	useEffect(() => {
+		setSorted(header.column.getIsSorted());
+	}, [header.column.getIsSorted()]);
+
 	return (
 		<th
 			style={{
@@ -109,19 +127,39 @@ export function TableHeaderView(props: {
 			className="p-1"
 		>
 			<div className="flex flex-row items-center justify-center w-full">
-				<div className="flex items-center justify-center w-full">
-					{header.isPlaceholder
-						? null
-						: flexRender(header.column.columnDef.header, header.getContext())}
+				<div
+					onClick={(e: React.MouseEvent<HTMLInputElement>) => handleClick(e)}
+					className="flex flex-row w-full justify-between"
+				>
+					<div className="">
+						{header.isPlaceholder
+							? null
+							: flexRender(header.column.columnDef.header, header.getContext())}
+					</div>
+					<div className="mx-1">
+						<SortIndicator sorted={sorted} />
+					</div>
 				</div>
 				<DeleteButton
 					handleClick={() => {
+						header.column.clearSorting();
 						column.parent.deleteColumn(column.id);
 					}}
 				/>
 			</div>
 		</th>
 	);
+}
+
+export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Element {
+	const { sorted } = props;
+	if (sorted === "asc") {
+		return <>▲</>;
+	} else if (sorted === "desc") {
+		return <>▼</>;
+	} else {
+		return <></>;
+	}
 }
 
 export function TableBodyView(props: {
@@ -191,7 +229,9 @@ export function TableRowView(props: {
 					style={{ display: "flex", width: "100%" }}
 					className="border-1 border-gray-300"
 				>
-					<TableCellView key={cell.id} cell={cell} />
+					<div className="p-1 w-full h-full">
+						<TableCellView key={cell.id} cell={cell} />
+					</div>
 				</td>
 			))}
 		</tr>
@@ -249,7 +289,7 @@ export function CellInputBoolean(props: {
 	return (
 		<input
 			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
-			className="p-1 outline-none w-full h-full"
+			className="outline-none w-full h-full"
 			type="checkbox"
 			checked={value ?? false}
 			onChange={handleChange}
@@ -274,7 +314,7 @@ export function CellInputStringAndNumber(props: {
 	return (
 		<input
 			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
-			className="p-1 outline-none w-full h-full"
+			className="outline-none w-full h-full"
 			type={type}
 			value={value ?? ""}
 			onChange={handleChange}
@@ -293,6 +333,7 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	const headerArray: ColumnDef<FluidRow, cellValue>[] = [];
 
 	columnsArray.forEach((column) => {
+		const sortingConfig = getSortingConfig(column);
 		headerArray.push(
 			columnHelper.accessor(
 				(row) => {
@@ -301,10 +342,28 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 				{
 					id: column.id,
 					header: column.name,
+					sortingFn: sortingConfig.fn,
+					sortDescFirst: sortingConfig.desc,
+					sortUndefined: "last",
 				},
 			),
 		);
 	});
 
 	return headerArray;
+};
+
+// Get the type of the column
+const getSortingConfig = (
+	column: FluidColumn,
+): { fn: SortingFnOption<FluidRow> | undefined; desc: boolean } => {
+	if (typeof column.defaultValue === "boolean") {
+		return { fn: "basic", desc: false };
+	} else if (typeof column.defaultValue === "number") {
+		return { fn: "alphanumeric", desc: false };
+	} else if (typeof column.defaultValue === "string") {
+		return { fn: "alphanumeric", desc: false };
+	} else {
+		return { fn: "basic", desc: false };
+	}
 };
