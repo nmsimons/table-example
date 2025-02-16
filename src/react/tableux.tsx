@@ -11,6 +11,7 @@ import {
 	getSortedRowModel,
 	SortingFnOption,
 	SortDirection,
+	Column,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect } from "react";
 import {
@@ -20,7 +21,8 @@ import {
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
-import { DeleteButton } from "./buttonux.js";
+import { DeleteButton, IconButton } from "./buttonux.js";
+import { ArrowSortDownFilled, ArrowSortFilled, ArrowSortUpFilled } from "@fluentui/react-icons";
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
@@ -102,21 +104,7 @@ export function TableHeaderView(props: {
 	fluidTable: FluidTable;
 }): JSX.Element {
 	const { header, fluidTable } = props;
-	const column = fluidTable.getColumn(header.column.id);
-
-	const [sorted, setSorted] = useState(header.column.getIsSorted());
-
-	// Handle clicks on the header to sort by the column
-	const handleClick = (e: React.MouseEvent<HTMLInputElement>) => {
-		const sortingFn = header.column.getToggleSortingHandler();
-		if (sortingFn) {
-			sortingFn(e);
-		}
-	};
-
-	useEffect(() => {
-		setSorted(header.column.getIsSorted());
-	}, [header.column.getIsSorted()]);
+	const fluidColumn = fluidTable.getColumn(header.column.id);
 
 	return (
 		<th
@@ -126,39 +114,63 @@ export function TableHeaderView(props: {
 			}}
 			className="p-1"
 		>
-			<div className="flex flex-row items-center justify-center w-full">
-				<div
-					onClick={(e: React.MouseEvent<HTMLInputElement>) => handleClick(e)}
-					className="flex flex-row w-full justify-between"
-				>
-					<div className="">
-						{header.isPlaceholder
-							? null
-							: flexRender(header.column.columnDef.header, header.getContext())}
-					</div>
-					<div className="mx-1">
-						<SortIndicator sorted={sorted} />
-					</div>
+			<div className="flex flex-row justify-between w-full gap-x-1">
+				<div className="text-left text-nowrap grow">
+					{header.isPlaceholder
+						? null
+						: flexRender(header.column.columnDef.header, header.getContext())}
 				</div>
-				<DeleteButton
-					handleClick={() => {
-						header.column.clearSorting();
-						column.parent.deleteColumn(column.id);
-					}}
-				/>
+				<div>
+					<SortButton column={header.column} />
+				</div>
+				<div>
+					<DeleteButton
+						delete={() => {
+							header.column.clearSorting();
+							fluidColumn.parent.deleteColumn(fluidColumn.id);
+						}}
+					/>
+				</div>
 			</div>
 		</th>
+	);
+}
+
+export function SortButton(props: { column: Column<FluidRow> }): JSX.Element {
+	const { column } = props;
+	const [sorted, setSorted] = useState(column.getIsSorted());
+
+	useEffect(() => {
+		setSorted(column.getIsSorted());
+	}, [column.getIsSorted()]);
+
+	const handleClick = (e: React.MouseEvent) => {
+		const sortingFn = column.getToggleSortingHandler();
+		if (sortingFn) {
+			sortingFn(e);
+		}
+	};
+
+	return (
+		<IconButton
+			grow={false}
+			color="text-gray-600"
+			background="bg-transparent"
+			handleClick={handleClick}
+			icon={<SortIndicator sorted={sorted} />}
+			toggled={sorted !== false}
+		/>
 	);
 }
 
 export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Element {
 	const { sorted } = props;
 	if (sorted === "asc") {
-		return <>▲</>;
+		return <ArrowSortUpFilled />;
 	} else if (sorted === "desc") {
-		return <>▼</>;
+		return <ArrowSortDownFilled />;
 	} else {
-		return <></>;
+		return <ArrowSortFilled />;
 	}
 }
 

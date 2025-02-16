@@ -6,7 +6,6 @@
 import React, { JSX } from "react";
 import { Row, Table } from "../schema/app_schema.js";
 import {
-	ThumbLikeFilled,
 	DismissFilled,
 	ArrowUndoFilled,
 	ArrowRedoFilled,
@@ -177,22 +176,15 @@ export function RedoButton(props: { redo: () => void }): JSX.Element {
 	);
 }
 
-export function DeleteButton(props: {
-	handleClick: (value: React.MouseEvent) => void;
-}): JSX.Element {
-	const handleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		props.handleClick(e);
-	};
+export function DeleteButton(props: { delete: () => void }): JSX.Element {
 	return (
-		<button
-			className={
-				"bg-transparent hover:bg-gray-600 text-black hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6"
-			}
-			onClick={(e) => handleClick(e)}
-		>
-			{MiniX()}
-		</button>
+		<IconButton
+			color="white"
+			background="black"
+			handleClick={() => props.delete()}
+			icon={<DismissFilled />}
+			grow={false}
+		/>
 	);
 }
 
@@ -202,24 +194,18 @@ export function IconButton(props: {
 	icon: JSX.Element;
 	color?: string;
 	background?: string;
+	grow?: boolean;
+	toggled?: boolean;
 }): JSX.Element {
-	const handleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		props.handleClick(e);
-	};
+	const { handleClick, children, icon, color, background, grow, toggled } = props;
 
 	return (
 		<button
-			className={
-				props.color +
-				" " +
-				props.background +
-				" hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 grow"
-			}
+			className={`${color} text-nowrap hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow" : ""} ${toggled ? "bg-gray-400 text-white" : { background }}`}
 			onClick={(e) => handleClick(e)}
 		>
-			{props.icon}
-			<IconButtonText>{props.children}</IconButtonText>
+			{icon}
+			<IconButtonText>{children}</IconButtonText>
 		</button>
 	);
 }
@@ -235,14 +221,6 @@ function IconButtonText(props: { children: React.ReactNode }): JSX.Element {
 	} else {
 		return <span className="text-sm pl-2 leading-none">{props.children}</span>;
 	}
-}
-
-function MiniX(): JSX.Element {
-	return <DismissFilled />;
-}
-
-export function MiniThumb(): JSX.Element {
-	return <ThumbLikeFilled />;
 }
 
 export function ButtonGroup(props: { children: React.ReactNode }): JSX.Element {
