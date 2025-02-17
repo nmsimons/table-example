@@ -51,7 +51,7 @@ export class Cell extends sf.object("Cell", {
 	/**
 	 * Property getter to get the row that the cell is in
 	 */
-	get parent(): Row {
+	get row(): Row {
 		const parent = Tree.parent(this);
 		if (parent !== undefined) {
 			const grandparent = Tree.parent(parent);
@@ -66,14 +66,14 @@ export class Cell extends sf.object("Cell", {
 	 * Get the column the cell is in
 	 * */
 	get column(): Column {
-		const table = this.parent.parent;
+		const table = this.row.table;
 		const column = table.columns.find((column) => column.id === this.columnId);
 		if (Tree.is(column, Column)) return column;
 		throw new Error("Column not found");
 	}
 
 	private get columnId(): string {
-		for (const [key, value] of this.parent.cells.entries()) {
+		for (const [key, value] of this.row.cells.entries()) {
 			if (value === this) {
 				return key;
 			}
@@ -148,7 +148,7 @@ export class Row extends sf.object("Row", {
 		if (cell) {
 			return { value: cell.value, isDefault: false };
 		}
-		const column = this.parent.getColumn(columnId);
+		const column = this.table.getColumn(columnId);
 		return { value: column.defaultValue, isDefault: true };
 	}
 
@@ -157,7 +157,7 @@ export class Row extends sf.object("Row", {
 	 * @param index The index to move the row to
 	 * */
 	moveTo(index: number): void {
-		const rows = this.parent?.rows;
+		const rows = this.table?.rows;
 		if (rows) {
 			rows.insertAt(index, this);
 		}
@@ -166,7 +166,7 @@ export class Row extends sf.object("Row", {
 	/**
 	 * Get the parent Table
 	 */
-	get parent(): Table {
+	get table(): Table {
 		const parent = Tree.parent(this);
 		if (parent) {
 			const grandparent = Tree.parent(parent);

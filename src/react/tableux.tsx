@@ -368,7 +368,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	const data = cell.row.original;
-	const fluidColumn = data.parent.getColumn(cell.column.id);
+	const fluidColumn = data.table.getColumn(cell.column.id);
 	const value = data.getValue(cell.column.id).value;
 
 	if (typeof value === "boolean") {
@@ -413,7 +413,7 @@ export function CellInputBoolean(props: {
 				checked={value ?? false}
 				onChange={handleChange}
 			></input>
-			{data.parent.getColumn(cell.column.id).props.get("label")}
+			{data.table.getColumn(cell.column.id).props.get("label")}
 		</label>
 	);
 }
