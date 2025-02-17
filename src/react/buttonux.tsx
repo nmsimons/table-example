@@ -100,12 +100,20 @@ const getRowWithValues = (table: Table): Row => {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
 		} else if (column.defaultValue === undefined && column.props.get("hint") === "date") {
 			// Add a random date
-			const dateTime = new DateTime({ raw: new Date().toISOString() });
+			const startDate = new Date(2020, 0, 1);
+			const endDate = new Date();
+			const date = getRandomDate(startDate, endDate);
+			const dateTime = new DateTime({ raw: date.toISOString() });
 			row.initializeCell(column.id, dateTime);
 		}
 	}
 	return row;
 };
+
+function getRandomDate(start: Date, end: Date): Date {
+	const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+	return date;
+}
 
 export function NewColumnButton(props: { table: Table }): JSX.Element {
 	const { table } = props;
