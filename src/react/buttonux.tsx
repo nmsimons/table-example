@@ -98,7 +98,7 @@ const getRowWithValues = (table: Table): Row => {
 			row.setValue(column.id, Math.random() > 0.5);
 		} else if (type === "string") {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
-		} else if (column.defaultValue === null && column.props.get("hint") === "date") {
+		} else if (column.defaultValue === undefined && column.props.get("hint") === "date") {
 			// Add a random date
 			const dateTime = new DateTime({ raw: new Date().toISOString() });
 			row.initializeCell(column.id, dateTime);
