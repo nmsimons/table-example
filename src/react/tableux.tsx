@@ -139,15 +139,9 @@ export function TableHeaderView(props: {
 	const fluidColumn = fluidTable.getColumn(header.column.id);
 
 	return (
-		<th
-			style={{
-				display: "flex",
-				width: "100%",
-			}}
-			className="p-1"
-		>
+		<th className="flex p-1 min-w-64 w-64 max-w-64">
 			<div className="flex flex-row justify-between w-full gap-x-1">
-				<div className="text-left text-nowrap grow">
+				<div className="text-left truncate grow">
 					{header.isPlaceholder
 						? null
 						: flexRender(header.column.columnDef.header, header.getContext())}
@@ -215,7 +209,7 @@ export function TableBodyView(props: {
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
 		count: rows.length,
-		estimateSize: () => 48, //estimate row height for accurate scrollbar dragging
+		estimateSize: () => 36, //estimate row height for accurate scrollbar dragging
 		getScrollElement: () => tableContainerRef.current,
 		//measure dynamic row height, except in firefox because it measures table border height incorrectly
 		measureElement:
@@ -265,6 +259,7 @@ export function TableRowView(props: {
 				position: "absolute",
 				transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
 				width: "100%",
+				height: `${virtualRow.size}px`,
 			}}
 		>
 			{row
@@ -301,8 +296,8 @@ export function IndexCellView(): JSX.Element {
 export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	return (
-		<td style={{ display: "flex", width: "100%" }} className="border-1 border-gray-300">
-			<div className="p-1 w-full h-full">
+		<td className="flex border-1 border-gray-300 p-1 min-w-64 w-64 max-w-64">
+			<div className="w-full h-full">
 				<TableCellViewContent key={cell.id} cell={cell} />
 			</div>
 		</td>
