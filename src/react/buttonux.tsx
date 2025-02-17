@@ -122,7 +122,9 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		} else if (index % 4 === 2) {
 			table.appendNewColumn(name, 0);
 		} else if (index % 4 === 3) {
-			table.appendNewColumn(name, false);
+			const col = table.appendNewColumn(name, false);
+			// Set the label for the boolean column to a random string
+			col.props.set("label", Math.random().toString(36).substring(7));
 		} else {
 			table.appendNewColumn(name, null, "date");
 		}

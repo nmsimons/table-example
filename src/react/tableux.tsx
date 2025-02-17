@@ -404,13 +404,17 @@ export function CellInputBoolean(props: {
 	};
 
 	return (
-		<input
-			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
-			className="outline-none w-full h-full"
-			type="checkbox"
-			checked={value ?? false}
-			onChange={handleChange}
-		></input>
+		// Layout the checkbox and label in a flex container and align the checkbox to the left
+		<label className="flex items-center w-full h-full p-1 gap-x-2">
+			<input
+				id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
+				className="outline-none w-4 h-4"
+				type="checkbox"
+				checked={value ?? false}
+				onChange={handleChange}
+			></input>
+			{data.parent.getColumn(cell.column.id).props.get("label")}
+		</label>
 	);
 }
 
