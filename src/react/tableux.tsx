@@ -12,6 +12,7 @@ import {
 	SortingFnOption,
 	SortDirection,
 	Column,
+	SortingFn,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect } from "react";
 import {
@@ -464,11 +465,15 @@ export function CellInputDate(props: {
 				}
 			}
 		}
+		// If the cell is undefined, initialize it with the new date
+		// Otherwise, update the existing
+		// Generate a new Date from the target value
+		const d: Date = new Date(e.target.value);
 		if (fluidCell === undefined) {
-			data.initializeCell(cell.column.id, new DateTime({ raw: e.target.value }));
+			data.initializeCell(cell.column.id, new DateTime({ raw: d.getTime() }));
 		} else {
 			if (Tree.is(fluidCell.value, DateTime)) {
-				fluidCell.value.value = new Date(e.target.value);
+				fluidCell.value.value = d;
 			}
 		}
 	};
@@ -505,7 +510,7 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 		headerArray.push(
 			columnHelper.accessor(
 				(row) => {
-					return row.getCell(column.id)?.value ?? "";
+					return row.getValue(column.id).value ?? "";
 				},
 				{
 					id: column.id,
@@ -521,6 +526,36 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	return headerArray;
 };
 
+// Custom sorting function for DateTime objects because
+// the default alphanumeric sorting function does not work
+// because the data is accessed via a second layer of the object
+const dateSortingFn: SortingFn<FluidRow> = (
+	rowA: Row<FluidRow>,
+	rowB: Row<FluidRow>,
+	columnId: string,
+) => {
+	const valueA = rowA.getValue(columnId) as { value: DateTime | undefined };
+	const valueB = rowB.getValue(columnId) as { value: DateTime | undefined };
+	if (valueA === undefined && valueB === undefined) {
+		return 0;
+	} else if (valueA === undefined) {
+		return 1;
+	} else if (valueB === undefined) {
+		return -1;
+	} else if (Tree.is(valueA, DateTime) && Tree.is(valueB, DateTime)) {
+		const dateA = valueA.value;
+		const dateB = valueB.value;
+		if (dateA < dateB) {
+			return -1;
+		} else if (dateA > dateB) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	return 0;
+};
+
 // Get the sorting function and sort direction for a column
 const getSortingConfig = (
 	column: FluidColumn,
@@ -531,7 +566,10 @@ const getSortingConfig = (
 		return { fn: "alphanumeric", desc: false };
 	} else if (typeof column.defaultValue === "string") {
 		return { fn: "alphanumeric", desc: false };
+	} else if (column.props.get("hint") === "date") {
+		return { fn: dateSortingFn, desc: false };
 	} else {
+		console.error("Unknown column type");
 		return { fn: "basic", desc: false };
 	}
 };

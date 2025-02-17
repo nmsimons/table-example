@@ -13,10 +13,10 @@ import { TreeViewConfiguration, SchemaFactory, TreeArrayNode, Tree } from "fluid
 const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
 
 /**
- * A SharedTree object date-time without a timezone in RFC3339 format.
+ * A SharedTree object date-time
  */
 export class DateTime extends sf.object("DateTime", {
-	raw: sf.string,
+	raw: sf.number,
 }) {
 	/**
 	 * Get the date-time
@@ -33,7 +33,7 @@ export class DateTime extends sf.object("DateTime", {
 		if (isNaN(value.getTime())) {
 			return;
 		}
-		this.raw = value.toISOString();
+		this.raw = value.getTime();
 	}
 }
 

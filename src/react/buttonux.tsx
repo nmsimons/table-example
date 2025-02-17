@@ -103,7 +103,7 @@ const getRowWithValues = (table: Table): Row => {
 			const startDate = new Date(2020, 0, 1);
 			const endDate = new Date();
 			const date = getRandomDate(startDate, endDate);
-			const dateTime = new DateTime({ raw: date.toISOString() });
+			const dateTime = new DateTime({ raw: date.getTime() });
 			row.initializeCell(column.id, dateTime);
 		}
 	}
