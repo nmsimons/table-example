@@ -19,6 +19,7 @@ import {
 	Row as FluidRow,
 	Column as FluidColumn,
 	DateTime,
+	typeDefinition,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
@@ -483,22 +484,22 @@ export function CellInputDate(props: {
 	);
 }
 
-type cellValue = string | number | boolean | DateTime;
+type cellValue = typeDefinition; // Define the allowed cell value types
 
 const updateColumnData = (columnsArray: FluidColumn[]) => {
 	// Create a column helper based on the columns in the table
 	const columnHelper = createColumnHelper<FluidRow>();
 
-	const d = columnHelper.display({
-		id: "index",
-	});
-
 	// Create an array of ColumnDefs based on the columns in the table using
 	// the column helper
 	const headerArray: ColumnDef<FluidRow, cellValue>[] = [];
-
+	// Add the index column
+	const d = columnHelper.display({
+		id: "index",
+	});
 	headerArray.push(d);
 
+	// Add the data columns
 	columnsArray.forEach((column) => {
 		const sortingConfig = getSortingConfig(column);
 		headerArray.push(
@@ -520,7 +521,7 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	return headerArray;
 };
 
-// Get the type of the column
+// Get the sorting function and sort direction for a column
 const getSortingConfig = (
 	column: FluidColumn,
 ): { fn: SortingFnOption<FluidRow> | undefined; desc: boolean } => {

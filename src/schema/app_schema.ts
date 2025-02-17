@@ -38,7 +38,7 @@ export class DateTime extends sf.object("DateTime", {
 }
 
 // Table schema - I wish I could create something like this for the Cell value and Column defaultValue
-type typeDefinition = string | number | boolean | DateTime;
+export type typeDefinition = string | number | boolean | DateTime;
 
 /**
  * The Cell schema which should eventally support more types than just strings
