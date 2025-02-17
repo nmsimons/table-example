@@ -98,7 +98,7 @@ export function TableHeadersView(props: {
 				display: "grid",
 				zIndex: 1,
 			}}
-			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center"
+			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center shadow-sm z-50"
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<tr style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
@@ -287,7 +287,7 @@ export function TableRowView(props: {
 				width: "100%",
 				height: `${virtualRow.size}px`,
 			}}
-			className={isSelected ? "z-50 outline-2 bg-gray-200" : ""}
+			className={isSelected ? "z-40 outline-2 bg-gray-200" : ""}
 		>
 			{row
 				.getVisibleCells()
