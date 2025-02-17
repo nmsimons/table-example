@@ -31,6 +31,7 @@ import {
 } from "@fluentui/react-icons";
 
 const leftColumnWidth = "20px"; // Width of the index column
+const columnWidth = "200px"; // Width of the data columns
 
 export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const { fluidTable } = props;
@@ -139,7 +140,15 @@ export function TableHeaderView(props: {
 	const fluidColumn = fluidTable.getColumn(header.column.id);
 
 	return (
-		<th className="flex p-1 min-w-64 w-64 max-w-64">
+		<th
+			style={{
+				display: "flex",
+				minWidth: columnWidth,
+				width: columnWidth,
+				maxWidth: columnWidth,
+			}}
+			className="p-1"
+		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<div className="text-left truncate grow">
 					{header.isPlaceholder
@@ -228,6 +237,7 @@ export function TableBodyView(props: {
 				height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
 				position: "relative", //needed for absolute positioning of rows
 			}}
+			className="border-collapse"
 		>
 			{rowVirtualizer.getVirtualItems().map((virtualRow) => {
 				const row = rows[virtualRow.index] as Row<FluidRow>;
@@ -327,7 +337,7 @@ export function IndexCellView(props: {
 				minWidth: leftColumnWidth,
 				width: leftColumnWidth,
 			}}
-			className="border-1 border-gray-300 bg-gray-100 hover:bg-gray-200"
+			className="border-l-2 border-r-2 border-b-2 border-gray-300 bg-gray-100 hover:bg-gray-200 border-collapse"
 		>
 			<div className="flex w-full h-full justify-center items-center text-gray-300 hover:text-gray-600">
 				<ReOrderDotsVertical16Filled />
@@ -339,7 +349,15 @@ export function IndexCellView(props: {
 export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
 	const { cell } = props;
 	return (
-		<td className="flex border-1 border-gray-300 p-1 min-w-64 w-64 max-w-64">
+		<td
+			style={{
+				display: "flex",
+				minWidth: columnWidth,
+				width: columnWidth,
+				maxWidth: columnWidth,
+			}}
+			className="flex border-r-2 border-b-2 border-gray-300 p-1 border-collapse"
+		>
 			<div className="w-full h-full">
 				<TableCellViewContent key={cell.id} cell={cell} />
 			</div>
