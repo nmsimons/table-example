@@ -2,8 +2,6 @@ import type { ITelemetryBaseLogger } from "@fluidframework/core-interfaces";
 import { AzureClient } from "@fluidframework/azure-client";
 import { OdspClient } from "@fluidframework/odsp-client/beta";
 import React from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
 import { Table, appTreeConfiguration } from "./schema/app_schema.js";
@@ -52,15 +50,13 @@ export async function loadApp(
 	// the app renders instantly on create new flow. The app will be
 	// interactive immediately.
 	root.render(
-		<DndProvider backend={HTML5Backend}>
-			<ReactApp
-				table={appTree}
-				selection={selection}
-				audience={services.audience}
-				container={container}
-				undoRedo={undoRedo}
-			/>
-		</DndProvider>,
+		<ReactApp
+			table={appTree}
+			selection={selection}
+			audience={services.audience}
+			container={container}
+			undoRedo={undoRedo}
+		/>,
 	);
 
 	return container;

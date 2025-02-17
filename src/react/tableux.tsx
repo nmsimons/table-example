@@ -207,6 +207,8 @@ export function TableBodyView(props: {
 	const { table, tableContainerRef } = props;
 	const { rows } = table.getRowModel();
 
+	const [selected, setSelected] = useState<string[]>([]);
+
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
 		count: rows.length,
 		estimateSize: () => 36, //estimate row height for accurate scrollbar dragging
@@ -235,6 +237,8 @@ export function TableBodyView(props: {
 						row={row}
 						virtualRow={virtualRow}
 						rowVirtualizer={rowVirtualizer}
+						selected={selected}
+						setSelected={setSelected}
 					/>
 				);
 			})}
@@ -246,8 +250,20 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
+	selected: string[];
+	setSelected: (selected: string[]) => void;
 }): JSX.Element {
-	const { row, virtualRow, rowVirtualizer } = props;
+	const { row, virtualRow, rowVirtualizer, selected, setSelected } = props;
+
+	// Get the fluid row from the row
+	const fluidRow = row.original;
+
+	const [isSelected, setIsSelected] = useState(selected.includes(fluidRow.id));
+
+	// Update the selected state when the selected array changes
+	useEffect(() => {
+		setIsSelected(selected.includes(fluidRow.id));
+	}, [selected]);
 
 	return (
 		<tr
@@ -261,12 +277,18 @@ export function TableRowView(props: {
 				width: "100%",
 				height: `${virtualRow.size}px`,
 			}}
+			className={isSelected ? "z-50 outline-2 bg-gray-200" : ""}
 		>
 			{row
 				.getVisibleCells()
 				.map((cell) =>
 					cell.column.id === "index" ? (
-						<IndexCellView key="index" />
+						<IndexCellView
+							key="index"
+							selected={selected}
+							setSelected={setSelected}
+							rowId={fluidRow.id}
+						/>
 					) : (
 						<TableCellView key={cell.id} cell={cell} />
 					),
@@ -275,10 +297,31 @@ export function TableRowView(props: {
 	);
 }
 
-export function IndexCellView(): JSX.Element {
+export function IndexCellView(props: {
+	setSelected: (selected: string[]) => void;
+	selected: string[];
+	rowId: string;
+}): JSX.Element {
+	const { setSelected, selected, rowId } = props;
+
+	// handle a click event in the cell
+	const handleClick = (e: React.MouseEvent) => {
+		// If the row is already selected, remove it from the selected array
+		if (selected.includes(rowId) && e.ctrlKey) {
+			setSelected(selected.filter((id) => id !== rowId));
+		} else if (selected.includes(rowId)) {
+			setSelected([]);
+		} else if (e.ctrlKey) {
+			setSelected([...selected, rowId]);
+		} else {
+			setSelected([rowId]);
+		}
+	};
+
 	return (
 		// Center the div in the cell and center the icon in the div
 		<td
+			onClick={(e) => handleClick(e)}
 			style={{
 				display: "flex",
 				minWidth: leftColumnWidth,
