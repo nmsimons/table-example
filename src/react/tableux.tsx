@@ -96,12 +96,11 @@ export function TableHeadersView(props: {
 		<thead
 			style={{
 				display: "grid",
-				zIndex: 1,
 			}}
-			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center shadow-sm z-50"
+			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center shadow-sm z-2"
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
-				<tr style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
+				<tr className="z-2" style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
 					{headerGroup.headers.map((header) =>
 						header.id === "index" ? (
 							<IndexHeaderView key="index" />
@@ -147,7 +146,7 @@ export function TableHeaderView(props: {
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="p-1"
+			className="p-1 z-5"
 		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<div className="text-left truncate grow">
@@ -287,7 +286,7 @@ export function TableRowView(props: {
 				width: "100%",
 				height: `${virtualRow.size}px`,
 			}}
-			className={isSelected ? "z-40 outline-2 bg-gray-200" : ""}
+			className={isSelected ? "z-1 outline-2 bg-gray-200" : ""}
 		>
 			{row
 				.getVisibleCells()
@@ -300,7 +299,7 @@ export function TableRowView(props: {
 							rowId={fluidRow.id}
 						/>
 					) : (
-						<TableCellView key={cell.id} cell={cell} />
+						<TableCellView key={cell.id} cell={cell as Cell<FluidRow, cellValue>} />
 					),
 				)}
 		</tr>
@@ -337,7 +336,7 @@ export function IndexCellView(props: {
 				minWidth: leftColumnWidth,
 				width: leftColumnWidth,
 			}}
-			className="border-l-2 border-r-2 border-b-2 border-gray-300 bg-gray-100 hover:bg-gray-200 border-collapse"
+			className="border-l-2 border-r-2 border-b-2 border-gray-300 bg-gray-100 hover:bg-gray-200 border-collapse z-0"
 		>
 			<div className="flex w-full h-full justify-center items-center text-gray-300 hover:text-gray-600">
 				<ReOrderDotsVertical16Filled />
@@ -356,7 +355,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="flex border-r-2 border-b-2 border-gray-300 p-1 border-collapse"
+			className="flex border-r-2 border-b-2 border-gray-300 p-1 border-collapse z-0"
 		>
 			<div className="w-full h-full">
 				<TableCellViewContent key={cell.id} cell={cell} />
@@ -369,7 +368,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 	const { cell } = props;
 	const data = cell.row.original;
 	const fluidColumn = data.parent.getColumn(cell.column.id);
-	const value = data.getValue(cell.column.id);
+	const value = data.getValue(cell.column.id).value;
 
 	if (typeof value === "boolean") {
 		return <CellInputBoolean value={value} cell={cell} />;
@@ -381,7 +380,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 				type={typeof fluidColumn.defaultValue as "string" | "number"}
 			/>
 		);
-	} else if (value === null && fluidColumn.hint === "date") {
+	} else if (value === undefined && fluidColumn.props.get("hint") === "date") {
 		return <CellInputDate value={value} cell={cell} />;
 	} else if (value instanceof DateTime) {
 		return <CellInputDate value={value} cell={cell} />;
@@ -444,7 +443,7 @@ export function CellInputStringAndNumber(props: {
 }
 
 export function CellInputDate(props: {
-	value: DateTime | null;
+	value: DateTime | undefined;
 	cell: Cell<FluidRow, cellValue>;
 }): JSX.Element {
 	const { value, cell } = props;

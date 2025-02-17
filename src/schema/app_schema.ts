@@ -141,14 +141,15 @@ export class Row extends sf.object("Row", {
 	 * Get the value of a cell by the column id
 	 * @param columnId The id of the column
 	 * @returns The value of the cell if it exists, otherwise return the default value of the column
+	 * which is defined in the column schema and may be undefined
 	 */
-	getValue(columnId: string): typeDefinition | null {
+	getValue(columnId: string): { value: typeDefinition | undefined; isDefault: boolean } {
 		const cell = this.cells.get(columnId);
 		if (cell) {
-			return cell.value;
+			return { value: cell.value, isDefault: false };
 		}
 		const column = this.parent.getColumn(columnId);
-		return column.defaultValue;
+		return { value: column.defaultValue, isDefault: true };
 	}
 
 	/**
@@ -183,8 +184,7 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-	defaultValue: [sf.string, sf.number, sf.boolean, DateTime, sf.null],
-	hint: sf.optional(sf.string),
+	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime]),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	get parent(): Table {
@@ -284,8 +284,8 @@ export class Table extends sf.object("Table", {
 	 * Add a column to the table
 	 * @param name The name of the column
 	 * */
-	appendNewColumn(name: string, defaultValue: typeDefinition | null, hint?: string): Column {
-		const column = new Column({ name, props: {}, defaultValue, hint });
+	appendNewColumn(name: string, defaultValue?: typeDefinition): Column {
+		const column = new Column({ name, props: {}, defaultValue });
 		this.columns.insertAtEnd(column);
 		return column;
 	}
@@ -295,13 +295,8 @@ export class Table extends sf.object("Table", {
 	 * @param index The index to insert the column at
 	 * @param name The name of the column
 	 * */
-	insertNewColumn(
-		index: number,
-		name: string,
-		defaultValue: typeDefinition | null,
-		hint?: string,
-	): Column {
-		const column = new Column({ name, props: {}, defaultValue, hint });
+	insertNewColumn(index: number, name: string, defaultValue?: typeDefinition): Column {
+		const column = new Column({ name, props: {}, defaultValue });
 		this.columns.insertAt(index, column);
 		return column;
 	}

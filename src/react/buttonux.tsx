@@ -98,7 +98,7 @@ const getRowWithValues = (table: Table): Row => {
 			row.setValue(column.id, Math.random() > 0.5);
 		} else if (type === "string") {
 			row.setValue(column.id, Math.random().toString(36).substring(7));
-		} else if (column.defaultValue === null && column.hint === "date") {
+		} else if (column.defaultValue === null && column.props.get("hint") === "date") {
 			// Add a random date
 			const dateTime = new DateTime({ raw: new Date().toISOString() });
 			row.initializeCell(column.id, dateTime);
@@ -122,11 +122,12 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		} else if (index % 4 === 2) {
 			table.appendNewColumn(name, 0);
 		} else if (index % 4 === 3) {
-			const col = table.appendNewColumn(name, false);
-			// Set the label for the boolean column to a random string
-			col.props.set("label", Math.random().toString(36).substring(7));
+			table
+				.appendNewColumn(name, false)
+				// Set the label for the boolean column to a random string
+				.props.set("label", Math.random().toString(36).substring(7));
 		} else {
-			table.appendNewColumn(name, null, "date");
+			table.appendNewColumn(name, undefined).props.set("hint", "date");
 		}
 	};
 	return (
