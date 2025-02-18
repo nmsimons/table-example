@@ -15,6 +15,10 @@ import {
 	TableInsertRowFilled,
 	TableInsertRowRegular,
 	RowTripleFilled,
+	CheckboxCheckedRegular,
+	CheckboxUncheckedRegular,
+	CheckboxUncheckedFilled,
+	CheckboxCheckedFilled,
 } from "@fluentui/react-icons";
 import { Tree } from "fluid-framework";
 import { setValue } from "./tableux.js";
@@ -184,6 +188,21 @@ export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
 export function ChangeColumnTypeButton(props: { column: Column; type: string }): JSX.Element {
 	const { column, type } = props;
 
+	// Get the type of the column based on the default value
+	const columnType = typeof column.defaultValue;
+
+	// Set the icon based on the type of the column
+	// if the type is the same as the default type, we will show a checkmark
+	// if the type is different, we will show a pencil
+	let icon;
+	if (columnType.toLowerCase() === type.toLowerCase()) {
+		icon = <CheckboxCheckedFilled />;
+	} else if (columnType === "undefined" && type === "Date") {
+		icon = <CheckboxCheckedFilled />;
+	} else {
+		icon = <CheckboxUncheckedFilled />;
+	}
+
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		if (type === "String") {
@@ -204,7 +223,7 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 				color="white"
 				background="black"
 				handleClick={(e: React.MouseEvent) => handleClick(e)}
-				icon={<ColumnEditFilled />}
+				icon={icon}
 				grow={true}
 			>
 				{type}
