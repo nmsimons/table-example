@@ -152,11 +152,18 @@ export function TableHeaderView(props: {
 			className="p-1 z-5"
 		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
-				<div className="text-left truncate grow">
+				{/* <div className="text-left truncate grow">
 					{header.isPlaceholder
 						? null
 						: flexRender(header.column.columnDef.header, header.getContext())}
-				</div>
+				</div> */}
+				<input
+					className="outline-none w-full h-full truncate"
+					value={fluidColumn.name}
+					onChange={(e) => {
+						fluidColumn.name = e.target.value;
+					}}
+				></input>
 				<div>
 					<ColumnTypeDropdown column={fluidColumn} />
 				</div>

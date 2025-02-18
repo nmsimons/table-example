@@ -32,7 +32,7 @@ export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowRegular />}
 		>
-			Add Empty Row
+			Empty Row
 		</IconButton>
 	);
 }
@@ -55,7 +55,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowFilled />}
 		>
-			Add Row
+			Row
 		</IconButton>
 	);
 }
@@ -83,7 +83,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<RowTripleFilled />}
 		>
-			Add 1000
+			1000
 		</IconButton>
 	);
 }
@@ -149,7 +149,7 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<ColumnFilled />}
 		>
-			Add Column
+			Column
 		</IconButton>
 	);
 }
@@ -254,9 +254,7 @@ export function UndoButton(props: { undo: () => void }): JSX.Element {
 			background="black"
 			handleClick={() => props.undo()}
 			icon={<ArrowUndoFilled />}
-		>
-			Undo
-		</IconButton>
+		></IconButton>
 	);
 }
 
@@ -267,9 +265,7 @@ export function RedoButton(props: { redo: () => void }): JSX.Element {
 			background="black"
 			handleClick={() => props.redo()}
 			icon={<ArrowRedoFilled />}
-		>
-			Redo
-		</IconButton>
+		></IconButton>
 	);
 }
 
