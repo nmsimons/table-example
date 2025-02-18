@@ -11,12 +11,9 @@ import {
 	ArrowRedoFilled,
 	ColumnFilled,
 	CaretDown16Filled,
-	ColumnEditFilled,
 	TableInsertRowFilled,
 	TableInsertRowRegular,
 	RowTripleFilled,
-	CheckboxCheckedRegular,
-	CheckboxUncheckedRegular,
 	CheckboxUncheckedFilled,
 	CheckboxCheckedFilled,
 } from "@fluentui/react-icons";
