@@ -90,23 +90,6 @@ export class Row extends sf.object("Row", {
 	cells: sf.map(Cell), // The keys of this map are the column ids
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
-	/**
-	 * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
-	 * This will overwrite the value of the cell so if the value isn't a primitive, don't use this.
-	 * @param columnId The id of the column
-	 * @param value The value to set
-	 * @returns The cell that was set
-	 * */
-	setValue(columnId: string, value: string | number | boolean): Cell {
-		const cell = this.cells.get(columnId);
-		if (cell) {
-			cell.value = value;
-			return cell;
-		} else {
-			return this.initializeCell(columnId, value);
-		}
-	}
-
 	/** Get a cell by the column id
 	 * @param columnId The id of the column
 	 * @returns The cell if it exists, otherwise undefined
@@ -187,7 +170,10 @@ export class Column extends sf.object("Column", {
 	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime]),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
-	get parent(): Table {
+	/**
+	 * Get the parent Table
+	 */
+	get table(): Table {
 		const parent = Tree.parent(this);
 		if (parent) {
 			const grandparent = Tree.parent(parent);
@@ -196,6 +182,17 @@ export class Column extends sf.object("Column", {
 			}
 		}
 		throw new Error("Column is not in a table");
+	}
+	/**
+	 * Get all the cells in this column
+	 */
+	get cells(): Cell[] {
+		// Get all the cells in the column and put them in an array
+		// omit the undefined values
+		const cells = this.table.rows
+			.map((row) => row.cells.get(this.id))
+			.filter((cell) => cell !== undefined) as Cell[];
+		return cells;
 	}
 }
 

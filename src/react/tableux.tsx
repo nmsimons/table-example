@@ -19,12 +19,13 @@ import {
 	Table as FluidTable,
 	Row as FluidRow,
 	Column as FluidColumn,
+	Cell as FluidCell,
 	DateTime,
 	typeDefinition,
 } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
-import { DeleteButton, IconButton } from "./buttonux.js";
+import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
 	ArrowSortDownFilled,
 	ArrowSortFilled,
@@ -157,13 +158,16 @@ export function TableHeaderView(props: {
 						: flexRender(header.column.columnDef.header, header.getContext())}
 				</div>
 				<div>
+					<ColumnTypeDropdown column={fluidColumn} />
+				</div>
+				<div>
 					<SortButton column={header.column} />
 				</div>
 				<div>
 					<DeleteButton
 						delete={() => {
 							header.column.clearSorting();
-							fluidColumn.parent.deleteColumn(fluidColumn.id);
+							fluidColumn.table.deleteColumn(fluidColumn.id);
 						}}
 					/>
 				</div>
@@ -189,9 +193,8 @@ export function SortButton(props: { column: Column<FluidRow> }): JSX.Element {
 
 	return (
 		<IconButton
-			grow={false}
-			color="text-gray-600"
 			background="bg-transparent"
+			color="black"
 			handleClick={handleClick}
 			icon={<SortIndicator sorted={sorted} />}
 			toggled={sorted !== false}
@@ -401,7 +404,7 @@ export function CellInputBoolean(props: {
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		data.setValue(cell.column.id, e.target.checked);
+		setValue(data, cell.column.id, e.target.checked);
 	};
 
 	return (
@@ -430,7 +433,7 @@ export function CellInputStringAndNumber(props: {
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		data.setValue(cell.column.id, e.target.value);
+		setValue(data, cell.column.id, e.target.value);
 	};
 
 	return (
@@ -480,7 +483,7 @@ export function CellInputDate(props: {
 
 	return (
 		<input
-			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
+			id={cell.column.id}
 			className="outline-none w-full h-full"
 			type="date"
 			value={date}
@@ -571,5 +574,26 @@ const getSortingConfig = (
 	} else {
 		console.error("Unknown column type");
 		return { fn: "basic", desc: false };
+	}
+};
+
+/**
+ * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
+ * This will overwrite the value of the cell so if the value isn't a primitive, don't use this.
+ * @param columnId The id of the column
+ * @param value The value to set
+ * @returns The cell that was set
+ * */
+export const setValue = (
+	row: FluidRow,
+	columnId: string,
+	value: string | number | boolean,
+): FluidCell => {
+	const cell = row.cells.get(columnId);
+	if (cell) {
+		cell.value = value;
+		return cell;
+	} else {
+		return row.initializeCell(columnId, value);
 	}
 };

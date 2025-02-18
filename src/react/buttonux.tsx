@@ -4,17 +4,20 @@
  */
 
 import React, { JSX } from "react";
-import { DateTime, Row, Table } from "../schema/app_schema.js";
+import { Column, DateTime, Row, Table } from "../schema/app_schema.js";
 import {
 	DismissFilled,
 	ArrowUndoFilled,
 	ArrowRedoFilled,
 	ColumnFilled,
-	InsertRegular,
-	InsertFilled,
-	TableInsertColumnFilled,
+	CaretDown16Filled,
+	ColumnEditFilled,
+	TableInsertRowFilled,
+	TableInsertRowRegular,
+	RowTripleFilled,
 } from "@fluentui/react-icons";
 import { Tree } from "fluid-framework";
+import { setValue } from "./tableux.js";
 
 export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
@@ -26,7 +29,7 @@ export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<InsertRegular />}
+			icon={<TableInsertRowRegular />}
 		>
 			Add Empty Row
 		</IconButton>
@@ -49,7 +52,7 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<InsertFilled />}
+			icon={<TableInsertRowFilled />}
 		>
 			Add Row
 		</IconButton>
@@ -77,7 +80,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 			color="white"
 			background="black"
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={<TableInsertColumnFilled />}
+			icon={<RowTripleFilled />}
 		>
 			Add 1000
 		</IconButton>
@@ -93,11 +96,11 @@ const getRowWithValues = (table: Table): Row => {
 		const type = typeof column.defaultValue;
 
 		if (type === "number") {
-			row.setValue(column.id, Math.floor(Math.random() * 1000));
+			setValue(row, column.id, Math.floor(Math.random() * 1000));
 		} else if (type === "boolean") {
-			row.setValue(column.id, Math.random() > 0.5);
+			setValue(row, column.id, Math.random() > 0.5);
 		} else if (type === "string") {
-			row.setValue(column.id, Math.random().toString(36).substring(7));
+			setValue(row, column.id, Math.random().toString(36).substring(7));
 		} else if (column.defaultValue === undefined && column.props.get("hint") === "date") {
 			// Add a random date
 			const startDate = new Date(2020, 0, 1);
@@ -147,6 +150,66 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		>
 			Add Column
 		</IconButton>
+	);
+}
+
+// A menu that allows the user to change the column type
+// The user can change the column type to a string, number, boolean, or date
+export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
+	const { column } = props;
+
+	if (column.cells.length !== 0) return <></>;
+
+	return (
+		<div className="relative group">
+			<IconButton
+				color="white"
+				background="black"
+				handleClick={(e: React.MouseEvent) => e.stopPropagation()}
+				icon={<CaretDown16Filled />}
+			/>
+			<div className="absolute right-0 z-10 hidden group-hover:block ">
+				<div className="mt-1 bg-black text-white shadow-lg rounded-lg flex flex-col place-items-start">
+					<ChangeColumnTypeButton column={column} type="String" />
+					<ChangeColumnTypeButton column={column} type="Number" />
+					<ChangeColumnTypeButton column={column} type="Boolean" />
+					<ChangeColumnTypeButton column={column} type="Date" />
+				</div>
+			</div>
+		</div>
+	);
+}
+
+// Change the column type by setting the default value to a string, number, boolean, or date
+export function ChangeColumnTypeButton(props: { column: Column; type: string }): JSX.Element {
+	const { column, type } = props;
+
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (type === "String") {
+			column.defaultValue = "";
+		} else if (type === "Number") {
+			column.defaultValue = 0;
+		} else if (type === "Boolean") {
+			column.defaultValue = false;
+			column.props.set("label", Math.random().toString(36).substring(7));
+		} else if (type === "Date") {
+			column.defaultValue = undefined;
+			column.props.set("hint", "date");
+		}
+	};
+	return (
+		<div className="p-1 w-full">
+			<IconButton
+				color="white"
+				background="black"
+				handleClick={(e: React.MouseEvent) => handleClick(e)}
+				icon={<ColumnEditFilled />}
+				grow={true}
+			>
+				{type}
+			</IconButton>
+		</div>
 	);
 }
 
@@ -219,7 +282,7 @@ export function IconButton(props: {
 
 	return (
 		<button
-			className={`${color} text-nowrap hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow" : ""} ${toggled ? "bg-gray-400 text-white" : { background }}`}
+			className={`${color} text-nowrap hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? "bg-gray-400 text-white" : { background }}`}
 			onClick={(e) => handleClick(e)}
 		>
 			{icon}
