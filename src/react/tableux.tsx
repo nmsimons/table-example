@@ -411,7 +411,7 @@ export function TableCellView(props: {
 				width: columnWidth,
 				maxWidth: columnWidth,
 				...(isSelected ? { zIndex: 1000 } : {}),
-				...(isRemoteSelected ? { zIndex: 900 } : {}),
+				...(isRemoteSelected ? { zIndex: 1000 } : {}),
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
