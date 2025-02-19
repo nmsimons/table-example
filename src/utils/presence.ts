@@ -50,12 +50,41 @@ export class SelectionManager extends EventTarget {
 		return remoteSelectedClients.length > 0;
 	}
 
-	public updateSelection(id: payload) {
-		let arr: payload[] = [];
-		const i = this.valueManager.local.items.indexOf(id);
+	public toggleMultiSelection(id: payload) {
+		const arr: payload[] = this.valueManager.local.items.slice();
+		const i = arr.indexOf(id);
 		if (i == -1) {
-			arr = [id];
+			arr.push(id);
+		} else {
+			arr.splice(i, 1);
 		}
+		this.valueManager.local = { items: arr };
+
+		// emit an event to notify the app that the selection has changed
+		this.dispatchEvent(new Event("selectionChanged"));
+
+		return;
+	}
+
+	public toggleSelection(id: payload) {
+		const arr: payload[] = this.valueManager.local.items.slice();
+		const i = arr.indexOf(id);
+		if (i == -1) {
+			arr.push(id);
+		} else {
+			arr.splice(i, 1);
+		}
+		this.valueManager.local = { items: arr };
+
+		// emit an event to notify the app that the selection has changed
+		this.dispatchEvent(new Event("selectionChanged"));
+
+		return;
+	}
+
+	public replaceSelection(id: payload) {
+		let arr: payload[] = [];
+		arr = [id];
 		this.valueManager.local = { items: arr };
 
 		// emit an event to notify the app that the selection has changed
@@ -69,13 +98,25 @@ export class SelectionManager extends EventTarget {
 		const i = arr.indexOf(id);
 		if (i == -1) {
 			arr.push(id);
-		} else {
-			arr.splice(i, 1);
 		}
 		this.valueManager.local = { items: arr };
 
 		// emit an event to notify the app that the selection has changed
 		this.dispatchEvent(new Event("selectionChanged"));
+
+		return;
+	}
+
+	public removeFromSelection(id: payload) {
+		const arr: payload[] = this.valueManager.local.items.slice();
+		const i = arr.indexOf(id);
+		if (i != -1) {
+			arr.splice(i, 1);
+			this.valueManager.local = { items: arr };
+
+			// emit an event to notify the app that the selection has changed
+			this.dispatchEvent(new Event("selectionChanged"));
+		}
 
 		return;
 	}

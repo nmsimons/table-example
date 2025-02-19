@@ -33,6 +33,7 @@ import {
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
 import { SelectionManager } from "../utils/presence.js";
+import { createPortal } from "react-dom";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
@@ -248,6 +249,7 @@ export function TableBodyView(props: {
 
 	return (
 		<tbody
+			id="tableBody"
 			style={{
 				display: "grid",
 				height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
@@ -338,9 +340,9 @@ export function IndexCellView(props: { selection: SelectionManager; rowId: strin
 	// handle a click event in the cell
 	const handleClick = (e: React.MouseEvent) => {
 		if (e.ctrlKey) {
-			selection.appendSelection(rowId);
+			selection.toggleMultiSelection(rowId);
 		} else {
-			selection.updateSelection(rowId);
+			selection.toggleSelection(rowId);
 		}
 	};
 
@@ -391,13 +393,11 @@ export function TableCellView(props: {
 
 	// handle a click event in the cell
 	const handleFocus = () => {
-		selection.updateSelection(cell.id);
-		//setChildIsSelected(true);
+		selection.replaceSelection(cell.id);
 	};
 
 	const handleBlur = () => {
 		selection.clearSelection();
-		//setChildIsSelected(false);
 	};
 
 	return (
@@ -415,8 +415,8 @@ export function TableCellView(props: {
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<PresenceBox color="blue" shade={600} width={2} offset={0} hidden={!isSelected} />
-			<PresenceBox color="gray" shade={400} width={2} offset={2} hidden={!isRemoteSelected} />
+			<PresenceBox hidden={!isSelected} remote={false} />
+			<PresenceBox hidden={!isRemoteSelected} remote={true} />
 			<TableCellViewContent key={cell.id} cell={cell} />
 		</td>
 	);
@@ -571,22 +571,15 @@ export function CellInputDate(props: {
 	);
 }
 
-export function PresenceBox(props: {
-	color: string;
-	shade: number;
-	width: number;
-	offset: number;
-	hidden: boolean;
-}): JSX.Element {
-	const { color, shade, width, offset, hidden } = props;
+export function PresenceBox(props: { hidden: boolean; remote: boolean }): JSX.Element {
+	const { hidden, remote } = props;
 	return (
 		<div
-			style={{
-				zIndex: 1000,
-			}}
-			className={`absolute pointer-events-none inset-0 outline-${color}-${shade} outline-${width}  outline-offset-${offset}
-			${hidden ? "hidden" : ""} opacity-50`}
-		></div>
+			className={`absolute pointer-events-none inset-0  outline-2 -outline-offset-2
+			${hidden ? "hidden" : ""} ${remote ? "outline-black" : "outline-blue-600"} opacity-50`}
+		>
+			<div></div>
+		</div>
 	);
 }
 
