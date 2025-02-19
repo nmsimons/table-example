@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	ColumnDef,
 	createColumnHelper,
 	useReactTable,
 	getCoreRowModel,
-	flexRender,
 	Table,
 	Header,
 	Row,
@@ -69,6 +69,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 	const table = useReactTable({
 		data,
 		columns,
+		getRowId: (originalRow) => originalRow.id,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(), //provide a sorting row model
 	});
@@ -80,7 +81,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 		>
 			<table
 				style={{ display: "grid" }}
-				className="table-auto w-full border-collapse rounded-md"
+				className="table-auto w-full border-collapse border-b-2 border-gray-200"
 			>
 				<TableHeadersView table={table} fluidTable={fluidTable} />
 				<TableBodyView table={table} tableContainerRef={tableContainerRef} />
@@ -152,11 +153,6 @@ export function TableHeaderView(props: {
 			className="p-1 z-5"
 		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
-				{/* <div className="text-left truncate grow">
-					{header.isPlaceholder
-						? null
-						: flexRender(header.column.columnDef.header, header.getContext())}
-				</div> */}
 				<input
 					className="outline-none w-full h-full truncate"
 					value={fluidColumn.name}
@@ -248,7 +244,6 @@ export function TableBodyView(props: {
 				height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
 				position: "relative", //needed for absolute positioning of rows
 			}}
-			className="border-collapse"
 		>
 			{rowVirtualizer.getVirtualItems().map((virtualRow) => {
 				const row = rows[virtualRow.index] as Row<FluidRow>;
@@ -276,6 +271,8 @@ export function TableRowView(props: {
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer, selected, setSelected } = props;
 
+	const style = { transform: `translateY(${virtualRow.start}px)` };
+
 	// Get the fluid row from the row
 	const fluidRow = row.original;
 
@@ -290,15 +287,17 @@ export function TableRowView(props: {
 		<tr
 			key={row.id}
 			data-index={virtualRow.index} //needed for dynamic row height measurement
-			ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+			ref={(node) => {
+				rowVirtualizer.measureElement(node);
+			}} //measure dynamic row height
 			style={{
+				...style,
 				display: "flex",
 				position: "absolute",
-				transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
 				width: "100%",
 				height: `${virtualRow.size}px`,
 			}}
-			className={isSelected ? "z-1 outline-2 bg-gray-200" : ""}
+			className={`${isSelected ? "z-1 outline-2 bg-gray-200" : ""} w-full even:bg-white odd:bg-gray-100`}
 		>
 			{row
 				.getVisibleCells()
@@ -326,6 +325,7 @@ export function IndexCellView(props: {
 	const { setSelected, selected, rowId } = props;
 
 	// handle a click event in the cell
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const handleClick = (e: React.MouseEvent) => {
 		// If the row is already selected, remove it from the selected array
 		if (selected.includes(rowId) && e.ctrlKey) {
@@ -348,9 +348,9 @@ export function IndexCellView(props: {
 				minWidth: leftColumnWidth,
 				width: leftColumnWidth,
 			}}
-			className="border-l-2 border-r-2 border-b-2 border-gray-300 bg-gray-100 hover:bg-gray-200 border-collapse z-0"
+			className="bg-gray-200 hover:bg-gray-400 border-collapse z-0"
 		>
-			<div className="flex w-full h-full justify-center items-center text-gray-300 hover:text-gray-600">
+			<div className="flex w-full h-full justify-center items-center text-gray-400 hover:text-gray-800">
 				<ReOrderDotsVertical16Filled />
 			</div>
 		</td>
@@ -367,7 +367,7 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="flex border-r-2 border-b-2 border-gray-300 p-1 border-collapse z-0"
+			className="flex p-1 border-collapse z-0 border-r-2"
 		>
 			<div className="w-full h-full">
 				<TableCellViewContent key={cell.id} cell={cell} />
@@ -384,15 +384,13 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 
 	if (typeof value === "boolean") {
 		return <CellInputBoolean value={value} cell={cell} />;
-	} else if (typeof value === "number" || typeof value === "string") {
-		return (
-			<CellInputStringAndNumber
-				value={value}
-				cell={cell}
-				type={typeof fluidColumn.defaultValue as "string" | "number"}
-			/>
-		);
-	} else if (value === undefined && fluidColumn.props.get("hint") === "date") {
+	} else if (typeof value === "number") {
+		return <CellInputNumber value={value} cell={cell} />;
+	} else if (typeof value === "string") {
+		return <CellInputString value={value} cell={cell} />;
+	}
+	// If the value is undefined and the column hint is date, display a date input
+	else if (value === undefined && fluidColumn.props.get("hint") === "date") {
 		return <CellInputDate value={value} cell={cell} />;
 	} else if (value instanceof DateTime) {
 		return <CellInputDate value={value} cell={cell} />;
@@ -430,12 +428,11 @@ export function CellInputBoolean(props: {
 }
 
 // Input field for a string cell
-export function CellInputStringAndNumber(props: {
-	value: string | number;
+export function CellInputString(props: {
+	value: string;
 	cell: Cell<FluidRow, cellValue>;
-	type: "string" | "number";
 }): JSX.Element {
-	const { value, cell, type } = props;
+	const { value, cell } = props;
 	const data = cell.row.original;
 
 	// handle a change event in the cell
@@ -445,10 +442,40 @@ export function CellInputStringAndNumber(props: {
 
 	return (
 		<input
-			id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
+			id={cell.column.id}
 			className="outline-none w-full h-full"
-			type={type}
+			type="text"
 			value={value ?? ""}
+			onChange={handleChange}
+		></input>
+	);
+}
+
+// Input field for a string cell
+export function CellInputNumber(props: {
+	value: number;
+	cell: Cell<FluidRow, cellValue>;
+}): JSX.Element {
+	const { value, cell } = props;
+	const data = cell.row.original;
+
+	// handle a change event in the cell
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		// convert the value to a number
+		const num = parseFloat(e.target.value);
+		if (!isNaN(num)) {
+			setValue(data, cell.column.id, num);
+		}
+	};
+
+	return (
+		<input
+			inputMode="numeric"
+			style={{ textAlign: "right" }}
+			id={cell.column.id}
+			className="outline-none w-full h-full"
+			type="number"
+			value={value ?? 0}
 			onChange={handleChange}
 		></input>
 	);

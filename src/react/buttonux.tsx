@@ -310,7 +310,7 @@ IconButton.defaultProps = {
 
 function IconButtonText(props: { children: React.ReactNode }): JSX.Element {
 	if (props.children == undefined) {
-		return <span></span>;
+		return <></>;
 	} else {
 		return <span className="text-sm pl-2 leading-none">{props.children}</span>;
 	}
