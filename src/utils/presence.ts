@@ -70,11 +70,10 @@ export class SelectionManager extends EventTarget {
 		const arr: payload[] = this.valueManager.local.items.slice();
 		const i = arr.indexOf(id);
 		if (i == -1) {
-			arr.push(id);
+			this.valueManager.local = { items: [id] };
 		} else {
-			arr.splice(i, 1);
+			this.valueManager.local = { items: [] };
 		}
-		this.valueManager.local = { items: arr };
 
 		// emit an event to notify the app that the selection has changed
 		this.dispatchEvent(new Event("selectionChanged"));

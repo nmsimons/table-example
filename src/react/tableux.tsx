@@ -286,15 +286,10 @@ export function TableRowView(props: {
 	const fluidRow = row.original;
 
 	const [isSelected, setIsSelected] = useState(selection.testSelection(fluidRow.id));
-	const [isRemoteSelected, setIsRemoteSelected] = useState(
-		selection.testRemoteSelection(fluidRow.id),
-	);
-	const [childIsSelected, setChildIsSelected] = useState(false);
 
 	useEffect(() => {
 		selection.addEventListener("selectionChanged", () => {
 			setIsSelected(selection.testSelection(row.id));
-			setIsRemoteSelected(selection.testRemoteSelection(row.id));
 		});
 	}, []);
 
@@ -312,7 +307,6 @@ export function TableRowView(props: {
 				width: "100%",
 				height: `${virtualRow.size}px`,
 				...(isSelected ? { zIndex: 3 } : {}),
-				...(childIsSelected ? { zIndex: 2 } : {}),
 			}}
 			className={`${isSelected ? "outline-2 outline-blue-300" : ""}  w-full even:bg-white odd:bg-gray-100`}
 		>
@@ -326,7 +320,6 @@ export function TableRowView(props: {
 							key={cell.id}
 							cell={cell as Cell<FluidRow, cellValue>}
 							selection={selection}
-							setChildIsSelected={setChildIsSelected}
 						/>
 					),
 				)}
@@ -369,9 +362,8 @@ export function IndexCellView(props: { selection: SelectionManager; rowId: strin
 export function TableCellView(props: {
 	cell: Cell<FluidRow, cellValue>;
 	selection: SelectionManager;
-	setChildIsSelected: (arg: boolean) => void;
 }): JSX.Element {
-	const { cell, selection, setChildIsSelected } = props;
+	const { cell, selection } = props;
 
 	const [isSelected, setIsSelected] = useState(selection.testSelection(cell.id));
 	const [isRemoteSelected, setIsRemoteSelected] = useState(
@@ -384,12 +376,6 @@ export function TableCellView(props: {
 			setIsRemoteSelected(selection.testRemoteSelection(cell.id));
 		});
 	}, []);
-
-	useEffect(() => {
-		setChildIsSelected(
-			selection.testSelection(cell.id) || selection.testRemoteSelection(cell.id),
-		);
-	}, [isSelected, isRemoteSelected]);
 
 	// handle a click event in the cell
 	const handleFocus = () => {
