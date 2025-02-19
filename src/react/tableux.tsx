@@ -14,7 +14,7 @@ import {
 	Column,
 	SortingFn,
 } from "@tanstack/react-table";
-import React, { JSX, useState, useEffect } from "react";
+import React, { JSX, useState, useEffect, use } from "react";
 import {
 	Table as FluidTable,
 	Row as FluidRow,
@@ -32,11 +32,15 @@ import {
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
+import { SelectionManager } from "../utils/presence.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
 
-export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
+export function TableView(props: {
+	fluidTable: FluidTable;
+	selection: SelectionManager;
+}): JSX.Element {
 	const { fluidTable } = props;
 	const [data, setData] = useState<FluidRow[]>(
 		fluidTable.rows.map((row) => {
@@ -84,7 +88,11 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 				className="table-auto w-full border-collapse border-b-2 border-gray-200"
 			>
 				<TableHeadersView table={table} fluidTable={fluidTable} />
-				<TableBodyView table={table} tableContainerRef={tableContainerRef} />
+				<TableBodyView
+					table={table}
+					tableContainerRef={tableContainerRef}
+					selection={props.selection}
+				/>
 			</table>
 		</div>
 	);
@@ -100,11 +108,12 @@ export function TableHeadersView(props: {
 		<thead
 			style={{
 				display: "grid",
+				zIndex: 4,
 			}}
 			className="bg-gray-200 sticky top-0 min-h-[36px] w-full inline-flex items-center shadow-sm z-2"
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
-				<tr className="z-2" style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
+				<tr style={{ display: "flex", width: "100%" }} key={headerGroup.id}>
 					{headerGroup.headers.map((header) =>
 						header.id === "index" ? (
 							<IndexHeaderView key="index" />
@@ -150,10 +159,11 @@ export function TableHeaderView(props: {
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="p-1 z-5"
+			className="p-1"
 		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<input
+					id={fluidColumn.id}
 					className="outline-none w-full h-full truncate"
 					value={fluidColumn.name}
 					onChange={(e) => {
@@ -219,11 +229,10 @@ export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Ele
 export function TableBodyView(props: {
 	table: Table<FluidRow>;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
+	selection: SelectionManager;
 }): JSX.Element {
-	const { table, tableContainerRef } = props;
+	const { table, tableContainerRef, selection } = props;
 	const { rows } = table.getRowModel();
-
-	const [selected, setSelected] = useState<string[]>([]);
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
 		count: rows.length,
@@ -253,8 +262,7 @@ export function TableBodyView(props: {
 						row={row}
 						virtualRow={virtualRow}
 						rowVirtualizer={rowVirtualizer}
-						selected={selected}
-						setSelected={setSelected}
+						selection={selection}
 					/>
 				);
 			})}
@@ -266,22 +274,27 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
-	selected: string[];
-	setSelected: (selected: string[]) => void;
+	selection: SelectionManager;
 }): JSX.Element {
-	const { row, virtualRow, rowVirtualizer, selected, setSelected } = props;
+	const { row, virtualRow, rowVirtualizer, selection } = props;
 
 	const style = { transform: `translateY(${virtualRow.start}px)` };
 
 	// Get the fluid row from the row
 	const fluidRow = row.original;
 
-	const [isSelected, setIsSelected] = useState(selected.includes(fluidRow.id));
+	const [isSelected, setIsSelected] = useState(selection.testSelection(fluidRow.id));
+	const [isRemoteSelected, setIsRemoteSelected] = useState(
+		selection.testRemoteSelection(fluidRow.id),
+	);
+	const [childIsSelected, setChildIsSelected] = useState(false);
 
-	// Update the selected state when the selected array changes
 	useEffect(() => {
-		setIsSelected(selected.includes(fluidRow.id));
-	}, [selected]);
+		selection.addEventListener("selectionChanged", () => {
+			setIsSelected(selection.testSelection(row.id));
+			setIsRemoteSelected(selection.testRemoteSelection(row.id));
+		});
+	}, []);
 
 	return (
 		<tr
@@ -296,46 +309,38 @@ export function TableRowView(props: {
 				position: "absolute",
 				width: "100%",
 				height: `${virtualRow.size}px`,
+				...(isSelected ? { zIndex: 3 } : {}),
+				...(childIsSelected ? { zIndex: 2 } : {}),
 			}}
-			className={`${isSelected ? "z-1 outline-2 bg-gray-200" : ""} w-full even:bg-white odd:bg-gray-100`}
+			className={`${isSelected ? "outline-2 outline-blue-300" : ""}  w-full even:bg-white odd:bg-gray-100`}
 		>
 			{row
 				.getVisibleCells()
 				.map((cell) =>
 					cell.column.id === "index" ? (
-						<IndexCellView
-							key="index"
-							selected={selected}
-							setSelected={setSelected}
-							rowId={fluidRow.id}
-						/>
+						<IndexCellView key="index" rowId={row.id} selection={selection} />
 					) : (
-						<TableCellView key={cell.id} cell={cell as Cell<FluidRow, cellValue>} />
+						<TableCellView
+							key={cell.id}
+							cell={cell as Cell<FluidRow, cellValue>}
+							selection={selection}
+							setChildIsSelected={setChildIsSelected}
+						/>
 					),
 				)}
 		</tr>
 	);
 }
 
-export function IndexCellView(props: {
-	setSelected: (selected: string[]) => void;
-	selected: string[];
-	rowId: string;
-}): JSX.Element {
-	const { setSelected, selected, rowId } = props;
+export function IndexCellView(props: { selection: SelectionManager; rowId: string }): JSX.Element {
+	const { selection, rowId } = props;
 
 	// handle a click event in the cell
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const handleClick = (e: React.MouseEvent) => {
-		// If the row is already selected, remove it from the selected array
-		if (selected.includes(rowId) && e.ctrlKey) {
-			setSelected(selected.filter((id) => id !== rowId));
-		} else if (selected.includes(rowId)) {
-			setSelected([]);
-		} else if (e.ctrlKey) {
-			setSelected([...selected, rowId]);
+		if (e.ctrlKey) {
+			selection.appendSelection(rowId);
 		} else {
-			setSelected([rowId]);
+			selection.updateSelection(rowId);
 		}
 	};
 
@@ -350,28 +355,69 @@ export function IndexCellView(props: {
 			}}
 			className="bg-gray-200 hover:bg-gray-400 border-collapse z-0"
 		>
-			<div className="flex w-full h-full justify-center items-center text-gray-400 hover:text-gray-800">
+			<div
+				className={`flex w-full h-full justify-center items-center text-gray-400 hover:text-gray-800`}
+			>
 				<ReOrderDotsVertical16Filled />
 			</div>
 		</td>
 	);
 }
 
-export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
-	const { cell } = props;
+export function TableCellView(props: {
+	cell: Cell<FluidRow, cellValue>;
+	selection: SelectionManager;
+	setChildIsSelected: (arg: boolean) => void;
+}): JSX.Element {
+	const { cell, selection, setChildIsSelected } = props;
+
+	const [isSelected, setIsSelected] = useState(selection.testSelection(cell.id));
+	const [isRemoteSelected, setIsRemoteSelected] = useState(
+		selection.testRemoteSelection(cell.id),
+	);
+
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			setIsSelected(selection.testSelection(cell.id));
+			setIsRemoteSelected(selection.testRemoteSelection(cell.id));
+		});
+	}, []);
+
+	useEffect(() => {
+		setChildIsSelected(
+			selection.testSelection(cell.id) || selection.testRemoteSelection(cell.id),
+		);
+	}, [isSelected, isRemoteSelected]);
+
+	// handle a click event in the cell
+	const handleFocus = () => {
+		selection.updateSelection(cell.id);
+		//setChildIsSelected(true);
+	};
+
+	const handleBlur = () => {
+		selection.clearSelection();
+		//setChildIsSelected(false);
+	};
+
 	return (
 		<td
+			onFocus={handleFocus}
+			onBlur={handleBlur}
 			style={{
 				display: "flex",
+				position: "relative",
 				minWidth: columnWidth,
 				width: columnWidth,
 				maxWidth: columnWidth,
+				...(isSelected ? { zIndex: 1000 } : {}),
+				...(isRemoteSelected ? { zIndex: 900 } : {}),
 			}}
-			className="flex p-1 border-collapse z-0 border-r-2"
+			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<div className="w-full h-full">
-				<TableCellViewContent key={cell.id} cell={cell} />
-			</div>
+			<PresenceBox color="blue" shade={600} width={2} offset={0} hidden={!isSelected} />
+			<PresenceBox color="gray" shade={400} width={2} offset={2} hidden={!isRemoteSelected} />
+			<TableCellViewContent key={cell.id} cell={cell} />
 		</td>
 	);
 }
@@ -416,7 +462,7 @@ export function CellInputBoolean(props: {
 		// Layout the checkbox and label in a flex container and align the checkbox to the left
 		<label className="flex items-center w-full h-full p-1 gap-x-2">
 			<input
-				id={data.getCell(cell.column.id)?.id ?? data.id + cell.column.id}
+				id={cell.id}
 				className="outline-none w-4 h-4"
 				type="checkbox"
 				checked={value ?? false}
@@ -442,7 +488,7 @@ export function CellInputString(props: {
 
 	return (
 		<input
-			id={cell.column.id}
+			id={cell.id}
 			className="outline-none w-full h-full"
 			type="text"
 			value={value ?? ""}
@@ -471,8 +517,7 @@ export function CellInputNumber(props: {
 	return (
 		<input
 			inputMode="numeric"
-			style={{ textAlign: "right" }}
-			id={cell.column.id}
+			id={cell.id}
 			className="outline-none w-full h-full"
 			type="number"
 			value={value ?? 0}
@@ -517,12 +562,31 @@ export function CellInputDate(props: {
 
 	return (
 		<input
-			id={cell.column.id}
+			id={cell.id}
 			className="outline-none w-full h-full"
 			type="date"
 			value={date}
 			onChange={handleChange}
 		></input>
+	);
+}
+
+export function PresenceBox(props: {
+	color: string;
+	shade: number;
+	width: number;
+	offset: number;
+	hidden: boolean;
+}): JSX.Element {
+	const { color, shade, width, offset, hidden } = props;
+	return (
+		<div
+			style={{
+				zIndex: 1000,
+			}}
+			className={`absolute pointer-events-none inset-0 outline-${color}-${shade} outline-${width}  outline-offset-${offset}
+			${hidden ? "hidden" : ""} opacity-50`}
+		></div>
 	);
 }
 

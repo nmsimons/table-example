@@ -11,7 +11,7 @@ import { loadFluidData } from "./infra/fluid.js";
 import { IFluidContainer } from "fluid-framework";
 
 import { acquirePresenceViaDataObject } from "@fluidframework/presence/alpha";
-import { SelectionManager } from "./utils/presence_helpers.js";
+import { SelectionManager } from "./utils/presence.js";
 
 export async function loadApp(
 	client: AzureClient | OdspClient,
@@ -35,6 +35,7 @@ export async function loadApp(
 	// Get the Presence data object from the container
 	const selection = new SelectionManager(
 		acquirePresenceViaDataObject(container.initialObjects.presence),
+		"selection:main",
 	);
 
 	// create the root element for React

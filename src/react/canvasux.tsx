@@ -25,7 +25,7 @@ import {
 	DeleteAllRowsButton,
 } from "./buttonux.js";
 import { undoRedo } from "../utils/undo.js";
-import type { SelectionManager } from "../utils/presence_helpers.js";
+import type { SelectionManager } from "../utils/presence.js";
 
 import { TableView } from "./tableux.js";
 
@@ -34,13 +34,13 @@ export function Canvas(props: {
 	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
-	fluidMembers: string[];
+	fluidMembers: IMember[];
 	currentUser: string;
 	undoRedo: undoRedo;
 	setCurrentUser: (arg: string) => void;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
-	setFluidMembers: (arg: string[]) => void;
+	setFluidMembers: (arg: IMember[]) => void;
 }): JSX.Element {
 	useEffect(() => {
 		const updateConnectionState = () => {
@@ -68,7 +68,7 @@ export function Canvas(props: {
 		if (props.audience.getMyself()?.id == undefined) return;
 		if (props.audience.getMembers() == undefined) return;
 		if (props.container.connectionState !== ConnectionState.Connected) return;
-		props.setFluidMembers(Array.from(props.audience.getMembers().keys()));
+		props.setFluidMembers(Array.from(props.audience.getMembers().values()));
 	};
 
 	useEffect(() => {
@@ -81,7 +81,7 @@ export function Canvas(props: {
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView fluidTable={props.table} />
+			<TableView fluidTable={props.table} selection={props.selection} />
 			<Floater>
 				<ButtonGroup>
 					<NewColumnButton table={props.table} />

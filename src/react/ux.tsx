@@ -8,7 +8,7 @@ import { Table } from "../schema/app_schema.js";
 import "../output.css";
 import { IFluidContainer, IMember, IServiceAudience, Tree, TreeView } from "fluid-framework";
 import { Canvas } from "./canvasux.js";
-import type { SelectionManager } from "../utils/presence_helpers.js";
+import type { SelectionManager } from "../utils/presence.js";
 import { undoRedo } from "../utils/undo.js";
 
 export function ReactApp(props: {
@@ -21,7 +21,7 @@ export function ReactApp(props: {
 	const [currentUser, setCurrentUser] = useState("");
 	const [connectionState, setConnectionState] = useState("");
 	const [saved, setSaved] = useState(false);
-	const [fluidMembers, setFluidMembers] = useState<string[]>([]);
+	const [fluidMembers, setFluidMembers] = useState<IMember[]>([]);
 
 	/** Unsubscribe to undo-redo events when the component unmounts */
 	useEffect(() => {
@@ -62,7 +62,7 @@ export function ReactApp(props: {
 export function Header(props: {
 	saved: boolean;
 	connectionState: string;
-	fluidMembers: string[];
+	fluidMembers: IMember[];
 	clientId: string;
 	table: Table;
 }): JSX.Element {
