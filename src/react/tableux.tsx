@@ -575,11 +575,9 @@ export function PresenceBox(props: { hidden: boolean; remote: boolean }): JSX.El
 	const { hidden, remote } = props;
 	return (
 		<div
-			className={`absolute pointer-events-none inset-0  outline-2 -outline-offset-2
-			${hidden ? "hidden" : ""} ${remote ? "outline-black" : "outline-blue-600"} opacity-50`}
-		>
-			<div></div>
-		</div>
+			className={`absolute z-1 h-full w-full inset-0 pointer-events-none outline-2 -outline-offset-2
+			${hidden ? "hidden" : ""} ${remote ? "outline-red-800" : "outline-blue-600"} opacity-50`}
+		></div>
 	);
 }
 
