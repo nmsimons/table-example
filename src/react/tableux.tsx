@@ -522,6 +522,36 @@ const dateSortingFn: SortingFn<FluidRow> = (
 	return 0;
 };
 
+// Custom sorting function for DateTime objects because
+// the default alphanumeric sorting function does not work
+// because the data is accessed via a second layer of the object
+const voteSortingFn: SortingFn<FluidRow> = (
+	rowA: Row<FluidRow>,
+	rowB: Row<FluidRow>,
+	columnId: string,
+) => {
+	const valueA = rowA.getValue(columnId) as { value: Vote | undefined };
+	const valueB = rowB.getValue(columnId) as { value: Vote | undefined };
+	if (valueA === undefined && valueB === undefined) {
+		return 0;
+	} else if (valueA === undefined) {
+		return 1;
+	} else if (valueB === undefined) {
+		return -1;
+	} else if (Tree.is(valueA, Vote) && Tree.is(valueB, Vote)) {
+		const dateA = valueA.numberOfVotes;
+		const dateB = valueB.numberOfVotes;
+		if (dateA < dateB) {
+			return -1;
+		} else if (dateA > dateB) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	return 0;
+};
+
 // Get the sorting function and sort direction for a column
 const getSortingConfig = (
 	column: FluidColumn,
@@ -529,13 +559,13 @@ const getSortingConfig = (
 	if (typeof column.defaultValue === "boolean") {
 		return { fn: "basic", desc: false };
 	} else if (typeof column.defaultValue === "number") {
-		return { fn: "alphanumeric", desc: false };
+		return { fn: "alphanumeric", desc: true };
 	} else if (typeof column.defaultValue === "string") {
 		return { fn: "alphanumeric", desc: false };
 	} else if (column.hint === "date") {
 		return { fn: dateSortingFn, desc: false };
 	} else if (column.hint === "vote") {
-		return { fn: "basic", desc: false };
+		return { fn: voteSortingFn, desc: true };
 	} else {
 		console.error(
 			"Unknown column type",
