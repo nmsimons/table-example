@@ -504,9 +504,9 @@ const dateSortingFn: SortingFn<FluidRow> = (
 	const valueB = rowB.getValue(columnId) as { value: DateTime | undefined };
 	if (valueA === undefined && valueB === undefined) {
 		return 0;
-	} else if (valueA === undefined) {
+	} else if (valueA === undefined || valueA.value === undefined) {
 		return 1;
-	} else if (valueB === undefined) {
+	} else if (valueB === undefined || valueB.value === undefined) {
 		return -1;
 	} else if (Tree.is(valueA, DateTime) && Tree.is(valueB, DateTime)) {
 		const dateA = valueA.value;
