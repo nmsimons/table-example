@@ -272,7 +272,7 @@ export function ToolbarButton(props: {
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={icon}
 			color="text-white"
-			hoverBackground="bg-black"
+			background="bg-gray-600 hover:bg-black"
 			grow={false}
 		>
 			{children}
@@ -288,8 +288,6 @@ export function IconButton(props: {
 	background?: string;
 	grow?: boolean;
 	toggled?: boolean;
-	hoverBackground?: string;
-	hoverColor?: string;
 	toggleBackground?: string;
 	toggleColor?: string;
 }): JSX.Element {
@@ -301,15 +299,13 @@ export function IconButton(props: {
 		background,
 		grow,
 		toggled,
-		hoverBackground,
 		toggleBackground,
 		toggleColor,
-		hoverColor,
 	} = props;
 
 	return (
 		<button
-			className={`text-nowrap hover:${hoverBackground} hover:${hoverColor} font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`}`}
+			className={`text-nowrap font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`}`}
 			onClick={(e) => handleClick(e)}
 		>
 			{icon}
@@ -319,12 +315,10 @@ export function IconButton(props: {
 }
 
 IconButton.defaultProps = {
-	color: "text-gray-600",
-	background: "bg-transparent",
-	hoverBackground: "bg-gray-600",
-	toggleBackground: "bg-gray-400",
+	color: "text-gray-600 hover:text-white",
+	background: "bg-transparent hover:bg-gray-600",
+	toggleBackground: "bg-gray-400 hover:bg-gray-600",
 	toggleColor: "text-white",
-	hoverColor: "text-white",
 	grow: false,
 };
 
@@ -352,7 +346,7 @@ export function Toolbar(props: { children: React.ReactNode }): JSX.Element {
 
 export function Placeholder(): JSX.Element {
 	return (
-		<div className="h-full w-full flex flex-col items-center justify-center hover:bg-black text-white">
+		<div className="h-full w-full flex flex-col items-center justify-center hover:bg-black hover: text-white">
 			<div className="h-12 w-12 rounded-full bg-gray-600"></div>
 			<div className="h-6 w-24 rounded-md bg-gray-600 mt-2"></div>
 		</div>

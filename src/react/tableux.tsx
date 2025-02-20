@@ -35,6 +35,13 @@ import {
 } from "@fluentui/react-icons";
 import { SelectionManager } from "../utils/presence.js";
 import { createPortal } from "react-dom";
+import {
+	CellInputBoolean,
+	CellInputNumber,
+	CellInputString,
+	CellInputDate,
+	CellInputVote,
+} from "./inputux.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
@@ -430,182 +437,12 @@ export function TableCellViewContent(props: {
 	}
 	// If the value is undefined and the column hint is vote, display a vote button
 	else if (value === undefined && fluidColumn.props.get("hint") === "vote") {
-		return <CellInputVote cell={cell} userId={user.id} />;
+		return <CellInputVote value={value} cell={cell} userId={user.id} />;
 	} // If the value is a vote, display the vote button
 	else if (value instanceof Vote) {
-		return <CellInputVote cell={cell} userId={user.id} />;
+		return <CellInputVote value={value} cell={cell} userId={user.id} />;
 	}
 	return <></>;
-}
-
-// Input field for a cell with a boolean value
-export function CellInputBoolean(props: {
-	value: boolean;
-	cell: Cell<FluidRow, cellValue>;
-}): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
-
-	// handle a change event in the cell
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(data, cell.column.id, e.target.checked);
-	};
-
-	return (
-		// Layout the checkbox and label in a flex container and align the checkbox to the left
-		<label className="flex items-center w-full h-full p-1 gap-x-2">
-			<input
-				id={cell.id}
-				className="outline-none w-4 h-4"
-				type="checkbox"
-				checked={value ?? false}
-				onChange={handleChange}
-			></input>
-			{data.table.getColumn(cell.column.id).props.get("label")}
-		</label>
-	);
-}
-
-// Input field for a string cell
-export function CellInputString(props: {
-	value: string;
-	cell: Cell<FluidRow, cellValue>;
-}): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
-
-	// handle a change event in the cell
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(data, cell.column.id, e.target.value);
-	};
-
-	return (
-		<input
-			id={cell.id}
-			className="outline-none w-full h-full"
-			type="text"
-			value={value ?? ""}
-			onChange={handleChange}
-		></input>
-	);
-}
-
-// Input field for a string cell
-export function CellInputNumber(props: {
-	value: number;
-	cell: Cell<FluidRow, cellValue>;
-}): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
-
-	// handle a change event in the cell
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		// convert the value to a number
-		const num = parseFloat(e.target.value);
-		if (!isNaN(num)) {
-			setValue(data, cell.column.id, num);
-		}
-	};
-
-	return (
-		<input
-			inputMode="numeric"
-			id={cell.id}
-			className="outline-none w-full h-full"
-			type="number"
-			value={value ?? 0}
-			onChange={handleChange}
-		></input>
-	);
-}
-
-export function CellInputDate(props: {
-	value: DateTime | undefined;
-	cell: Cell<FluidRow, cellValue>;
-}): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
-
-	const date = value?.value?.toISOString().split("T")[0] ?? "";
-
-	// handle a change event in the cell
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const fluidCell = data.getCell(cell.column.id);
-		// Test if the target value is a valid date
-		if (isNaN(Date.parse(e.target.value))) {
-			if (fluidCell !== undefined) {
-				if (Tree.is(fluidCell.value, DateTime)) {
-					data.deleteCell(cell.column.id);
-					return;
-				}
-			}
-		}
-		// If the cell is undefined, initialize it with the new date
-		// Otherwise, update the existing
-		// Generate a new Date from the target value
-		const d: Date = new Date(e.target.value);
-		if (fluidCell === undefined) {
-			data.initializeCell(cell.column.id, new DateTime({ raw: d.getTime() }));
-		} else {
-			if (Tree.is(fluidCell.value, DateTime)) {
-				fluidCell.value.value = d;
-			}
-		}
-	};
-
-	return (
-		<input
-			id={cell.id}
-			className="outline-none w-full h-full"
-			type="date"
-			value={date}
-			onChange={handleChange}
-		></input>
-	);
-}
-
-// A control that allows users to vote by clicking a button in a cell
-export function CellInputVote(props: {
-	cell: Cell<FluidRow, cellValue>;
-	userId: string;
-}): JSX.Element {
-	const { cell } = props;
-	const fluidRow = cell.row.original;
-	// Get the fluid column from the cell
-	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	// Get the value of the cell
-	const value = fluidRow.getValue(cell.column.id).value;
-
-	let count = 0; // Initialize count to 0
-	// If the value is undefined set count to 0
-	if (value !== undefined) {
-		// If the value is a vote, get the number of votes
-		if (Tree.is(value, Vote)) {
-			count = value.numberOfVotes;
-		}
-	}
-
-	// handle a click event in the cell
-	const handleClick = (e: React.MouseEvent) => {
-		const fluidCell = fluidRow.getCell(cell.column.id);
-
-		if (fluidCell === undefined) {
-			const c = fluidRow.initializeCell(cell.column.id, new Vote({ votes: {} }));
-			if (Tree.is(c.value, Vote)) {
-				c.value.toggleVote(props.userId);
-			}
-		} else {
-			if (Tree.is(fluidCell.value, Vote)) {
-				fluidCell.value.toggleVote(props.userId);
-			}
-		}
-	};
-
-	return (
-		<button id={cell.id} className="outline-none w-full h-full" onClick={handleClick}>
-			{count}
-		</button>
-	);
 }
 
 export function PresenceBox(props: { hidden: boolean; remote: boolean }): JSX.Element {
@@ -618,7 +455,7 @@ export function PresenceBox(props: { hidden: boolean; remote: boolean }): JSX.El
 	);
 }
 
-type cellValue = typeDefinition; // Define the allowed cell value types
+export type cellValue = typeDefinition; // Define the allowed cell value types
 
 const updateColumnData = (columnsArray: FluidColumn[]) => {
 	// Create a column helper based on the columns in the table
@@ -697,6 +534,8 @@ const getSortingConfig = (
 		return { fn: "alphanumeric", desc: false };
 	} else if (column.props.get("hint") === "date") {
 		return { fn: dateSortingFn, desc: false };
+	} else if (column.props.get("hint") === "vote") {
+		return { fn: "basic", desc: false };
 	} else {
 		console.error("Unknown column type");
 		return { fn: "basic", desc: false };
