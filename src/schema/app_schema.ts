@@ -318,10 +318,9 @@ export class Table extends sf.object("Table", {
 	 * Get a row by the id
 	 * @param id The id of the row
 	 */
-	getRow(id: string): Row {
+	getRow(id: string): Row | undefined {
 		const row = this.rows.find((row) => row.id === id);
 		if (row) return row;
-		throw new Error("Row not found");
 	}
 
 	/**

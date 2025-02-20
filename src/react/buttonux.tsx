@@ -18,14 +18,25 @@ import {
 	CheckboxCheckedFilled,
 	TableDeleteRowFilled,
 } from "@fluentui/react-icons";
-import { Tree } from "fluid-framework";
+import { Tree, TreeStatus } from "fluid-framework";
 import { setValue } from "./tableux.js";
 import { SelectionManager } from "../utils/presence.js";
 
 const getLastSelectedRow = (table: Table, selection: SelectionManager): Row | undefined => {
 	const selectedRows = selection.getSelected("row");
 	if (selectedRows.length > 0) {
-		return table.getRow(selectedRows[selectedRows.length - 1]);
+		const lastSelectedRow = table.getRow(selectedRows[selectedRows.length - 1]);
+		// If the last selected row is not in the table, we will return undefined
+		if (
+			lastSelectedRow !== undefined &&
+			Tree.status(lastSelectedRow) === TreeStatus.InDocument
+		) {
+			return lastSelectedRow;
+		} else {
+			// Remove the last selected row from the selection
+			selection.removeFromSelection(selectedRows[selectedRows.length - 1], "row");
+			return getLastSelectedRow(table, selection);
+		}
 	}
 	return undefined;
 };
@@ -121,7 +132,7 @@ const getRowWithValues = (table: Table): Row => {
 			setValue(row, column.id, Math.random() > 0.5);
 		} else if (type === "string") {
 			setValue(row, column.id, Math.random().toString(36).substring(7));
-		} else if (column.defaultValue === undefined && column.props.get("hint") === "date") {
+		} else if (column.defaultValue === undefined && column.hint === "date") {
 			// Add a random date
 			const startDate = new Date(2020, 0, 1);
 			const endDate = new Date();
@@ -206,12 +217,14 @@ export function DeleteSelectedRowsButton(props: {
 		// Iterate through the selected rows and delete them from the table
 		// We need to do this in a transaction to ensure that the operation is atomic
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
-		for (const rowId of selectedRows) {
-			const row = table.getRow(rowId);
-			if (row !== undefined) {
-				table.deleteRow(row.id);
+		Tree.runTransaction(table, () => {
+			for (const rowId of selectedRows) {
+				const row = table.getRow(rowId);
+				if (row !== undefined && Tree.status(row) === TreeStatus.InDocument) {
+					table.deleteRow(row.id);
+				}
 			}
-		}
+		});
 		// Clear the selection
 		selection.clearSelection();
 	};

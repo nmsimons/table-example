@@ -125,7 +125,8 @@ export class SelectionManager extends EventTarget {
 		return;
 	}
 
-	public removeFromSelection(id: string) {
+	public removeFromSelection(id: string, type: selectionType) {
+		if (this.valueManager.local.type !== type) return;
 		const arr: string[] = this.valueManager.local.items.slice();
 		const i = arr.indexOf(id);
 		if (i != -1) {
