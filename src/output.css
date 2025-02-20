@@ -950,6 +950,26 @@
       background-color: transparent;
     }
   }
+  .disabled\:text-gray-200 {
+    &:disabled {
+      color: var(--color-gray-200);
+    }
+  }
+  .disabled\:text-gray-300 {
+    &:disabled {
+      color: var(--color-gray-300);
+    }
+  }
+  .disabled\:text-gray-400 {
+    &:disabled {
+      color: var(--color-gray-400);
+    }
+  }
+  .disabled\:text-gray-500 {
+    &:disabled {
+      color: var(--color-gray-500);
+    }
+  }
   .disabled\:text-gray-600 {
     &:disabled {
       color: var(--color-gray-600);

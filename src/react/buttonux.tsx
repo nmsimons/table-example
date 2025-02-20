@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { JSX } from "react";
+import React, { JSX, useEffect } from "react";
 import { Column, DateTime, Row, Table } from "../schema/app_schema.js";
 import {
 	DismissFilled,
@@ -156,6 +156,20 @@ export function DeleteSelectedRowsButton(props: {
 }): JSX.Element {
 	const { table, selection } = props;
 
+	// Disable the button if there are no selected rows
+	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
+
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			// If the selection is empty, we will disable the button
+			if (selection.getSelected("row").length === 0) {
+				setDisabled(true);
+			} else {
+				setDisabled(false);
+			}
+		});
+	}, []);
+
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Get the selected rows from the selection manager
@@ -178,10 +192,12 @@ export function DeleteSelectedRowsButton(props: {
 		// Clear the selection
 		selection.clearSelection();
 	};
+
 	return (
 		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableDeleteRowFilled />}
+			disabled={disabled}
 		>
 			Delete
 		</ToolbarButton>
@@ -301,8 +317,9 @@ export function ToolbarButton(props: {
 	handleClick: (value: React.MouseEvent) => void;
 	children?: React.ReactNode;
 	icon: JSX.Element;
+	disabled?: boolean;
 }): JSX.Element {
-	const { handleClick, children, icon } = props;
+	const { handleClick, children, icon, disabled } = props;
 
 	return (
 		<IconButton
@@ -311,6 +328,9 @@ export function ToolbarButton(props: {
 			color="text-white"
 			background="bg-gray-600 hover:bg-black"
 			grow={false}
+			disabled={disabled}
+			disabledColor="disabled:text-gray-400"
+			disabledBackground="disabled:bg-transparent"
 		>
 			{children}
 		</IconButton>
