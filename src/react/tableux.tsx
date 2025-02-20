@@ -430,13 +430,13 @@ export function TableCellViewContent(props: {
 		return <CellInputString value={value} cell={cell} />;
 	}
 	// If the value is undefined and the column hint is date, display a date input
-	else if (value === undefined && fluidColumn.props.get("hint") === "date") {
+	else if (value === undefined && fluidColumn.hint === "date") {
 		return <CellInputDate value={value} cell={cell} />;
 	} else if (value instanceof DateTime) {
 		return <CellInputDate value={value} cell={cell} />;
 	}
 	// If the value is undefined and the column hint is vote, display a vote button
-	else if (value === undefined && fluidColumn.props.get("hint") === "vote") {
+	else if (value === undefined && fluidColumn.hint === "vote") {
 		return <CellInputVote value={value} cell={cell} userId={user.id} />;
 	} // If the value is a vote, display the vote button
 	else if (value instanceof Vote) {
@@ -532,12 +532,18 @@ const getSortingConfig = (
 		return { fn: "alphanumeric", desc: false };
 	} else if (typeof column.defaultValue === "string") {
 		return { fn: "alphanumeric", desc: false };
-	} else if (column.props.get("hint") === "date") {
+	} else if (column.hint === "date") {
 		return { fn: dateSortingFn, desc: false };
-	} else if (column.props.get("hint") === "vote") {
+	} else if (column.hint === "vote") {
 		return { fn: "basic", desc: false };
 	} else {
-		console.error("Unknown column type");
+		console.error(
+			"Unknown column type",
+			"DefaultValue:",
+			column.defaultValue,
+			"Hint:",
+			column.hint,
+		);
 		return { fn: "basic", desc: false };
 	}
 };

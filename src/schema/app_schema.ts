@@ -266,6 +266,7 @@ export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
 	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime, Vote]),
+	hint: sf.optional(sf.string),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
@@ -379,8 +380,11 @@ export class Table extends sf.object("Table", {
 	 * Add a column to the table
 	 * @param name The name of the column
 	 * */
-	appendNewColumn(name: string, defaultValue?: typeDefinition): Column {
-		const column = new Column({ name, props: {}, defaultValue });
+	appendNewColumn(props: { name: string; defaultValue?: typeDefinition; hint?: string }): Column {
+		// destructure the input
+		const { name, defaultValue, hint } = props;
+
+		const column = new Column({ name, props: {}, defaultValue, hint });
 		this.columns.insertAtEnd(column);
 		return column;
 	}

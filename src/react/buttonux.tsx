@@ -123,17 +123,19 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		const name = `Column ${index.toString()}`;
 
 		// Add a new column to the table
-		if (index % 4 === 1) {
-			table.appendNewColumn(name, "");
-		} else if (index % 4 === 2) {
-			table.appendNewColumn(name, 0);
-		} else if (index % 4 === 3) {
+		if (index % 5 === 1) {
+			table.appendNewColumn({ name, defaultValue: "" });
+		} else if (index % 5 === 2) {
+			table.appendNewColumn({ name, defaultValue: 0 });
+		} else if (index % 5 === 3) {
 			table
-				.appendNewColumn(name, false)
+				.appendNewColumn({ name, defaultValue: false })
 				// Set the label for the boolean column to a random string
 				.props.set("label", Math.random().toString(36).substring(7));
+		} else if (index % 5 === 4) {
+			table.appendNewColumn({ name, hint: "vote" });
 		} else {
-			table.appendNewColumn(name, undefined).props.set("hint", "date");
+			table.appendNewColumn({ name, hint: "date" });
 		}
 	};
 	return (
