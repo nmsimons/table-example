@@ -63,10 +63,10 @@ export function ReactApp(props: {
 					<NewEmptyRowButton table={table.root} selection={selection} />
 					<NewRowButton table={table.root} selection={selection} />
 					<NewManysRowsButton table={table.root} />
-					<DeleteSelectedRowsButton table={table.root} selection={selection} />
-					<DeleteAllRowsButton table={table.root} />
 					<MoveSelectedRowsButton table={table.root} selection={selection} up={true} />
 					<MoveSelectedRowsButton table={table.root} selection={selection} up={false} />
+					<DeleteSelectedRowsButton table={table.root} selection={selection} />
+					<DeleteAllRowsButton table={table.root} />
 				</ButtonGroup>
 				<ButtonGroup>
 					<UndoButton undo={() => undoRedo.undo()} />
