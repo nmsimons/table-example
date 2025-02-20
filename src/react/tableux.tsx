@@ -80,10 +80,7 @@ export function TableView(props: {
 	});
 
 	return (
-		<div
-			ref={tableContainerRef}
-			className="h-[calc(100vh-200px)] w-5/6 overflow-auto mx-auto mt-8 border-2 border-black rounded-sm shadow-sm"
-		>
+		<div ref={tableContainerRef} className="overflow-auto mx-auto h-full w-full relative">
 			<table
 				style={{ display: "grid" }}
 				className="table-auto w-full border-collapse border-b-2 border-gray-200"
@@ -160,7 +157,7 @@ export function TableHeaderView(props: {
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="p-1"
+			className="p-1 border-r-1 border-gray-100"
 		>
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<input
@@ -207,8 +204,6 @@ export function SortButton(props: { column: Column<FluidRow> }): JSX.Element {
 
 	return (
 		<IconButton
-			background="bg-transparent"
-			color="black"
 			handleClick={handleClick}
 			icon={<SortIndicator sorted={sorted} />}
 			toggled={sorted !== false}

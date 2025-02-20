@@ -26,14 +26,12 @@ export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 		props.table.appendNewRow();
 	};
 	return (
-		<IconButton
-			color="white"
-			background="black"
+		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowRegular />}
 		>
 			Empty Row
-		</IconButton>
+		</ToolbarButton>
 	);
 }
 
@@ -49,14 +47,12 @@ export function NewRowButton(props: { table: Table }): JSX.Element {
 		});
 	};
 	return (
-		<IconButton
-			color="white"
-			background="black"
+		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowFilled />}
 		>
 			Row
-		</IconButton>
+		</ToolbarButton>
 	);
 }
 
@@ -77,14 +73,12 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 		});
 	};
 	return (
-		<IconButton
-			color="white"
-			background="black"
+		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<RowTripleFilled />}
 		>
 			1000
-		</IconButton>
+		</ToolbarButton>
 	);
 }
 
@@ -143,14 +137,12 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 		}
 	};
 	return (
-		<IconButton
-			color="white"
-			background="black"
+		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<ColumnFilled />}
 		>
 			Column
-		</IconButton>
+		</ToolbarButton>
 	);
 }
 
@@ -164,8 +156,6 @@ export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
 	return (
 		<div className="relative group">
 			<IconButton
-				color="white"
-				background="black"
 				handleClick={(e: React.MouseEvent) => e.stopPropagation()}
 				icon={<CaretDown16Filled />}
 			/>
@@ -218,7 +208,6 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 		<div className="p-1 w-full">
 			<IconButton
 				color="white"
-				background="black"
 				handleClick={(e: React.MouseEvent) => handleClick(e)}
 				icon={icon}
 				grow={true}
@@ -236,48 +225,49 @@ export function DeleteAllRowsButton(props: { table: Table }): JSX.Element {
 		props.table.deleteAllRows();
 	};
 	return (
-		<IconButton
-			color="white"
-			background="black"
+		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<DismissFilled />}
 		>
 			Clear
-		</IconButton>
+		</ToolbarButton>
 	);
 }
 
 export function UndoButton(props: { undo: () => void }): JSX.Element {
 	return (
-		<IconButton
-			color="white"
-			background="black"
-			handleClick={() => props.undo()}
-			icon={<ArrowUndoFilled />}
-		></IconButton>
+		<ToolbarButton handleClick={() => props.undo()} icon={<ArrowUndoFilled />}></ToolbarButton>
 	);
 }
 
 export function RedoButton(props: { redo: () => void }): JSX.Element {
 	return (
-		<IconButton
-			color="white"
-			background="black"
-			handleClick={() => props.redo()}
-			icon={<ArrowRedoFilled />}
-		></IconButton>
+		<ToolbarButton handleClick={() => props.redo()} icon={<ArrowRedoFilled />}></ToolbarButton>
 	);
 }
 
 export function DeleteButton(props: { delete: () => void }): JSX.Element {
+	return <IconButton handleClick={() => props.delete()} icon={<DismissFilled />} grow={false} />;
+}
+
+// A wrapper for IconButton just for the toolbar buttons that are not toggled
+export function ToolbarButton(props: {
+	handleClick: (value: React.MouseEvent) => void;
+	children?: React.ReactNode;
+	icon: JSX.Element;
+}): JSX.Element {
+	const { handleClick, children, icon } = props;
+
 	return (
 		<IconButton
-			color="white"
-			background="black"
-			handleClick={() => props.delete()}
-			icon={<DismissFilled />}
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={icon}
+			color="text-white"
+			hoverBackground="bg-black"
 			grow={false}
-		/>
+		>
+			{children}
+		</IconButton>
 	);
 }
 
@@ -289,12 +279,28 @@ export function IconButton(props: {
 	background?: string;
 	grow?: boolean;
 	toggled?: boolean;
+	hoverBackground?: string;
+	hoverColor?: string;
+	toggleBackground?: string;
+	toggleColor?: string;
 }): JSX.Element {
-	const { handleClick, children, icon, color, background, grow, toggled } = props;
+	const {
+		handleClick,
+		children,
+		icon,
+		color,
+		background,
+		grow,
+		toggled,
+		hoverBackground,
+		toggleBackground,
+		toggleColor,
+		hoverColor,
+	} = props;
 
 	return (
 		<button
-			className={`${color} text-nowrap hover:bg-gray-600 hover:text-white font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? "bg-gray-400 text-white" : { background }}`}
+			className={`text-nowrap hover:${hoverBackground} hover:${hoverColor} font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`}`}
 			onClick={(e) => handleClick(e)}
 		>
 			{icon}
@@ -306,6 +312,11 @@ export function IconButton(props: {
 IconButton.defaultProps = {
 	color: "text-gray-600",
 	background: "bg-transparent",
+	hoverBackground: "bg-gray-600",
+	toggleBackground: "bg-gray-400",
+	toggleColor: "text-white",
+	hoverColor: "text-white",
+	grow: false,
 };
 
 function IconButtonText(props: { children: React.ReactNode }): JSX.Element {
@@ -320,16 +331,21 @@ export function ButtonGroup(props: { children: React.ReactNode }): JSX.Element {
 	return <div className="flex flex-intial items-center">{props.children}</div>;
 }
 
-export function Floater(props: { children: React.ReactNode }): JSX.Element {
+export function Toolbar(props: { children: React.ReactNode }): JSX.Element {
 	return (
-		<div className="transition transform absolute z-100 bottom-0 inset-x-0 pb-2 sm:pb-5 opacity-100 scale-100 translate-y-0 ease-out duration-500 text-white">
-			<div className="max-w-(--breakpoint-md) mx-auto px-2 sm:px-4">
-				<div className="p-2 rounded-lg bg-black shadow-lg sm:p-3">
-					<div className="flex flex-row items-center justify-between flex-wrap">
-						{props.children}
-					</div>
-				</div>
+		<div className="h-[48px] relative bg-gray-600 text-base text-white z-40 w-full shadow p-2">
+			<div className="h-full w-full flex flex-row items-center justify-between flex-wrap">
+				{props.children}
 			</div>
+		</div>
+	);
+}
+
+export function Placeholder(): JSX.Element {
+	return (
+		<div className="h-full w-full flex flex-col items-center justify-center hover:bg-black text-white">
+			<div className="h-12 w-12 rounded-full bg-gray-600"></div>
+			<div className="h-6 w-24 rounded-md bg-gray-600 mt-2"></div>
 		</div>
 	);
 }

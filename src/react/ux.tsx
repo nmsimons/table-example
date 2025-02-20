@@ -10,6 +10,17 @@ import { IFluidContainer, IMember, IServiceAudience, Tree, TreeView } from "flui
 import { Canvas } from "./canvasux.js";
 import type { SelectionManager } from "../utils/presence.js";
 import { undoRedo } from "../utils/undo.js";
+import {
+	Toolbar,
+	ButtonGroup,
+	NewColumnButton,
+	NewEmptyRowButton,
+	NewRowButton,
+	NewManysRowsButton,
+	DeleteAllRowsButton,
+	UndoButton,
+	RedoButton,
+} from "./buttonux.js";
 
 export function ReactApp(props: {
 	table: TreeView<typeof Table>;
@@ -40,7 +51,20 @@ export function ReactApp(props: {
 				clientId={currentUser}
 				table={props.table.root}
 			/>
-			<div className="flex h-[calc(100vh-48px)] flex-row ">
+			<Toolbar>
+				<ButtonGroup>
+					<NewColumnButton table={props.table.root} />
+					<NewEmptyRowButton table={props.table.root} />
+					<NewRowButton table={props.table.root} />
+					<NewManysRowsButton table={props.table.root} />
+					<DeleteAllRowsButton table={props.table.root} />
+				</ButtonGroup>
+				<ButtonGroup>
+					<UndoButton undo={() => props.undoRedo.undo()} />
+					<RedoButton redo={() => props.undoRedo.redo()} />
+				</ButtonGroup>
+			</Toolbar>
+			<div className="flex h-[calc(100vh-96px)] flex-row ">
 				<Canvas
 					table={props.table.root}
 					selection={props.selection}

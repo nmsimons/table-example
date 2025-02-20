@@ -13,17 +13,6 @@ import {
 	IServiceAudience,
 	TreeView,
 } from "fluid-framework";
-import {
-	Floater,
-	NewRowButton,
-	ButtonGroup,
-	UndoButton,
-	RedoButton,
-	NewColumnButton,
-	NewManysRowsButton,
-	NewEmptyRowButton,
-	DeleteAllRowsButton,
-} from "./buttonux.js";
 import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/presence.js";
 
@@ -82,19 +71,6 @@ export function Canvas(props: {
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
 			<TableView fluidTable={props.table} selection={props.selection} />
-			<Floater>
-				<ButtonGroup>
-					<NewColumnButton table={props.table} />
-					<NewEmptyRowButton table={props.table} />
-					<NewRowButton table={props.table} />
-					<NewManysRowsButton table={props.table} />
-					<DeleteAllRowsButton table={props.table} />
-				</ButtonGroup>
-				<ButtonGroup>
-					<UndoButton undo={() => props.undoRedo.undo()} />
-					<RedoButton redo={() => props.undoRedo.redo()} />
-				</ButtonGroup>
-			</Floater>
 		</div>
 	);
 }
