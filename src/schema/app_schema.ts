@@ -37,15 +37,64 @@ export class DateTime extends sf.object("DateTime", {
 	}
 }
 
+/**
+ * A SharedTree object that allows users to vote
+ */
+export class Vote extends sf.object("Vote", {
+	votes: sf.map(sf.string), // Map of votes
+}) {
+	/**
+	 * Add a vote to the map of votes
+	 * The key is the user id and the value is irrelevant
+	 * @param vote The vote to add
+	 */
+	addVote(vote: string): void {
+		if (this.votes.has(vote)) {
+			return;
+		}
+		this.votes.set(vote, "");
+	}
+
+	/**
+	 * Remove a vote from the map of votes
+	 * @param vote The vote to remove
+	 */
+	removeVote(vote: string): void {
+		if (!this.votes.has(vote)) {
+			return;
+		}
+		this.votes.delete(vote);
+	}
+
+	/**
+	 * Toggle a vote in the map of votes
+	 */
+	toggleVote(vote: string): void {
+		if (this.votes.has(vote)) {
+			this.removeVote(vote);
+		} else {
+			this.addVote(vote);
+		}
+	}
+
+	/**
+	 * Get the number of votes
+	 * @returns The number of votes
+	 */
+	get numberOfVotes(): number {
+		return this.votes.size;
+	}
+}
+
 // Table schema - I wish I could create something like this for the Cell value and Column defaultValue
-export type typeDefinition = string | number | boolean | DateTime;
+export type typeDefinition = string | number | boolean | DateTime | Vote;
 
 /**
  * The Cell schema which should eventally support more types than just strings
  */
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
-	value: [sf.string, sf.number, sf.boolean, DateTime],
+	value: [sf.string, sf.number, sf.boolean, DateTime, Vote],
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
@@ -167,7 +216,7 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime]),
+	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime, Vote]),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**

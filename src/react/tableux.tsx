@@ -22,8 +22,9 @@ import {
 	Cell as FluidCell,
 	DateTime,
 	typeDefinition,
+	Vote,
 } from "../schema/app_schema.js";
-import { Tree } from "fluid-framework";
+import { IMember, Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
@@ -41,8 +42,9 @@ const columnWidth = "200px"; // Width of the data columns
 export function TableView(props: {
 	fluidTable: FluidTable;
 	selection: SelectionManager;
+	user: IMember;
 }): JSX.Element {
-	const { fluidTable } = props;
+	const { fluidTable, selection, user } = props;
 	const [data, setData] = useState<FluidRow[]>(
 		fluidTable.rows.map((row) => {
 			return row;
@@ -89,7 +91,7 @@ export function TableView(props: {
 				<TableBodyView
 					table={table}
 					tableContainerRef={tableContainerRef}
-					selection={props.selection}
+					{...props} // Pass the user prop to the TableBodyView
 				/>
 			</table>
 		</div>
@@ -226,8 +228,9 @@ export function TableBodyView(props: {
 	table: Table<FluidRow>;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
 	selection: SelectionManager;
+	user: IMember; // Add the user prop here
 }): JSX.Element {
-	const { table, tableContainerRef, selection } = props;
+	const { table, tableContainerRef, selection, user } = props;
 	const { rows } = table.getRowModel();
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
@@ -259,7 +262,7 @@ export function TableBodyView(props: {
 						row={row}
 						virtualRow={virtualRow}
 						rowVirtualizer={rowVirtualizer}
-						selection={selection}
+						{...props} // Pass the user prop to the TableRowView
 					/>
 				);
 			})}
@@ -272,8 +275,9 @@ export function TableRowView(props: {
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
 	selection: SelectionManager;
+	user: IMember; // Add the user prop here
 }): JSX.Element {
-	const { row, virtualRow, rowVirtualizer, selection } = props;
+	const { row, virtualRow, rowVirtualizer, selection, user } = props;
 
 	const style = { transform: `translateY(${virtualRow.start}px)` };
 
@@ -305,19 +309,17 @@ export function TableRowView(props: {
 			}}
 			className={`${isSelected ? "outline-2 outline-blue-300" : ""}  w-full even:bg-white odd:bg-gray-100`}
 		>
-			{row
-				.getVisibleCells()
-				.map((cell) =>
-					cell.column.id === "index" ? (
-						<IndexCellView key="index" rowId={row.id} selection={selection} />
-					) : (
-						<TableCellView
-							key={cell.id}
-							cell={cell as Cell<FluidRow, cellValue>}
-							selection={selection}
-						/>
-					),
-				)}
+			{row.getVisibleCells().map((cell) =>
+				cell.column.id === "index" ? (
+					<IndexCellView key="index" rowId={row.id} selection={selection} />
+				) : (
+					<TableCellView
+						key={cell.id}
+						cell={cell as Cell<FluidRow, cellValue>}
+						{...props} // Pass the user prop to the TableCellView
+					/>
+				),
+			)}
 		</tr>
 	);
 }
@@ -357,8 +359,9 @@ export function IndexCellView(props: { selection: SelectionManager; rowId: strin
 export function TableCellView(props: {
 	cell: Cell<FluidRow, cellValue>;
 	selection: SelectionManager;
+	user: IMember; // Add the user prop here
 }): JSX.Element {
-	const { cell, selection } = props;
+	const { cell, selection, user } = props;
 
 	const [isSelected, setIsSelected] = useState(selection.testSelection(cell.id));
 	const [isRemoteSelected, setIsRemoteSelected] = useState(
@@ -398,13 +401,16 @@ export function TableCellView(props: {
 		>
 			<PresenceBox hidden={!isSelected} remote={false} />
 			<PresenceBox hidden={!isRemoteSelected} remote={true} />
-			<TableCellViewContent key={cell.id} cell={cell} />
+			<TableCellViewContent key={cell.id} cell={cell} user={user} />
 		</td>
 	);
 }
 
-export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
-	const { cell } = props;
+export function TableCellViewContent(props: {
+	cell: Cell<FluidRow, cellValue>;
+	user: IMember;
+}): JSX.Element {
+	const { cell, user } = props;
 	const data = cell.row.original;
 	const fluidColumn = data.table.getColumn(cell.column.id);
 	const value = data.getValue(cell.column.id).value;
@@ -422,7 +428,13 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 	} else if (value instanceof DateTime) {
 		return <CellInputDate value={value} cell={cell} />;
 	}
-
+	// If the value is undefined and the column hint is vote, display a vote button
+	else if (value === undefined && fluidColumn.props.get("hint") === "vote") {
+		return <CellInputVote cell={cell} userId={user.id} />;
+	} // If the value is a vote, display the vote button
+	else if (value instanceof Vote) {
+		return <CellInputVote cell={cell} userId={user.id} />;
+	}
 	return <></>;
 }
 
@@ -549,6 +561,50 @@ export function CellInputDate(props: {
 			value={date}
 			onChange={handleChange}
 		></input>
+	);
+}
+
+// A control that allows users to vote by clicking a button in a cell
+export function CellInputVote(props: {
+	cell: Cell<FluidRow, cellValue>;
+	userId: string;
+}): JSX.Element {
+	const { cell } = props;
+	const fluidRow = cell.row.original;
+	// Get the fluid column from the cell
+	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
+	// Get the value of the cell
+	const value = fluidRow.getValue(cell.column.id).value;
+
+	let count = 0; // Initialize count to 0
+	// If the value is undefined set count to 0
+	if (value !== undefined) {
+		// If the value is a vote, get the number of votes
+		if (Tree.is(value, Vote)) {
+			count = value.numberOfVotes;
+		}
+	}
+
+	// handle a click event in the cell
+	const handleClick = (e: React.MouseEvent) => {
+		const fluidCell = fluidRow.getCell(cell.column.id);
+
+		if (fluidCell === undefined) {
+			const c = fluidRow.initializeCell(cell.column.id, new Vote({ votes: {} }));
+			if (Tree.is(c.value, Vote)) {
+				c.value.toggleVote(props.userId);
+			}
+		} else {
+			if (Tree.is(fluidCell.value, Vote)) {
+				fluidCell.value.toggleVote(props.userId);
+			}
+		}
+	};
+
+	return (
+		<button id={cell.id} className="outline-none w-full h-full" onClick={handleClick}>
+			{count}
+		</button>
 	);
 }
 

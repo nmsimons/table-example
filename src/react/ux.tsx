@@ -29,7 +29,9 @@ export function ReactApp(props: {
 	container: IFluidContainer;
 	undoRedo: undoRedo;
 }): JSX.Element {
-	const [currentUser, setCurrentUser] = useState("");
+	const [currentUser, setCurrentUser] = useState(
+		props.audience.getMyself() ?? { id: "unknown", connections: [] },
+	);
 	const [connectionState, setConnectionState] = useState("");
 	const [saved, setSaved] = useState(false);
 	const [fluidMembers, setFluidMembers] = useState<IMember[]>([]);
@@ -48,7 +50,7 @@ export function ReactApp(props: {
 				saved={saved}
 				connectionState={connectionState}
 				fluidMembers={fluidMembers}
-				clientId={currentUser}
+				clientId={currentUser.id}
 				table={props.table.root}
 			/>
 			<Toolbar>

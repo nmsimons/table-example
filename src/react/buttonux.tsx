@@ -165,6 +165,7 @@ export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
 					<ChangeColumnTypeButton column={column} type="Number" />
 					<ChangeColumnTypeButton column={column} type="Boolean" />
 					<ChangeColumnTypeButton column={column} type="Date" />
+					<ChangeColumnTypeButton column={column} type="Vote" />
 				</div>
 			</div>
 		</div>
@@ -178,13 +179,18 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 	// Get the type of the column based on the default value
 	const columnType = typeof column.defaultValue;
 
+	// Get the column hint
+	const columnHint = column.props.get("hint");
+
 	// Set the icon based on the type of the column
 	// if the type is the same as the default type, we will show a checkmark
-	// if the type is different, we will show a pencil
+	// if the type is different, we will show a box
 	let icon;
 	if (columnType.toLowerCase() === type.toLowerCase()) {
 		icon = <CheckboxCheckedFilled />;
-	} else if (columnType === "undefined" && type === "Date") {
+	} else if (type === "Date" && columnHint === "date") {
+		icon = <CheckboxCheckedFilled />;
+	} else if (type === "Vote" && columnHint === "vote") {
 		icon = <CheckboxCheckedFilled />;
 	} else {
 		icon = <CheckboxUncheckedFilled />;
@@ -202,6 +208,9 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 		} else if (type === "Date") {
 			column.defaultValue = undefined;
 			column.props.set("hint", "date");
+		} else if (type === "Vote") {
+			column.defaultValue = undefined;
+			column.props.set("hint", "vote");
 		}
 	};
 	return (

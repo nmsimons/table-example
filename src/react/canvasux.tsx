@@ -11,6 +11,7 @@ import {
 	IFluidContainer,
 	IMember,
 	IServiceAudience,
+	Myself,
 	TreeView,
 } from "fluid-framework";
 import { undoRedo } from "../utils/undo.js";
@@ -24,12 +25,12 @@ export function Canvas(props: {
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
 	fluidMembers: IMember[];
-	currentUser: string;
+	currentUser: IMember;
 	undoRedo: undoRedo;
-	setCurrentUser: (arg: string) => void;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
 	setFluidMembers: (arg: IMember[]) => void;
+	setCurrentUser: (arg: Myself<IMember>) => void;
 }): JSX.Element {
 	useEffect(() => {
 		const updateConnectionState = () => {
@@ -58,6 +59,7 @@ export function Canvas(props: {
 		if (props.audience.getMembers() == undefined) return;
 		if (props.container.connectionState !== ConnectionState.Connected) return;
 		props.setFluidMembers(Array.from(props.audience.getMembers().values()));
+		props.setCurrentUser(props.audience.getMyself()!);
 	};
 
 	useEffect(() => {
@@ -70,7 +72,11 @@ export function Canvas(props: {
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView fluidTable={props.table} selection={props.selection} />
+			<TableView
+				fluidTable={props.table}
+				selection={props.selection}
+				user={props.currentUser}
+			/>
 		</div>
 	);
 }
