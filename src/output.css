@@ -940,6 +940,26 @@
       }
     }
   }
+  .disabled\:cursor-not-allowed {
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  .disabled\:bg-transparent {
+    &:disabled {
+      background-color: transparent;
+    }
+  }
+  .disabled\:text-gray-600 {
+    &:disabled {
+      color: var(--color-gray-600);
+    }
+  }
+  .disabled\:opacity-50 {
+    &:disabled {
+      opacity: 50%;
+    }
+  }
 }
 @layer base {
   *, ::after, ::before, ::backdrop, ::file-selector-button {

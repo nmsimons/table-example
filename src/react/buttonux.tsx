@@ -16,9 +16,11 @@ import {
 	RowTripleFilled,
 	CheckboxUncheckedFilled,
 	CheckboxCheckedFilled,
+	TableDeleteRowFilled,
 } from "@fluentui/react-icons";
 import { Tree } from "fluid-framework";
 import { setValue } from "./tableux.js";
+import { SelectionManager } from "../utils/presence.js";
 
 export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
@@ -148,6 +150,44 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 	);
 }
 
+export function DeleteSelectedRowsButton(props: {
+	table: Table;
+	selection: SelectionManager;
+}): JSX.Element {
+	const { table, selection } = props;
+
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		// Get the selected rows from the selection manager
+		const selectedRows = selection.getSelected("row");
+
+		// If there are no selected rows, return
+		if (selectedRows.length === 0) {
+			return;
+		}
+
+		// Iterate through the selected rows and delete them from the table
+		// We need to do this in a transaction to ensure that the operation is atomic
+		// This ensures that the revertible of the operation will undo all the changes made by the operation.
+		for (const rowId of selectedRows) {
+			const row = table.getRow(rowId);
+			if (row !== undefined) {
+				table.deleteRow(row.id);
+			}
+		}
+		// Clear the selection
+		selection.clearSelection();
+	};
+	return (
+		<ToolbarButton
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={<TableDeleteRowFilled />}
+		>
+			Delete
+		</ToolbarButton>
+	);
+}
+
 // A menu that allows the user to change the column type
 // The user can change the column type to a string, number, boolean, or date
 export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
@@ -178,21 +218,16 @@ export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
 export function ChangeColumnTypeButton(props: { column: Column; type: string }): JSX.Element {
 	const { column, type } = props;
 
-	// Get the type of the column based on the default value
-	const columnType = typeof column.defaultValue;
-
-	// Get the column hint
-	const columnHint = column.props.get("hint");
-
 	// Set the icon based on the type of the column
 	// if the type is the same as the default type, we will show a checkmark
 	// if the type is different, we will show a box
 	let icon;
-	if (columnType.toLowerCase() === type.toLowerCase()) {
+	if ((typeof column.defaultValue).toLowerCase() === type.toLowerCase()) {
 		icon = <CheckboxCheckedFilled />;
-	} else if (type === "Date" && columnHint === "date") {
-		icon = <CheckboxCheckedFilled />;
-	} else if (type === "Vote" && columnHint === "vote") {
+	} else if (
+		column.defaultValue === undefined &&
+		(column.hint ?? "").toLowerCase() === type.toLowerCase()
+	) {
 		icon = <CheckboxCheckedFilled />;
 	} else {
 		icon = <CheckboxUncheckedFilled />;
@@ -209,10 +244,10 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 			column.props.set("label", Math.random().toString(36).substring(7));
 		} else if (type === "Date") {
 			column.defaultValue = undefined;
-			column.props.set("hint", "date");
+			column.hint = "date";
 		} else if (type === "Vote") {
 			column.defaultValue = undefined;
-			column.props.set("hint", "vote");
+			column.hint = "vote";
 		}
 	};
 	return (
@@ -292,6 +327,9 @@ export function IconButton(props: {
 	toggled?: boolean;
 	toggleBackground?: string;
 	toggleColor?: string;
+	disabledColor?: string;
+	disabledBackground?: string;
+	disabled?: boolean;
 }): JSX.Element {
 	const {
 		handleClick,
@@ -303,12 +341,16 @@ export function IconButton(props: {
 		toggled,
 		toggleBackground,
 		toggleColor,
+		disabledColor,
+		disabledBackground,
+		disabled,
 	} = props;
 
 	return (
 		<button
-			className={`text-nowrap font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`}`}
+			className={`text-nowrap font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`} ${disabledColor} ${disabledBackground} `}
 			onClick={(e) => handleClick(e)}
+			disabled={disabled}
 		>
 			{icon}
 			<IconButtonText>{children}</IconButtonText>
@@ -321,6 +363,8 @@ IconButton.defaultProps = {
 	background: "bg-transparent hover:bg-gray-600",
 	toggleBackground: "bg-gray-400 hover:bg-gray-600",
 	toggleColor: "text-white",
+	disabledColor: "disabled:text-gray-600",
+	disabledBackground: "disabled:bg-transparent",
 	grow: false,
 };
 

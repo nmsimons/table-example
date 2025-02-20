@@ -20,6 +20,7 @@ import {
 	DeleteAllRowsButton,
 	UndoButton,
 	RedoButton,
+	DeleteSelectedRowsButton,
 } from "./buttonux.js";
 
 export function ReactApp(props: {
@@ -59,6 +60,10 @@ export function ReactApp(props: {
 					<NewEmptyRowButton table={props.table.root} />
 					<NewRowButton table={props.table.root} />
 					<NewManysRowsButton table={props.table.root} />
+					<DeleteSelectedRowsButton
+						table={props.table.root}
+						selection={props.selection}
+					/>
 					<DeleteAllRowsButton table={props.table.root} />
 				</ButtonGroup>
 				<ButtonGroup>

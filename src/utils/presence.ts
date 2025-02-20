@@ -144,7 +144,10 @@ export class SelectionManager extends EventTarget {
 		this.dispatchEvent(new Event("selectionChanged"));
 	}
 
-	public getSelected() {
+	public getSelected(type: selectionType) {
+		if (this.valueManager.local.type !== type) {
+			return [];
+		}
 		return this.valueManager.local.items;
 	}
 

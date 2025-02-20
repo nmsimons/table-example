@@ -303,6 +303,16 @@ export class Table extends sf.object("Table", {
 	columns: sf.array(Column),
 }) {
 	/**
+	 * Get a row by the id
+	 * @param id The id of the row
+	 */
+	getRow(id: string): Row {
+		const row = this.rows.find((row) => row.id === id);
+		if (row) return row;
+		throw new Error("Row not found");
+	}
+
+	/**
 	 *  Add a row to the table
 	 * */
 	appendNewRow(): Row {
@@ -323,10 +333,16 @@ export class Table extends sf.object("Table", {
 
 	/**
 	 * Delete a row from the table
-	 * @param index The index of the row to delete
+	 * @param rowId The id of the row to delete
 	 */
-	deleteRow(index: number): void {
-		this.rows.removeAt(index);
+	deleteRow(rowId: string): void {
+		// Find the row by id
+		const row = this.rows.find((row) => row.id === rowId);
+		// Get the index of the row
+		if (row) {
+			const index = this.rows.indexOf(row);
+			this.rows.removeAt(index);
+		}
 	}
 
 	/**
