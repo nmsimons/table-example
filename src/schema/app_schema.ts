@@ -238,10 +238,24 @@ export class Row extends sf.object("Row", {
 	 * @param index The index to move the row to
 	 * */
 	moveTo(index: number): void {
-		const rows = this.table?.rows;
-		if (rows) {
-			rows.insertAt(index, this);
+		const rows = this.table.rows;
+		if (index > this.index) {
+			index += 1; // If the index is greater than the current index, move it to the right
 		}
+
+		// Make sure the index is within the bounds of the table
+		if (index < 0 && this.index > 0) {
+			rows.moveToStart(this.index);
+			return;
+		}
+		if (index > rows.length - 1 && this.index < rows.length - 1) {
+			rows.moveToEnd(this.index);
+			return;
+		}
+		if (index < 0 || index >= rows.length) {
+			return; // If the index is out of bounds, do nothing
+		}
+		rows.moveToIndex(index, this.index);
 	}
 
 	/**

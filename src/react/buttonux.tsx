@@ -17,6 +17,8 @@ import {
 	CheckboxUncheckedFilled,
 	CheckboxCheckedFilled,
 	TableDeleteRowFilled,
+	TableMoveAboveFilled,
+	TableMoveBelowFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
 import { setValue } from "./tableux.js";
@@ -180,6 +182,60 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 			icon={<ColumnFilled />}
 		>
 			Column
+		</ToolbarButton>
+	);
+}
+
+export function MoveSelectedRowsButton(props: {
+	table: Table;
+	selection: SelectionManager;
+	up: boolean;
+}): JSX.Element {
+	const { table, selection, up } = props;
+	// Disable the button if there are no selected rows
+	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			// If the selection is empty, we will disable the button
+			if (selection.getSelected("row").length === 0) {
+				setDisabled(true);
+			} else {
+				setDisabled(false);
+			}
+		});
+	}, []);
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		// Get the selected rows from the selection manager
+		const selectedRows = selection.getSelected("row");
+
+		// If there are no selected rows, return
+		if (selectedRows.length === 0) {
+			return;
+		}
+
+		// Iterate through the selected rows and move them to the top of the table
+		Tree.runTransaction(table, () => {
+			for (const rowId of selectedRows) {
+				const row = table.getRow(rowId);
+				if (row !== undefined && Tree.status(row) === TreeStatus.InDocument) {
+					if (up) {
+						row.moveTo(row.index - 1);
+					} else {
+						row.moveTo(row.index + 1);
+					}
+				}
+			}
+		});
+	};
+
+	return (
+		<ToolbarButton
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={up ? <TableMoveAboveFilled /> : <TableMoveBelowFilled />}
+			disabled={disabled}
+		>
+			Move
 		</ToolbarButton>
 	);
 }
