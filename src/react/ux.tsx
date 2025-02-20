@@ -30,8 +30,10 @@ export function ReactApp(props: {
 	container: IFluidContainer;
 	undoRedo: undoRedo;
 }): JSX.Element {
+	const { table, selection, audience, container, undoRedo } = props;
+
 	const [currentUser, setCurrentUser] = useState(
-		props.audience.getMyself() ?? { id: "unknown", connections: [] },
+		audience.getMyself() ?? { id: "unknown", connections: [] },
 	);
 	const [connectionState, setConnectionState] = useState("");
 	const [saved, setSaved] = useState(false);
@@ -39,7 +41,7 @@ export function ReactApp(props: {
 
 	/** Unsubscribe to undo-redo events when the component unmounts */
 	useEffect(() => {
-		return props.undoRedo.dispose;
+		return undoRedo.dispose;
 	}, []);
 
 	return (
@@ -52,34 +54,31 @@ export function ReactApp(props: {
 				connectionState={connectionState}
 				fluidMembers={fluidMembers}
 				clientId={currentUser.id}
-				table={props.table.root}
+				table={table.root}
 			/>
 			<Toolbar>
 				<ButtonGroup>
-					<NewColumnButton table={props.table.root} />
-					<NewEmptyRowButton table={props.table.root} />
-					<NewRowButton table={props.table.root} />
-					<NewManysRowsButton table={props.table.root} />
-					<DeleteSelectedRowsButton
-						table={props.table.root}
-						selection={props.selection}
-					/>
-					<DeleteAllRowsButton table={props.table.root} />
+					<NewColumnButton table={table.root} />
+					<NewEmptyRowButton table={table.root} selection={selection} />
+					<NewRowButton table={table.root} selection={selection} />
+					<NewManysRowsButton table={table.root} />
+					<DeleteSelectedRowsButton table={table.root} selection={selection} />
+					<DeleteAllRowsButton table={table.root} />
 				</ButtonGroup>
 				<ButtonGroup>
-					<UndoButton undo={() => props.undoRedo.undo()} />
-					<RedoButton redo={() => props.undoRedo.redo()} />
+					<UndoButton undo={() => undoRedo.undo()} />
+					<RedoButton redo={() => undoRedo.redo()} />
 				</ButtonGroup>
 			</Toolbar>
 			<div className="flex h-[calc(100vh-96px)] flex-row ">
 				<Canvas
-					table={props.table.root}
-					selection={props.selection}
-					audience={props.audience}
-					container={props.container}
+					table={table.root}
+					selection={selection}
+					audience={audience}
+					container={container}
 					fluidMembers={fluidMembers}
 					currentUser={currentUser}
-					undoRedo={props.undoRedo}
+					undoRedo={undoRedo}
 					setCurrentUser={setCurrentUser}
 					setConnectionState={setConnectionState}
 					setSaved={setSaved}

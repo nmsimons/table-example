@@ -22,10 +22,27 @@ import { Tree } from "fluid-framework";
 import { setValue } from "./tableux.js";
 import { SelectionManager } from "../utils/presence.js";
 
-export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
+const getLastSelectedRow = (table: Table, selection: SelectionManager): Row | undefined => {
+	const selectedRows = selection.getSelected("row");
+	if (selectedRows.length > 0) {
+		return table.getRow(selectedRows[selectedRows.length - 1]);
+	}
+	return undefined;
+};
+
+export function NewEmptyRowButton(props: {
+	table: Table;
+	selection: SelectionManager;
+}): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		props.table.appendNewRow();
+		const lastSelectedRow = getLastSelectedRow(props.table, props.selection);
+
+		if (lastSelectedRow !== undefined) {
+			props.table.insertNewRow(lastSelectedRow.index + 1);
+		} else {
+			props.table.appendNewRow();
+		}
 	};
 	return (
 		<ToolbarButton
@@ -37,15 +54,21 @@ export function NewEmptyRowButton(props: { table: Table }): JSX.Element {
 	);
 }
 
-export function NewRowButton(props: { table: Table }): JSX.Element {
+export function NewRowButton(props: { table: Table; selection: SelectionManager }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Wrap the add group operation in a transaction as it adds a group and potentially moves
 		// multiple notes into the group and we want to ensure that the operation is atomic.
 		// This ensures that the revertible of the operation will undo all the changes made by the operation.
 		Tree.runTransaction(props.table, () => {
+			const lastSelectedRow = getLastSelectedRow(props.table, props.selection);
 			const row = getRowWithValues(props.table);
-			props.table.appendDetachedRow(row);
+
+			if (lastSelectedRow !== undefined) {
+				props.table.insertDetachedRow(lastSelectedRow.index + 1, row);
+			} else {
+				props.table.appendDetachedRow(row);
+			}
 		});
 	};
 	return (

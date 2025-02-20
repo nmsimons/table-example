@@ -257,6 +257,18 @@ export class Row extends sf.object("Row", {
 		}
 		throw new Error("Row is not in a table");
 	}
+
+	/**
+	 * Get the index of the row in the table
+	 * @returns The index of the row in the table
+	 */
+	get index(): number {
+		const rows = this.table?.rows;
+		if (rows) {
+			return rows.indexOf(this);
+		}
+		throw new Error("Row is not in a table");
+	}
 }
 
 /**
