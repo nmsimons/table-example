@@ -337,9 +337,9 @@ export function IndexCellView(props: { selection: SelectionManager; rowId: strin
 	// handle a click event in the cell
 	const handleClick = (e: React.MouseEvent) => {
 		if (e.ctrlKey) {
-			selection.toggleMultiSelection(rowId);
+			selection.toggleMultiSelection(rowId, "row");
 		} else {
-			selection.toggleSelection(rowId);
+			selection.toggleSelection(rowId, "row");
 		}
 	};
 
@@ -384,7 +384,7 @@ export function TableCellView(props: {
 
 	// handle a click event in the cell
 	const handleFocus = () => {
-		selection.replaceSelection(cell.id);
+		selection.replaceSelection(cell.id, "cell");
 	};
 
 	const handleBlur = () => {
