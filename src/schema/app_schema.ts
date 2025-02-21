@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { TreeViewConfiguration, SchemaFactory, TreeArrayNode, Tree } from "fluid-framework";
+import {
+	TreeViewConfiguration,
+	SchemaFactory,
+	TreeArrayNode,
+	Tree,
+	TreeNodeFromImplicitAllowedTypes,
+} from "fluid-framework";
 
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
@@ -96,14 +102,15 @@ export class Vote extends sf.object("Vote", {
 }
 
 // Table schema - I wish I could create something like this for the Cell value and Column defaultValue
-export type typeDefinition = string | number | boolean | DateTime | Vote;
+export type typeDefinition = TreeNodeFromImplicitAllowedTypes<typeof schemaTypes>;
+const schemaTypes = [sf.string, sf.number, sf.boolean, DateTime, Vote] as const;
 
 /**
  * The Cell schema which should eventally support more types than just strings
  */
 export class Cell extends sf.object("Cell", {
 	id: sf.identifier,
-	value: [sf.string, sf.number, sf.boolean, DateTime, Vote],
+	value: schemaTypes,
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
 	/**
@@ -291,7 +298,7 @@ export class Row extends sf.object("Row", {
 export class Column extends sf.object("Column", {
 	id: sf.identifier,
 	name: sf.string,
-	defaultValue: sf.optional([sf.string, sf.number, sf.boolean, DateTime, Vote]),
+	defaultValue: sf.optional(schemaTypes),
 	hint: sf.optional(sf.string),
 	props: sf.map([sf.number, sf.string, sf.boolean]),
 }) {
@@ -308,6 +315,7 @@ export class Column extends sf.object("Column", {
 		}
 		throw new Error("Column is not in a table");
 	}
+
 	/**
 	 * Get all the cells in this column
 	 */
