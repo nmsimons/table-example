@@ -293,7 +293,6 @@ export function TableRowView(props: {
 
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidRow, "treeChanged", () => {
-			console.log("Row changed", fluidRow.id);
 			// Trigger a re-render of the row
 			// This is necessary because the row is not re-rendered when the data changes
 			// because the row is not a React component
@@ -301,6 +300,7 @@ export function TableRowView(props: {
 			// This is a hacky way to do it, but it works
 			setInval(Math.random());
 		});
+		return unsubscribe;
 	}, []); // Only run this effect once when the component mounts
 
 	const [isSelected, setIsSelected] = useState(selection.testSelection(fluidRow.id));
