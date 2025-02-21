@@ -1,7 +1,5 @@
-import { Cell } from "@tanstack/react-table";
 import React, { JSX } from "react";
-import { Row as FluidRow, DateTime, Vote } from "../schema/app_schema.js";
-import { cellValue, setValue } from "./tableux.js";
+import { Row, Column, DateTime, Vote, Cell as FluidCell } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { IconButton } from "./buttonux.js";
 import { ThumbLikeFilled } from "@fluentui/react-icons";
@@ -10,27 +8,28 @@ import { ThumbLikeFilled } from "@fluentui/react-icons";
 
 export function CellInputBoolean(props: {
 	value: boolean;
-	cell: Cell<FluidRow, cellValue>;
+	row: Row;
+	column: Column;
+	cellId: string;
 }): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
+	const { value, row, column, cellId } = props;
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(data, cell.column.id, e.target.checked);
+		setValue(row, column, e.target.checked);
 	};
 
 	return (
 		// Layout the checkbox and label in a flex container and align the checkbox to the left
 		<label className="flex items-center w-full h-full p-1 gap-x-2">
 			<input
-				id={cell.id}
+				id={cellId}
 				className="outline-none w-4 h-4"
 				type="checkbox"
 				checked={value ?? false}
 				onChange={handleChange}
 			></input>
-			{data.table.getColumn(cell.column.id).props.get("label")}
+			{column.props.get("label")}
 		</label>
 	);
 }
@@ -38,19 +37,20 @@ export function CellInputBoolean(props: {
 
 export function CellInputString(props: {
 	value: string;
-	cell: Cell<FluidRow, cellValue>;
+	row: Row;
+	column: Column;
+	cellId: string;
 }): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
+	const { value, row, column, cellId } = props;
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(data, cell.column.id, e.target.value);
+		setValue(row, column, e.target.value);
 	};
 
 	return (
 		<input
-			id={cell.id}
+			id={cellId}
 			className="outline-none w-full h-full"
 			type="text"
 			value={value ?? ""}
@@ -62,24 +62,25 @@ export function CellInputString(props: {
 
 export function CellInputNumber(props: {
 	value: number;
-	cell: Cell<FluidRow, cellValue>;
+	row: Row;
+	column: Column;
+	cellId: string;
 }): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
+	const { value, row, column, cellId } = props;
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		// convert the value to a number
 		const num = parseFloat(e.target.value);
 		if (!isNaN(num)) {
-			setValue(data, cell.column.id, num);
+			setValue(row, column, num);
 		}
 	};
 
 	return (
 		<input
 			inputMode="numeric"
-			id={cell.id}
+			id={cellId}
 			className="outline-none w-full h-full"
 			type="number"
 			value={value ?? 0}
@@ -90,21 +91,22 @@ export function CellInputNumber(props: {
 
 export function CellInputDate(props: {
 	value: DateTime | undefined;
-	cell: Cell<FluidRow, cellValue>;
+	row: Row;
+	column: Column;
+	cellId: string;
 }): JSX.Element {
-	const { value, cell } = props;
-	const data = cell.row.original;
+	const { value, row, column, cellId } = props;
 
 	const date = value?.value?.toISOString().split("T")[0] ?? "";
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const fluidCell = data.getCell(cell.column.id);
+		const fluidCell = row.getCell(column);
 		// Test if the target value is a valid date
 		if (isNaN(Date.parse(e.target.value))) {
 			if (fluidCell !== undefined) {
 				if (Tree.is(fluidCell.value, DateTime)) {
-					data.deleteCell(cell.column.id);
+					row.deleteCell(column);
 					return;
 				}
 			}
@@ -114,7 +116,7 @@ export function CellInputDate(props: {
 		// Generate a new Date from the target value
 		const d: Date = new Date(e.target.value);
 		if (fluidCell === undefined) {
-			data.initializeCell(cell.column.id, new DateTime({ raw: d.getTime() }));
+			row.initializeCell(column, new DateTime({ raw: d.getTime() }));
 		} else {
 			if (Tree.is(fluidCell.value, DateTime)) {
 				fluidCell.value.value = d;
@@ -124,7 +126,7 @@ export function CellInputDate(props: {
 
 	return (
 		<input
-			id={cell.id}
+			id={cellId}
 			className="outline-none w-full h-full"
 			type="date"
 			value={date}
@@ -136,20 +138,20 @@ export function CellInputDate(props: {
 
 export function CellInputVote(props: {
 	value: Vote | undefined;
-	cell: Cell<FluidRow, cellValue>;
+	row: Row;
+	column: Column;
 	userId: string;
 }): JSX.Element {
-	const { cell, userId, value } = props;
-	const fluidRow = cell.row.original;
+	const { value, row, column, userId } = props;
 
 	// Get the value of the cell
 	const vote = value ?? new Vote({ votes: {} });
 
 	// handle a click event in the cell
 	const handleClick = () => {
-		const fluidCell = fluidRow.getCell(cell.column.id);
-		if (fluidCell === undefined) {
-			fluidRow.initializeCell(cell.column.id, vote);
+		const cell = row.getCell(column);
+		if (cell === undefined) {
+			row.initializeCell(column, vote);
 		}
 		vote.toggleVote(userId);
 	};
@@ -167,3 +169,23 @@ export function CellInputVote(props: {
 		</div>
 	);
 }
+
+/**
+ * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
+ * This will overwrite the value of the cell so if the value isn't a primitive, don't use this -
+ * use initializeCell instead.
+ * @param row The row
+ * @param column The column
+ * @param value The value to set
+ * @returns The cell that was set
+ * */
+
+export const setValue = (row: Row, column: Column, value: string | number | boolean): FluidCell => {
+	const cell = row.getCell(column);
+	if (cell) {
+		cell.value = value;
+		return cell;
+	} else {
+		return row.initializeCell(column, value);
+	}
+};

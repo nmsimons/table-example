@@ -21,7 +21,7 @@ import {
 	TableMoveBelowFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
-import { setValue } from "./tableux.js";
+import { setValue } from "./inputux.js";
 import { SelectionManager } from "../utils/presence.js";
 
 const getLastSelectedRow = (table: Table, selection: SelectionManager): Row | undefined => {
@@ -127,20 +127,21 @@ const getRowWithValues = (table: Table): Row => {
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
 		const type = typeof column.defaultValue;
+		const fluidColumn = table.getColumn(column.id);
 
 		if (type === "number") {
-			setValue(row, column.id, Math.floor(Math.random() * 1000));
+			setValue(row, fluidColumn, Math.floor(Math.random() * 1000));
 		} else if (type === "boolean") {
-			setValue(row, column.id, Math.random() > 0.5);
+			setValue(row, fluidColumn, Math.random() > 0.5);
 		} else if (type === "string") {
-			setValue(row, column.id, Math.random().toString(36).substring(7));
+			setValue(row, fluidColumn, Math.random().toString(36).substring(7));
 		} else if (column.defaultValue === undefined && column.hint === "date") {
 			// Add a random date
 			const startDate = new Date(2020, 0, 1);
 			const endDate = new Date();
 			const date = getRandomDate(startDate, endDate);
 			const dateTime = new DateTime({ raw: date.getTime() });
-			row.initializeCell(column.id, dateTime);
+			row.initializeCell(fluidColumn, dateTime);
 		}
 	}
 	return row;

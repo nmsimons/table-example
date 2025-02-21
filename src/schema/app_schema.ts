@@ -196,47 +196,46 @@ export class Row extends sf.object("Row", {
 	}
 
 	/** Get a cell by the column id
-	 * @param columnId The id of the column
+	 * @param column The id of the column
 	 * @returns The cell if it exists, otherwise undefined
 	 * */
-	getCell(columnId: string): Cell | undefined {
-		return this.cells.get(columnId);
+	getCell(column: Column): Cell | undefined {
+		return this.cells.get(column.id);
 	}
 
 	/**
 	 * Initialize a cell with a value if it doesn't exist. If it does exist, return the cell without changing it
 	 */
-	initializeCell(columnId: string, value: typeDefinition): Cell {
-		let cell = this.cells.get(columnId);
+	initializeCell(column: Column, value: typeDefinition): Cell {
+		let cell = this.cells.get(column.id);
 		if (cell) {
 			return cell;
 		} else {
 			cell = new Cell({ value, props: {} });
-			this.cells.set(columnId, cell);
+			this.cells.set(column.id, cell);
 		}
 		return cell;
 	}
 
 	/**
 	 * Delete a cell from the row
-	 * @param columnId The id of the column
+	 * @param column The column
 	 */
-	deleteCell(columnId: string): void {
-		this.cells.delete(columnId);
+	deleteCell(column: Column): void {
+		this.cells.delete(column.id);
 	}
 
 	/**
 	 * Get the value of a cell by the column id
-	 * @param columnId The id of the column
+	 * @param column The column
 	 * @returns The value of the cell if it exists, otherwise return the default value of the column
 	 * which is defined in the column schema and may be undefined
 	 */
-	getValue(columnId: string): { value: typeDefinition | undefined; isDefault: boolean } {
-		const cell = this.cells.get(columnId);
+	getValue(column: Column): { value: typeDefinition | undefined; isDefault: boolean } {
+		const cell = this.cells.get(column.id);
 		if (cell) {
 			return { value: cell.value, isDefault: false };
 		}
-		const column = this.table.getColumn(columnId);
 		return { value: column.defaultValue, isDefault: true };
 	}
 

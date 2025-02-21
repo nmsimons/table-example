@@ -19,7 +19,6 @@ import {
 	Table as FluidTable,
 	Row as FluidRow,
 	Column as FluidColumn,
-	Cell as FluidCell,
 	DateTime,
 	typeDefinition,
 	Vote,
@@ -418,29 +417,35 @@ export function TableCellViewContent(props: {
 	user: IMember;
 }): JSX.Element {
 	const { cell, user } = props;
-	const data = cell.row.original;
-	const fluidColumn = data.table.getColumn(cell.column.id);
-	const value = data.getValue(cell.column.id).value;
+	const fluidRow = cell.row.original;
+	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
+	const value = fluidRow.getValue(fluidColumn).value;
 
 	if (typeof value === "boolean") {
-		return <CellInputBoolean value={value} cell={cell} />;
+		return (
+			<CellInputBoolean value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
+		);
 	} else if (typeof value === "number") {
-		return <CellInputNumber value={value} cell={cell} />;
+		return (
+			<CellInputNumber value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
+		);
 	} else if (typeof value === "string") {
-		return <CellInputString value={value} cell={cell} />;
+		return (
+			<CellInputString value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
+		);
 	}
 	// If the value is undefined and the column hint is date, display a date input
 	else if (value === undefined && fluidColumn.hint === "date") {
-		return <CellInputDate value={value} cell={cell} />;
+		return <CellInputDate value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />;
 	} else if (value instanceof DateTime) {
-		return <CellInputDate value={value} cell={cell} />;
+		return <CellInputDate value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />;
 	}
 	// If the value is undefined and the column hint is vote, display a vote button
 	else if (value === undefined && fluidColumn.hint === "vote") {
-		return <CellInputVote value={value} cell={cell} userId={user.id} />;
+		return <CellInputVote value={value} row={fluidRow} column={fluidColumn} userId={user.id} />;
 	} // If the value is a vote, display the vote button
 	else if (value instanceof Vote) {
-		return <CellInputVote value={value} cell={cell} userId={user.id} />;
+		return <CellInputVote value={value} row={fluidRow} column={fluidColumn} userId={user.id} />;
 	}
 	return <></>;
 }
@@ -476,7 +481,8 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 		headerArray.push(
 			columnHelper.accessor(
 				(row) => {
-					return row.getValue(column.id).value ?? "";
+					const fluidColumn = row.table.getColumn(column.id);
+					return row.getValue(fluidColumn).value ?? "";
 				},
 				{
 					id: column.id,
@@ -575,26 +581,5 @@ const getSortingConfig = (
 			column.hint,
 		);
 		return { fn: "basic", desc: false };
-	}
-};
-
-/**
- * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
- * This will overwrite the value of the cell so if the value isn't a primitive, don't use this.
- * @param columnId The id of the column
- * @param value The value to set
- * @returns The cell that was set
- * */
-export const setValue = (
-	row: FluidRow,
-	columnId: string,
-	value: string | number | boolean,
-): FluidCell => {
-	const cell = row.cells.get(columnId);
-	if (cell) {
-		cell.value = value;
-		return cell;
-	} else {
-		return row.initializeCell(columnId, value);
 	}
 };
