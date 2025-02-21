@@ -4,7 +4,7 @@
  */
 
 import React, { JSX, useEffect } from "react";
-import { Column, DateTime, Row, Table } from "../schema/app_schema.js";
+import { DateTime, Column, Row, Table } from "../schema/app_schema.js";
 import {
 	DismissFilled,
 	ArrowUndoFilled,

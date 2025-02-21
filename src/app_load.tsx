@@ -4,7 +4,7 @@ import { OdspClient } from "@fluidframework/odsp-client/beta";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
-import { Table, appTreeConfiguration } from "./schema/app_schema.js";
+import { appTreeConfiguration, Table } from "./schema/app_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
