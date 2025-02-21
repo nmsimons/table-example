@@ -371,11 +371,7 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 		}): Column {
 			// destructure the input
 			const { name, defaultValue, hint } = props;
-
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const column = new Column({ props: {}, name, defaultValue, hint } as any);
-			this.columns.insertAtEnd(column);
-			return column;
+			return this.insertNewColumn({ index: this.columns.length, name, defaultValue, hint });
 		}
 
 		/**
