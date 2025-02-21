@@ -69,46 +69,6 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 		_cells: sf.map(Cell), // The keys of this map are the column ids
 		props: sf.map([sf.number, sf.string, sf.boolean]),
 	}) {
-		/**
-		 * Get the cells of this row as a JSON object
-		 * Replace the key with the column name
-		 * @param table The table that the row is in
-		 * @returns The cells of this row as a JSON object
-		 */
-		// getCellsAsJson(): Record<string, typeDefinition> {
-		// 	const cells: Record<string, typeDefinition> = {};
-		// 	for (const [key, value] of this._cells.entries()) {
-		// 		const column = this.table.getColumn(key);
-		// 		if (cells[column.name] === undefined) {
-		// 			cells[column.name] = value.value;
-		// 		} else {
-		// 			// If the column name already exists, use the column id
-		// 			cells[key] = value.value;
-		// 		}
-		// 	}
-		// 	return cells;
-		// }
-
-		/**
-		 * Get the props of this row as a JSON object
-		 * @returns The props of this row as a JSON object
-		 */
-		// getPropsAsJson(): Record<string, string | number | boolean> {
-		// 	const props: Record<string, string | number | boolean> = {};
-		// 	for (const [key, value] of this.props.entries()) {
-		// 		props[key] = value;
-		// 	}
-		// 	return props;
-		// }
-
-		/**
-		 * Get the cells and the props of this rows as a JSON object
-		 * @returns The cells and the props of this rows as a JSON object
-		 */
-		// getCellsAsJsonWithId(): Record<string, typeDefinition | string | number | boolean> {
-		// 	return { id: this.id, ...this.getCellsAsJson() };
-		// }
-
 		/** Get a cell by the column id
 		 * @param column The id of the column
 		 * @returns The cell if it exists, otherwise undefined
