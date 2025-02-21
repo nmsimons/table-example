@@ -297,8 +297,9 @@ export function TableRowView(props: {
 			// Trigger a re-render of the row
 			// This is necessary because the row is not re-rendered when the data changes
 			// because the row is not a React component
-			setInval((inval) => inval + 1);
-			return unsubscribe;
+			// set inval to a random number to force a re-render
+			// This is a hacky way to do it, but it works
+			setInval(Math.random());
 		});
 	}, []); // Only run this effect once when the component mounts
 
