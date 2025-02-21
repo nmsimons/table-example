@@ -62,7 +62,7 @@ export function TableView(props: {
 
 	// Register for tree deltas when the component mounts. Any time the rows change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(fluidTable.rows, "treeChanged", () => {
+		const unsubscribe = Tree.on(fluidTable.rows, "nodeChanged", () => {
 			setData(fluidTable.rows.map((row) => row));
 		});
 		return unsubscribe;
@@ -70,7 +70,7 @@ export function TableView(props: {
 
 	// Register for tree deltas when the component mounts. Any time the columns change, the app will update.
 	useEffect(() => {
-		const unsubscribe = Tree.on(fluidTable.columns, "treeChanged", () => {
+		const unsubscribe = Tree.on(fluidTable.columns, "nodeChanged", () => {
 			setColumns(updateColumnData(fluidTable.columns.map((column) => column)));
 		});
 		return unsubscribe;
@@ -284,11 +284,23 @@ export function TableRowView(props: {
 	user: IMember; // Add the user prop here
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer, selection, user } = props;
+	const [inval, setInval] = useState(0); // used to force a re-render of the row
 
 	const style = { transform: `translateY(${virtualRow.start}px)` };
 
 	// Get the fluid row from the row
 	const fluidRow = row.original;
+
+	useEffect(() => {
+		const unsubscribe = Tree.on(fluidRow, "treeChanged", () => {
+			console.log("Row changed", fluidRow.id);
+			// Trigger a re-render of the row
+			// This is necessary because the row is not re-rendered when the data changes
+			// because the row is not a React component
+			setInval((inval) => inval + 1);
+			return unsubscribe;
+		});
+	}, []); // Only run this effect once when the component mounts
 
 	const [isSelected, setIsSelected] = useState(selection.testSelection(fluidRow.id));
 
