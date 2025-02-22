@@ -26,12 +26,17 @@ export async function loadApp(
 		logger,
 	);
 
+	// Create an array of rows to be used in the table
+	const rows = new Array(10).fill(null).map(() => {
+		return { _cells: [], props: {} };
+	});
+
 	// Initialize the SharedTree DDSes
 	const appTree = container.initialObjects.appData.viewWith(appTreeConfiguration);
 	if (appTree.compatibility.canInitialize) {
 		appTree.initialize(
 			new FluidTable({
-				rows: [],
+				rows: rows,
 				columns: [
 					{
 						name: "String",
