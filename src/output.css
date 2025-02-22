@@ -258,6 +258,12 @@
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
   }
+  .\!hidden {
+    display: none !important;
+  }
+  .block {
+    display: block;
+  }
   .flex {
     display: flex;
   }
