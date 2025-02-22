@@ -19,6 +19,8 @@ import {
 	TableDeleteRowFilled,
 	TableMoveAboveFilled,
 	TableMoveBelowFilled,
+	TableMoveLeftFilled,
+	TableMoveRightFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
 import { setValue } from "./inputux.js";
@@ -292,7 +294,7 @@ export function MoveSelectedColumnsButton(props: {
 	return (
 		<ToolbarButton
 			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={left ? <TableMoveAboveFilled /> : <TableMoveBelowFilled />}
+			icon={left ? <TableMoveLeftFilled /> : <TableMoveRightFilled />}
 			disabled={disabled}
 		>
 			{left ? "Left" : "Right"}
