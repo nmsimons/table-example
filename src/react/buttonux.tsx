@@ -546,7 +546,7 @@ function IconButtonText(props: { children: React.ReactNode }): JSX.Element {
 	if (props.children == undefined) {
 		return <></>;
 	} else {
-		return <span className="text-sm pl-2 leading-none">{props.children}</span>;
+		return <span className="hidden text-sm pl-2 leading-none lg:block">{props.children}</span>;
 	}
 }
 
