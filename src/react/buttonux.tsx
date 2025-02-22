@@ -436,6 +436,7 @@ export function ChangeColumnTypeButton(props: { column: FluidColumn; type: strin
 				handleClick={(e: React.MouseEvent) => handleClick(e)}
 				icon={icon}
 				grow={true}
+				responsive={false}
 			>
 				{type}
 			</IconButton>
