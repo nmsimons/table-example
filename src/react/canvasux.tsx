@@ -5,7 +5,7 @@
  */
 
 import React, { JSX, use, useEffect } from "react";
-import { Table } from "../schema/app_schema.js";
+import { FluidTable } from "../schema/app_schema.js";
 import {
 	ConnectionState,
 	IFluidContainer,
@@ -20,7 +20,7 @@ import type { SelectionManager } from "../utils/presence.js";
 import { TableView } from "./tableux.js";
 
 export function Canvas(props: {
-	table: Table;
+	table: FluidTable;
 	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;

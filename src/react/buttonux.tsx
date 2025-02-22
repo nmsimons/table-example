@@ -4,7 +4,7 @@
  */
 
 import React, { JSX, useEffect } from "react";
-import { DateTime, Column, Row, Table } from "../schema/app_schema.js";
+import { DateTime, FluidColumn, FluidRow, FluidTable } from "../schema/app_schema.js";
 import {
 	DismissFilled,
 	ArrowUndoFilled,
@@ -24,7 +24,10 @@ import { Tree, TreeStatus } from "fluid-framework";
 import { setValue } from "./inputux.js";
 import { SelectionManager } from "../utils/presence.js";
 
-const getLastSelectedRow = (table: Table, selection: SelectionManager): Row | undefined => {
+const getLastSelectedRow = (
+	table: FluidTable,
+	selection: SelectionManager,
+): FluidRow | undefined => {
 	const selectedRows = selection.getSelected("row");
 	if (selectedRows.length > 0) {
 		const lastSelectedRow = table.getRow(selectedRows[selectedRows.length - 1]);
@@ -44,7 +47,7 @@ const getLastSelectedRow = (table: Table, selection: SelectionManager): Row | un
 };
 
 export function NewEmptyRowButton(props: {
-	table: Table;
+	table: FluidTable;
 	selection: SelectionManager;
 }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
@@ -67,7 +70,10 @@ export function NewEmptyRowButton(props: {
 	);
 }
 
-export function NewRowButton(props: { table: Table; selection: SelectionManager }): JSX.Element {
+export function NewRowButton(props: {
+	table: FluidTable;
+	selection: SelectionManager;
+}): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Wrap the add group operation in a transaction as it adds a group and potentially moves
@@ -94,7 +100,7 @@ export function NewRowButton(props: { table: Table; selection: SelectionManager 
 	);
 }
 
-export function NewManysRowsButton(props: { table: Table }): JSX.Element {
+export function NewManysRowsButton(props: { table: FluidTable }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Wrap the add group operation in a transaction as it adds a group and potentially moves
@@ -120,7 +126,7 @@ export function NewManysRowsButton(props: { table: Table }): JSX.Element {
 	);
 }
 
-const getRowWithValues = (table: Table): Row => {
+const getRowWithValues = (table: FluidTable): FluidRow => {
 	const row = table.createDetachedRow();
 	// Iterate through all the columns and add a random value for the new row
 	// If the column is a number, we will add a random number, otherwise we will add a random string
@@ -152,7 +158,7 @@ function getRandomDate(start: Date, end: Date): Date {
 	return date;
 }
 
-export function NewColumnButton(props: { table: Table }): JSX.Element {
+export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 	const { table } = props;
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -188,7 +194,7 @@ export function NewColumnButton(props: { table: Table }): JSX.Element {
 }
 
 export function MoveSelectedRowsButton(props: {
-	table: Table;
+	table: FluidTable;
 	selection: SelectionManager;
 	up: boolean;
 }): JSX.Element {
@@ -242,7 +248,7 @@ export function MoveSelectedRowsButton(props: {
 }
 
 export function MoveSelectedColumnsButton(props: {
-	table: Table;
+	table: FluidTable;
 	selection: SelectionManager;
 	left: boolean;
 }): JSX.Element {
@@ -295,7 +301,7 @@ export function MoveSelectedColumnsButton(props: {
 }
 
 export function DeleteSelectedRowsButton(props: {
-	table: Table;
+	table: FluidTable;
 	selection: SelectionManager;
 }): JSX.Element {
 	const { table, selection } = props;
@@ -352,7 +358,7 @@ export function DeleteSelectedRowsButton(props: {
 
 // A menu that allows the user to change the column type
 // The user can change the column type to a string, number, boolean, or date
-export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
+export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element {
 	const { column } = props;
 
 	if (column.cells.length !== 0) return <></>;
@@ -377,7 +383,7 @@ export function ColumnTypeDropdown(props: { column: Column }): JSX.Element {
 }
 
 // Change the column type by setting the default value to a string, number, boolean, or date
-export function ChangeColumnTypeButton(props: { column: Column; type: string }): JSX.Element {
+export function ChangeColumnTypeButton(props: { column: FluidColumn; type: string }): JSX.Element {
 	const { column, type } = props;
 
 	// Set the icon based on the type of the column
@@ -427,7 +433,7 @@ export function ChangeColumnTypeButton(props: { column: Column; type: string }):
 }
 
 // Delete all the rows in the table
-export function DeleteAllRowsButton(props: { table: Table }): JSX.Element {
+export function DeleteAllRowsButton(props: { table: FluidTable }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		props.table.deleteAllRows();

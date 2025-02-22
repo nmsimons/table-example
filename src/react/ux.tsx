@@ -4,7 +4,7 @@
  */
 
 import React, { JSX, useEffect, useState } from "react";
-import { Table } from "../schema/app_schema.js";
+import { FluidTable } from "../schema/app_schema.js";
 import "../output.css";
 import { IFluidContainer, IMember, IServiceAudience, Tree, TreeView } from "fluid-framework";
 import { Canvas } from "./canvasux.js";
@@ -26,7 +26,7 @@ import {
 } from "./buttonux.js";
 
 export function ReactApp(props: {
-	table: TreeView<typeof Table>;
+	table: TreeView<typeof FluidTable>;
 	selection: SelectionManager;
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
@@ -108,7 +108,7 @@ export function Header(props: {
 	connectionState: string;
 	fluidMembers: IMember[];
 	clientId: string;
-	table: Table;
+	table: FluidTable;
 }): JSX.Element {
 	// Update when the table changes
 	const [rowCount, setRowCount] = useState(props.table.rows.length);

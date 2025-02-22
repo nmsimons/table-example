@@ -10,7 +10,7 @@ import {
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
 
-export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaTypes: T) {
+export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaTypes: T) {
 	// Create a new table based on the SharedTree schema in this file
 	// The table will be empty and will have no columns
 	// The types allowed in the table are defined in the schemaTypes array

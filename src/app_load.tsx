@@ -4,7 +4,7 @@ import { OdspClient } from "@fluidframework/odsp-client/beta";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
-import { appTreeConfiguration, Table } from "./schema/app_schema.js";
+import { appTreeConfiguration, FluidTable } from "./schema/app_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
@@ -29,7 +29,7 @@ export async function loadApp(
 	// Initialize the SharedTree DDSes
 	const appTree = container.initialObjects.appData.viewWith(appTreeConfiguration);
 	if (appTree.compatibility.canInitialize) {
-		appTree.initialize(new Table({ rows: [], columns: [] }));
+		appTree.initialize(new FluidTable({ rows: [], columns: [] }));
 	}
 
 	// Get the Presence data object from the container

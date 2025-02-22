@@ -1,10 +1,10 @@
 import React, { JSX } from "react";
-import { DateTime, Vote, Row, Column, Cell as FluidCell } from "../schema/app_schema.js";
+import { DateTime, Vote, FluidRow, FluidColumn, FluidCell } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { IconButton } from "./buttonux.js";
 import { ThumbLikeFilled } from "@fluentui/react-icons";
 
-export function ColumnInput(props: { column: Column }): JSX.Element {
+export function ColumnInput(props: { column: FluidColumn }): JSX.Element {
 	const { column } = props;
 	return (
 		<input
@@ -21,8 +21,8 @@ export function ColumnInput(props: { column: Column }): JSX.Element {
 // Input field for a cell with a boolean value
 export function CellInputBoolean(props: {
 	value: boolean;
-	row: Row;
-	column: Column;
+	row: FluidRow;
+	column: FluidColumn;
 	cellId: string;
 }): JSX.Element {
 	const { value, row, column, cellId } = props;
@@ -50,8 +50,8 @@ export function CellInputBoolean(props: {
 // Input field for a string cell
 export function CellInputString(props: {
 	value: string;
-	row: Row;
-	column: Column;
+	row: FluidRow;
+	column: FluidColumn;
 	cellId: string;
 }): JSX.Element {
 	const { value, row, column, cellId } = props;
@@ -75,8 +75,8 @@ export function CellInputString(props: {
 // Input field for a string cell
 export function CellInputNumber(props: {
 	value: number;
-	row: Row;
-	column: Column;
+	row: FluidRow;
+	column: FluidColumn;
 	cellId: string;
 }): JSX.Element {
 	const { value, row, column, cellId } = props;
@@ -104,8 +104,8 @@ export function CellInputNumber(props: {
 
 export function CellInputDate(props: {
 	value: DateTime | undefined;
-	row: Row;
-	column: Column;
+	row: FluidRow;
+	column: FluidColumn;
 	cellId: string;
 }): JSX.Element {
 	const { value, row, column, cellId } = props;
@@ -151,8 +151,8 @@ export function CellInputDate(props: {
 
 export function CellInputVote(props: {
 	value: Vote | undefined;
-	row: Row;
-	column: Column;
+	row: FluidRow;
+	column: FluidColumn;
 	userId: string;
 }): JSX.Element {
 	const { value, row, column, userId } = props;
@@ -192,7 +192,11 @@ export function CellInputVote(props: {
  * @param value The value to set
  * @returns The cell that was set
  * */
-export const setValue = (row: Row, column: Column, value: string | number | boolean): FluidCell => {
+export const setValue = (
+	row: FluidRow,
+	column: FluidColumn,
+	value: string | number | boolean,
+): FluidCell => {
 	const cell = row.getCell(column);
 	if (cell) {
 		cell.value = value;

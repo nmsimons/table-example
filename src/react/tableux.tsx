@@ -18,9 +18,9 @@ import React, { JSX, useState, useEffect, use } from "react";
 import {
 	DateTime,
 	Vote,
-	Table as FluidTable,
-	Row as FluidRow,
-	Column as FluidColumn,
+	FluidTable,
+	FluidRow,
+	FluidColumn,
 	typeDefinition,
 } from "../schema/app_schema.js";
 import { IMember, Tree } from "fluid-framework";

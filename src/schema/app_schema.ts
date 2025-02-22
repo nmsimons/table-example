@@ -9,7 +9,7 @@ import {
 	TreeNodeFromImplicitAllowedTypes,
 	NodeFromSchema,
 } from "fluid-framework";
-import { makeTable } from "./table_schema.js";
+import { Table } from "./table_schema.js";
 
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
@@ -105,10 +105,10 @@ export type typeDefinition = TreeNodeFromImplicitAllowedTypes<typeof schemaTypes
 const schemaTypes = [sf.string, sf.number, sf.boolean, DateTime, Vote] as const;
 
 const tableFactory = new SchemaFactory(sf.scope + "/table1");
-export class Table extends makeTable(tableFactory, schemaTypes) {}
-export type Row = NodeFromSchema<typeof Table.Row>;
-export type Column = NodeFromSchema<typeof Table.Column>;
-export type Cell = NodeFromSchema<typeof Table.Cell>;
+export class FluidTable extends Table(tableFactory, schemaTypes) {}
+export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
+export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
+export type FluidCell = NodeFromSchema<typeof FluidTable.Cell>;
 
 /**
  * Export the tree config appropriate for this schema.
@@ -116,5 +116,5 @@ export type Cell = NodeFromSchema<typeof Table.Cell>;
  * */
 export const appTreeConfiguration = new TreeViewConfiguration(
 	// Schema for the root
-	{ schema: Table },
+	{ schema: FluidTable },
 );
