@@ -20,7 +20,7 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 	type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<T>;
 
 	/**
-	 * The Cell schema which should eventally support more types than just strings
+	 * The Cell
 	 */
 	class Cell extends sf.object("Cell", {
 		value: sf.required(schemaTypes),
@@ -38,6 +38,21 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 				}
 			}
 			throw new Error("Cell is not in a row");
+		}
+
+		/**
+		 * Property getter to get the sythetic id of the cell
+		 * This is the id of the column that the cell is in combined
+		 * with the id of the row that the cell is in in the format of rowId_columnId
+		 * This is used to identify the cell in the table
+		 * */
+		get id(): `${string}_${string}` {
+			const column = this.column;
+			const row = this.row;
+			if (column && row) {
+				return `${row.id}_${column.id}`;
+			}
+			throw new Error("Cell is not in a row or column");
 		}
 
 		/**
@@ -68,8 +83,21 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 		_cells: sf.map(Cell), // The keys of this map are the column ids - this would ideally be private
 		props: sf.map([sf.number, sf.string, sf.boolean]),
 	}) {
-		/** Get a cell by the column id
-		 * @param column The id of the column
+		/**
+		 * Property getter to get the cells in the row
+		 * @returns The cells in the row as an object where the keys are the column ids
+		 * and the values are the cell values
+		 */
+		get cells(): Record<string, CellValueType> {
+			const cells: Record<string, CellValueType> = {};
+			for (const [key, value] of this._cells.entries()) {
+				cells[key] = value.value;
+			}
+			return cells;
+		}
+
+		/** Get a cell by the column
+		 * @param column The column
 		 * @returns The cell if it exists, otherwise undefined
 		 * */
 		getCell(column: Column): Cell | undefined {
@@ -180,6 +208,19 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 			}
 			throw new Error("Row is not in a table");
 		}
+
+		/**
+		 * Get the synthetic id of a cell in the row by the column.
+		 * This is the id of the column that the cell is in combined
+		 * with the id of the row that the cell is in in the format of rowId_columnId
+		 * This is used to identify the cell in the table
+		 * @param column The column
+		 */
+		getCellId(column: Column): `${string}_${string}` {
+			const columnId = column.id;
+			const rowId = this.id;
+			return `${rowId}_${columnId}`;
+		}
 	}
 	/**
 	 * The Column schema - this can include more properties as needed *
@@ -288,6 +329,21 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 				if (cell) return cell;
 			}
 			return undefined;
+		}
+
+		/**
+		 * Get the synthetic id of a cell in the table by the row and column.
+		 * This is the id of the column that the cell is in combined
+		 * with the id of the row that the cell is in in the format of rowId_columnId
+		 * This is used to identify the cell in the table
+		 * @param row The row
+		 * @param column The column
+		 * @returns The synthetic id of the cell
+		 */
+		getCellId(row: Row, column: Column): `${string}_${string}` {
+			const columnId = column.id;
+			const rowId = row.id;
+			return `${rowId}_${columnId}`;
 		}
 
 		/**

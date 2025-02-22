@@ -511,19 +511,13 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	columnsArray.forEach((column) => {
 		const sortingConfig = getSortingConfig(column);
 		headerArray.push(
-			columnHelper.accessor(
-				(row) => {
-					const fluidColumn = row.table.getColumn(column.id);
-					return row.getValue(fluidColumn).value ?? "";
-				},
-				{
-					id: column.id,
-					header: column.name,
-					sortingFn: sortingConfig.fn,
-					sortDescFirst: sortingConfig.desc,
-					sortUndefined: "last",
-				},
-			),
+			columnHelper.accessor((row) => row.cells[column.id], {
+				id: column.id,
+				header: column.name,
+				sortingFn: sortingConfig.fn,
+				sortDescFirst: sortingConfig.desc,
+				sortUndefined: "last",
+			}),
 		);
 	});
 
