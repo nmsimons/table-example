@@ -40,6 +40,7 @@ import {
 	CellInputString,
 	CellInputDate,
 	CellInputVote,
+	ColumnInput,
 } from "./inputux.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
@@ -93,7 +94,7 @@ export function TableView(props: {
 				style={{ display: "grid" }}
 				className="table-auto w-full border-collapse border-b-2 border-gray-200"
 			>
-				<TableHeadersView table={table} fluidTable={fluidTable} />
+				<TableHeadersView table={table} fluidTable={fluidTable} selection={selection} />
 				<TableBodyView
 					table={table}
 					tableContainerRef={tableContainerRef}
@@ -107,8 +108,9 @@ export function TableView(props: {
 export function TableHeadersView(props: {
 	table: Table<FluidRow>;
 	fluidTable: FluidTable;
+	selection: SelectionManager;
 }): JSX.Element {
-	const { table, fluidTable } = props;
+	const { table, fluidTable, selection } = props;
 
 	return (
 		<thead
@@ -128,6 +130,7 @@ export function TableHeadersView(props: {
 								key={header.id}
 								header={header}
 								fluidTable={fluidTable}
+								selection={selection} // Pass the selection prop to the TableHeaderView
 							/>
 						),
 					)}
@@ -153,9 +156,40 @@ export function IndexHeaderView(): JSX.Element {
 export function TableHeaderView(props: {
 	header: Header<FluidRow, unknown>;
 	fluidTable: FluidTable;
+	selection: SelectionManager;
 }): JSX.Element {
-	const { header, fluidTable } = props;
+	const { header, fluidTable, selection } = props;
 	const fluidColumn = fluidTable.getColumn(header.column.id);
+	const [localSelection, setLocalSelection] = useState(selection.testSelection(fluidColumn.id));
+	const [remoteSelection, setRemoteSelection] = useState(
+		selection.testRemoteSelection(fluidColumn.id),
+	);
+	const [inval, setInval] = useState(0); // used to force a re-render of the header
+
+	useEffect(() => {
+		const unsubscribe = Tree.on(fluidColumn, "nodeChanged", () => {
+			// Trigger a re-render of the header
+			// This is necessary because the header is not re-rendered when the data changes
+			// because the header is not a React component
+			// set inval to a random number to force a re-render
+			// This is a hacky way to do it, but it works
+			setInval(Math.random());
+		});
+		return unsubscribe;
+	}, []); // Only run this effect once when the component mounts
+
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			setLocalSelection(selection.testSelection(fluidColumn.id));
+			setRemoteSelection(selection.testRemoteSelection(fluidColumn.id));
+		});
+	}, []);
+
+	// handle a focus event in the header
+	const handleFocus = () => {
+		// set the selection to the column
+		selection.replaceSelection(fluidColumn.id, "column");
+	};
 
 	return (
 		<th
@@ -165,31 +199,21 @@ export function TableHeaderView(props: {
 				width: columnWidth,
 				maxWidth: columnWidth,
 			}}
-			className="p-1 border-r-1 border-gray-100"
+			className="relative p-1 border-r-1 border-gray-100"
+			onFocus={handleFocus}
 		>
+			<PresenceBox hidden={!localSelection} remote={false} /> {/* Local selection box */}
+			<PresenceBox hidden={!remoteSelection} remote={true} /> {/* Remote selection box */}
 			<div className="flex flex-row justify-between w-full gap-x-1">
-				<input
-					id={fluidColumn.id}
-					className="outline-none w-full h-full truncate"
-					value={fluidColumn.name}
-					onChange={(e) => {
-						fluidColumn.name = e.target.value;
+				<ColumnInput column={fluidColumn} /> {/* Input field for the column name */}
+				<ColumnTypeDropdown column={fluidColumn} />
+				<SortButton column={header.column} />
+				<DeleteButton
+					delete={() => {
+						header.column.clearSorting();
+						fluidColumn.table.deleteColumn(fluidColumn.id);
 					}}
-				></input>
-				<div>
-					<ColumnTypeDropdown column={fluidColumn} />
-				</div>
-				<div>
-					<SortButton column={header.column} />
-				</div>
-				<div>
-					<DeleteButton
-						delete={() => {
-							header.column.clearSorting();
-							fluidColumn.table.deleteColumn(fluidColumn.id);
-						}}
-					/>
-				</div>
+				/>
 			</div>
 		</th>
 	);
@@ -399,14 +423,9 @@ export function TableCellView(props: {
 		selection.replaceSelection(cell.id, "cell");
 	};
 
-	const handleBlur = () => {
-		selection.clearSelection();
-	};
-
 	return (
 		<td
 			onFocus={handleFocus}
-			onBlur={handleBlur}
 			style={{
 				display: "flex",
 				position: "relative",

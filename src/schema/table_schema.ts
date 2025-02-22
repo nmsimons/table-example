@@ -23,7 +23,6 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 	 * The Cell schema which should eventally support more types than just strings
 	 */
 	class Cell extends sf.object("Cell", {
-		id: sf.identifier,
 		value: sf.required(schemaTypes),
 		props: sf.map([sf.number, sf.string, sf.boolean]),
 	}) {
@@ -66,7 +65,7 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 
 	class Row extends sf.object("Row", {
 		id: sf.identifier,
-		_cells: sf.map(Cell), // The keys of this map are the column ids
+		_cells: sf.map(Cell), // The keys of this map are the column ids - this would ideally be private
 		props: sf.map([sf.number, sf.string, sf.boolean]),
 	}) {
 		/** Get a cell by the column id
@@ -218,11 +217,48 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 				.filter((cell) => cell !== undefined) as Cell[];
 			return cells;
 		}
+
+		/**
+		 * Get the index of the column in the table
+		 * @returns The index of the column in the table
+		 */
+		get index(): number {
+			const columns = this.table?.columns;
+			if (columns) {
+				return columns.indexOf(this);
+			}
+			throw new Error("Column is not in a table");
+		}
+
+		/**
+		 * Move a column to a new location
+		 * @param index The index to move the column to
+		 * */
+		moveTo(index: number): void {
+			const columns = this.table.columns;
+			if (index > this.index) {
+				index += 1; // If the index is greater than the current index, move it to the right
+			}
+
+			// Make sure the index is within the bounds of the table
+			if (index < 0 && this.index > 0) {
+				columns.moveToStart(this.index);
+				return;
+			}
+			if (index > columns.length - 1 && this.index < columns.length - 1) {
+				columns.moveToEnd(this.index);
+				return;
+			}
+			if (index < 0 || index >= columns.length) {
+				return; // If the index is out of bounds, do nothing
+			}
+			columns.moveToIndex(index, this.index);
+		}
 	}
+
 	/**
 	 * The Table schema
 	 * */
-
 	class Table extends sf.object("Table", {
 		rows: sf.array(Row),
 		columns: sf.array(Column),
@@ -238,6 +274,20 @@ export function makeTable<T extends ImplicitAllowedTypes>(sf: SchemaFactory, sch
 		getRow(id: string): Row | undefined {
 			const row = this.rows.find((row) => row.id === id);
 			if (row) return row;
+		}
+
+		/**
+		 * Get a cell by the row id and column id
+		 * @param rowId The id of the row
+		 * @param columnId The id of the column
+		 */
+		getCell(rowId: string, columnId: string): Cell | undefined {
+			const row = this.getRow(rowId);
+			if (row) {
+				const cell = row._cells.get(columnId);
+				if (cell) return cell;
+			}
+			return undefined;
 		}
 
 		/**

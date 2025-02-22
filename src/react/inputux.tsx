@@ -4,8 +4,21 @@ import { Tree } from "fluid-framework";
 import { IconButton } from "./buttonux.js";
 import { ThumbLikeFilled } from "@fluentui/react-icons";
 
-// Input field for a cell with a boolean value
+export function ColumnInput(props: { column: Column }): JSX.Element {
+	const { column } = props;
+	return (
+		<input
+			id={column.id}
+			className="outline-none w-full h-full truncate"
+			value={column.name}
+			onChange={(e) => {
+				column.name = e.target.value;
+			}}
+		></input>
+	);
+}
 
+// Input field for a cell with a boolean value
 export function CellInputBoolean(props: {
 	value: boolean;
 	row: Row;
@@ -33,8 +46,8 @@ export function CellInputBoolean(props: {
 		</label>
 	);
 }
-// Input field for a string cell
 
+// Input field for a string cell
 export function CellInputString(props: {
 	value: string;
 	row: Row;
@@ -58,8 +71,8 @@ export function CellInputString(props: {
 		></input>
 	);
 }
-// Input field for a string cell
 
+// Input field for a string cell
 export function CellInputNumber(props: {
 	value: number;
 	row: Row;
@@ -179,7 +192,6 @@ export function CellInputVote(props: {
  * @param value The value to set
  * @returns The cell that was set
  * */
-
 export const setValue = (row: Row, column: Column, value: string | number | boolean): FluidCell => {
 	const cell = row.getCell(column);
 	if (cell) {

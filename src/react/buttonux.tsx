@@ -236,7 +236,60 @@ export function MoveSelectedRowsButton(props: {
 			icon={up ? <TableMoveAboveFilled /> : <TableMoveBelowFilled />}
 			disabled={disabled}
 		>
-			Move
+			{up ? "Up" : "Down"}
+		</ToolbarButton>
+	);
+}
+
+export function MoveSelectedColumnsButton(props: {
+	table: Table;
+	selection: SelectionManager;
+	left: boolean;
+}): JSX.Element {
+	const { table, selection, left } = props;
+	// Disable the button if there are no selected columns
+	const [disabled, setDisabled] = React.useState(selection.getSelected("column").length === 0);
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			// If the selection is empty, we will disable the button
+			if (selection.getSelected("column").length === 0) {
+				setDisabled(true);
+			} else {
+				setDisabled(false);
+			}
+		});
+	}, []);
+	const handleClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		// Get the selected columns from the selection manager
+		const selectedColumns = selection.getSelected("column");
+
+		// If there are no selected columns, return
+		if (selectedColumns.length === 0) {
+			return;
+		}
+
+		Tree.runTransaction(table, () => {
+			for (const columnId of selectedColumns) {
+				const column = table.getColumn(columnId);
+				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
+					if (left) {
+						column.moveTo(column.index - 1);
+					} else {
+						column.moveTo(column.index + 1);
+					}
+				}
+			}
+		});
+	};
+
+	return (
+		<ToolbarButton
+			handleClick={(e: React.MouseEvent) => handleClick(e)}
+			icon={left ? <TableMoveAboveFilled /> : <TableMoveBelowFilled />}
+			disabled={disabled}
+		>
+			{left ? "Left" : "Right"}
 		</ToolbarButton>
 	);
 }

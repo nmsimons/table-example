@@ -22,6 +22,7 @@ import {
 	RedoButton,
 	DeleteSelectedRowsButton,
 	MoveSelectedRowsButton,
+	MoveSelectedColumnsButton,
 } from "./buttonux.js";
 
 export function ReactApp(props: {
@@ -65,6 +66,16 @@ export function ReactApp(props: {
 					<NewManysRowsButton table={table.root} />
 					<MoveSelectedRowsButton table={table.root} selection={selection} up={true} />
 					<MoveSelectedRowsButton table={table.root} selection={selection} up={false} />
+					<MoveSelectedColumnsButton
+						table={table.root}
+						selection={selection}
+						left={true}
+					/>
+					<MoveSelectedColumnsButton
+						table={table.root}
+						selection={selection}
+						left={false}
+					/>
 					<DeleteSelectedRowsButton table={table.root} selection={selection} />
 					<DeleteAllRowsButton table={table.root} />
 				</ButtonGroup>
