@@ -51,7 +51,9 @@ export async function loadApp(
 					{
 						name: "Boolean",
 						defaultValue: false,
-						props: {},
+						props: {
+							label: "Reviewed",
+						},
 					},
 					{
 						name: "Date",

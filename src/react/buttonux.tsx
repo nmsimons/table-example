@@ -504,6 +504,7 @@ export function IconButton(props: {
 	disabledColor?: string;
 	disabledBackground?: string;
 	disabled?: boolean;
+	responsive?: boolean;
 }): JSX.Element {
 	const {
 		handleClick,
@@ -518,6 +519,7 @@ export function IconButton(props: {
 		disabledColor,
 		disabledBackground,
 		disabled,
+		responsive,
 	} = props;
 
 	return (
@@ -527,7 +529,7 @@ export function IconButton(props: {
 			disabled={disabled}
 		>
 			{icon}
-			<IconButtonText>{children}</IconButtonText>
+			<IconButtonText responsive={responsive ?? true}>{children}</IconButtonText>
 		</button>
 	);
 }
@@ -540,13 +542,20 @@ IconButton.defaultProps = {
 	disabledColor: "disabled:text-gray-600",
 	disabledBackground: "disabled:bg-transparent",
 	grow: false,
+	responsive: true,
 };
 
-function IconButtonText(props: { children: React.ReactNode }): JSX.Element {
-	if (props.children == undefined) {
+function IconButtonText(props: { children: React.ReactNode; responsive: boolean }): JSX.Element {
+	const { children, responsive } = props;
+
+	if (children == undefined) {
 		return <></>;
 	} else {
-		return <span className="hidden text-sm pl-2 leading-none lg:block">{props.children}</span>;
+		return (
+			<span className={`${responsive ? `hidden` : ``} text-sm pl-2 leading-none lg:block`}>
+				{props.children}
+			</span>
+		);
 	}
 }
 

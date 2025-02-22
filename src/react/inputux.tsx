@@ -176,6 +176,7 @@ export function CellInputVote(props: {
 				handleClick={handleClick}
 				toggled={vote.hasVoted(userId)}
 				toggleBackground="bg-blue-500 hover:bg-blue-700"
+				responsive={false}
 			>
 				{vote.numberOfVotes}
 			</IconButton>
