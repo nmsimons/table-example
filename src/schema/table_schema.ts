@@ -319,15 +319,13 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 
 		/**
 		 * Get a cell by the row id and column id
-		 * @param rowId The id of the row
-		 * @param columnId The id of the column
+		 * @param row The row
+		 * @param column The column
 		 */
-		getCell(rowId: string, columnId: string): Cell | undefined {
-			const row = this.getRow(rowId);
-			if (row) {
-				const cell = row._cells.get(columnId);
-				if (cell) return cell;
-			}
+		getCell(row: Row, column: Column): Cell | undefined {
+			const cell = row.getCell(column);
+			if (cell) return cell;
+			// If the cell does not exist return undefined
 			return undefined;
 		}
 
@@ -367,16 +365,11 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 
 		/**
 		 * Delete a row from the table
-		 * @param rowId The id of the row to delete
+		 * @param row The row to delete
 		 */
-		deleteRow(rowId: string): void {
-			// Find the row by id
-			const row = this.rows.find((row) => row.id === rowId);
-			// Get the index of the row
-			if (row) {
-				const index = this.rows.indexOf(row);
-				this.rows.removeAt(index);
-			}
+		deleteRow(row: Row): void {
+			const index = this.rows.indexOf(row);
+			this.rows.removeAt(index);
 		}
 
 		/**
@@ -470,16 +463,11 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 		/**
 		 * Delete a column from the table
 		 */
-		deleteColumn(id: string): void {
-			// Find the column by id
-			const column = this.columns.find((column) => column.id === id);
-			// Get the index of the column
-			if (column) {
-				const index = this.columns.indexOf(column);
-				this.columns.removeAt(index);
-				// TODO Remove the column from each row
-				// Doing this in a transaction is too slow
-			}
+		deleteColumn(column: Column): void {
+			const index = this.columns.indexOf(column);
+			this.columns.removeAt(index);
+			// TODO Remove the column from each row
+			// Doing this in a transaction is too slow
 		}
 	}
 

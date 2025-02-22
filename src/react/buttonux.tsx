@@ -339,7 +339,7 @@ export function DeleteSelectedRowsButton(props: {
 			for (const rowId of selectedRows) {
 				const row = table.getRow(rowId);
 				if (row !== undefined && Tree.status(row) === TreeStatus.InDocument) {
-					table.deleteRow(row.id);
+					table.deleteRow(row);
 				}
 			}
 		});
@@ -557,7 +557,7 @@ export function ButtonGroup(props: { children: React.ReactNode }): JSX.Element {
 export function Toolbar(props: { children: React.ReactNode }): JSX.Element {
 	return (
 		<div className="h-[48px] relative bg-gray-600 text-base text-white z-40 w-full shadow p-2">
-			<div className="h-full w-full flex flex-row items-center justify-between flex-wrap">
+			<div className="h-full w-full flex flex-row items-center justify-between no-wrap">
 				{props.children}
 			</div>
 		</div>
