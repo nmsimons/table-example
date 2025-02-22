@@ -29,7 +29,38 @@ export async function loadApp(
 	// Initialize the SharedTree DDSes
 	const appTree = container.initialObjects.appData.viewWith(appTreeConfiguration);
 	if (appTree.compatibility.canInitialize) {
-		appTree.initialize(new FluidTable({ rows: [], columns: [] }));
+		appTree.initialize(
+			new FluidTable({
+				rows: [],
+				columns: [
+					{
+						name: "String",
+						defaultValue: "",
+						props: {},
+					},
+					{
+						name: "Number",
+						defaultValue: 0,
+						props: {},
+					},
+					{
+						name: "Boolean",
+						defaultValue: false,
+						props: {},
+					},
+					{
+						name: "Date",
+						hint: "date",
+						props: {},
+					},
+					{
+						name: "Vote",
+						hint: "vote",
+						props: {},
+					},
+				],
+			}),
+		);
 	}
 
 	// Get the Presence data object from the container
