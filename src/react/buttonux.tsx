@@ -379,24 +379,30 @@ export function DeleteSelectedRowsButton(props: {
 export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element {
 	const { column } = props;
 
-	const [hidden, setHidden] = React.useState(false);
+	const [hidden, setHidden] = React.useState(true);
 
-	const handleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		setHidden(!hidden);
+	const handleOnFocus = () => {
+		setHidden(false);
+	};
+
+	const handleOnBlur = () => {
+		// setTimeout to allow the click event to be registered
+		// before the dropdown is hidden
+		setTimeout(() => {
+			setHidden(true);
+		}, 300);
 	};
 
 	if (column.cells.length !== 0) return <></>;
 
 	return (
-		<div className="relative group">
+		<div onFocus={handleOnFocus} onBlur={handleOnBlur} className="relative group">
 			<IconButton
-				handleClick={(e: React.MouseEvent) => handleClick(e)}
+				toggled={!hidden}
+				handleClick={() => handleOnFocus()}
 				icon={<CaretDown16Filled />}
 			/>
-			<div
-				className={`absolute right-0 z-10 ${hidden ? `block` : `hidden group-hover:block`}`}
-			>
+			<div className={`absolute right-0 z-10 ${hidden ? `hidden` : `block`}`}>
 				<div className="mt-1 bg-black text-white shadow-lg rounded-lg flex flex-col place-items-start">
 					<ChangeColumnTypeButton column={column} type="String" />
 					<ChangeColumnTypeButton column={column} type="Number" />
