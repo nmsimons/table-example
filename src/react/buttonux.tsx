@@ -380,29 +380,37 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 	const { column } = props;
 
 	const [hidden, setHidden] = React.useState(true);
+	const [clicked, setClicked] = React.useState(false);
 
-	const handleOnFocus = () => {
+	const handleOnFocus = (e: React.FocusEvent<HTMLDivElement, Element>) => {
+		e.stopPropagation();
 		setHidden(false);
 	};
 
 	const handleOnBlur = () => {
 		// setTimeout to allow the click event to be registered
 		// before the dropdown is hidden
+		setClicked(false);
 		setTimeout(() => {
 			setHidden(true);
 		}, 300);
 	};
 
+	const handleOnClick = () => {
+		setClicked(!clicked);
+		if (clicked !== hidden) setHidden(!hidden);
+	};
+
 	if (column.cells.length !== 0) return <></>;
 
 	return (
-		<div onFocus={handleOnFocus} onBlur={handleOnBlur} className="relative group">
+		<div onFocus={(e) => handleOnFocus(e)} onBlur={handleOnBlur} className="relative group">
 			<IconButton
 				toggled={!hidden}
-				handleClick={() => handleOnFocus()}
+				handleClick={() => handleOnClick()}
 				icon={<CaretDown16Filled />}
 			/>
-			<div className={`absolute right-0 z-10 ${hidden ? `hidden` : `block`}`}>
+			<div className={`absolute right-0 z-10 ${hidden ? `invisible` : `visible`}`}>
 				<div className="mt-1 bg-black text-white shadow-lg rounded-lg flex flex-col place-items-start">
 					<ChangeColumnTypeButton column={column} type="String" />
 					<ChangeColumnTypeButton column={column} type="Number" />
