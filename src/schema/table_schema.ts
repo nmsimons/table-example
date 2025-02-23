@@ -336,7 +336,6 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 		getCellById(id: `${string}_${string}`): Cell | undefined {
 			const [rowId, columnId] = id.split("_");
 			const row = this.getRow(rowId);
-			console.log("row", row);
 			if (row) {
 				const column = this.getColumn(columnId);
 				if (column) {
