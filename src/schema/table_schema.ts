@@ -318,13 +318,31 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 		}
 
 		/**
-		 * Get a cell by the row id and column id
+		 * Get a cell by the row and column
 		 * @param row The row
 		 * @param column The column
 		 */
 		getCell(row: Row, column: Column): Cell | undefined {
 			const cell = row.getCell(column);
 			if (cell) return cell;
+			// If the cell does not exist return undefined
+			return undefined;
+		}
+
+		/**
+		 * Get a cell by the synthetic id
+		 * @param id The synthetic id of the cell
+		 */
+		getCellById(id: `${string}_${string}`): Cell | undefined {
+			const [rowId, columnId] = id.split("_");
+			const row = this.getRow(rowId);
+			console.log("row", row);
+			if (row) {
+				const column = this.getColumn(columnId);
+				if (column) {
+					return row.getCell(column);
+				}
+			}
 			// If the cell does not exist return undefined
 			return undefined;
 		}

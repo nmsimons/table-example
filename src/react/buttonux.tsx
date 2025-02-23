@@ -256,11 +256,18 @@ export function MoveSelectedColumnsButton(props: {
 }): JSX.Element {
 	const { table, selection, left } = props;
 	// Disable the button if there are no selected columns
-	const [disabled, setDisabled] = React.useState(selection.getSelected("column").length === 0);
+	// and no selected cells in the table
+	const [disabled, setDisabled] = React.useState(
+		selection.getSelected("column").length === 0 && selection.getSelected("cell").length === 0,
+	);
+
 	useEffect(() => {
 		selection.addEventListener("selectionChanged", () => {
 			// If the selection is empty, we will disable the button
-			if (selection.getSelected("column").length === 0) {
+			if (
+				selection.getSelected("column").length === 0 &&
+				selection.getSelected("cell").length === 0
+			) {
 				setDisabled(true);
 			} else {
 				setDisabled(false);
@@ -270,11 +277,20 @@ export function MoveSelectedColumnsButton(props: {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Get the selected columns from the selection manager
-		const selectedColumns = selection.getSelected("column");
+		// convert the array to a mutable array
+		const selectedColumns = selection.getSelected("column").slice();
 
-		// If there are no selected columns, return
+		// If there are no selected columns, check for
+		// selected cells and move the column of the first selected cell
 		if (selectedColumns.length === 0) {
-			return;
+			const selectedCells = selection.getSelected("cell");
+			if (selectedCells.length > 0) {
+				console.log(selectedCells[0]);
+				const column = table.getColumnByCellId(selectedCells[0] as `${string}_${string}`);
+				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
+					selectedColumns.push(column.id);
+				}
+			}
 		}
 
 		Tree.runTransaction(table, () => {

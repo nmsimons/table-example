@@ -105,7 +105,20 @@ export type typeDefinition = TreeNodeFromImplicitAllowedTypes<typeof schemaTypes
 const schemaTypes = [sf.string, sf.number, sf.boolean, DateTime, Vote] as const;
 
 const tableFactory = new SchemaFactory(sf.scope + "/table1");
-export class FluidTable extends Table(tableFactory, schemaTypes) {}
+export class FluidTable extends Table(tableFactory, schemaTypes) {
+	/**
+	 * Get a cell by the synthetic id
+	 * @param id The synthetic id of the cell
+	 */
+	getColumnByCellId(id: `${string}_${string}`) {
+		const [, columnId] = id.split("_");
+		const column = this.getColumn(columnId);
+		if (column === undefined) {
+			return undefined;
+		}
+		return column;
+	}
+}
 export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
 export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
 export type FluidCell = NodeFromSchema<typeof FluidTable.Cell>;
