@@ -8,7 +8,6 @@ import {
 	SchemaFactory,
 	TreeNodeFromImplicitAllowedTypes,
 	NodeFromSchema,
-	TreeArrayNode,
 } from "fluid-framework";
 import { Table } from "./table_schema.js";
 
@@ -125,15 +124,15 @@ export class FluidTable extends Table(tableFactory, schemaTypes) {
 	 * @param rows The rows to append
 	 * */
 	appendMultipleDetachedRows(rows: FluidRow[]): void {
-		this.rows.insertAtEnd(TreeArrayNode.spread(rows));
+		this.insertRow({ index: this.rows.length, rows });
 	}
 
 	insertMultipleDetachedRows(index: number, rows: FluidRow[]): void {
-		this.rows.insertAt(index, TreeArrayNode.spread(rows));
+		this.insertRow({ index, rows });
 	}
 
 	insertDetachedRow(index: number, row: FluidRow): void {
-		this.rows.insertAt(index, row);
+		this.insertRow({ index, rows: [row] });
 	}
 
 	/**

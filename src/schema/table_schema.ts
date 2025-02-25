@@ -4,6 +4,7 @@ import {
 	SchemaFactory,
 	InsertableTreeNodeFromImplicitAllowedTypes,
 	TreeNodeSchema,
+	TreeArrayNode,
 } from "fluid-framework";
 
 // Schema is defined using a factory object that generates classes for objects as well
@@ -245,8 +246,13 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		/**
 		 * Insert a row at a specific location
 		 * @param index The index to insert the row at
+		 * @param rows The rows to insert
 		 * */
-		insertRow(index: number): Row {
+		insertRow({ index, rows }: { index: number; rows?: Row[] }): Row | Row[] {
+			if (rows) {
+				this.rows.insertAt(index, TreeArrayNode.spread(rows));
+				return rows;
+			}
 			const row = new Row({ _cells: {}, props: {} });
 			this.rows.insertAt(index, row);
 			return row;

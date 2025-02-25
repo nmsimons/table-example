@@ -58,9 +58,9 @@ export function NewEmptyRowButton(props: {
 		const lastSelectedRow = getLastSelectedRow(table, selection);
 
 		if (lastSelectedRow !== undefined) {
-			table.insertRow(lastSelectedRow.index + 1);
+			table.insertRow({ index: lastSelectedRow.index + 1 });
 		} else {
-			table.insertRow(table.rows.length);
+			table.insertRow({ index: table.rows.length });
 		}
 	};
 	return (
