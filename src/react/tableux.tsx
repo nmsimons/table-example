@@ -451,7 +451,13 @@ export function TableCellViewContent(props: {
 	const { cell, user } = props;
 	const fluidRow = cell.row.original;
 	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	const value = fluidRow.getValue(fluidColumn).value;
+	const fluidCell = fluidRow.getCell(fluidColumn); // Get the fluid cell
+	let value: typeDefinition | undefined;
+	if (fluidCell === undefined) {
+		value = fluidColumn.defaultValue;
+	} else {
+		value = fluidCell.value; // Get the value from the fluid cell
+	}
 
 	if (typeof value === "boolean") {
 		return (

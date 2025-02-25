@@ -10,7 +10,10 @@ import {
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
 
-export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaTypes: T) {
+export function Table<T extends ImplicitAllowedTypes, Scope extends string | undefined>(
+	sf: SchemaFactory<Scope>,
+	schemaTypes: T,
+) {
 	// Create a new table based on the SharedTree schema in this file
 	// The table will be empty and will have no columns
 	// The types allowed in the table are defined in the schemaTypes array
@@ -124,20 +127,6 @@ export function Table<T extends ImplicitAllowedTypes>(sf: SchemaFactory, schemaT
 		 */
 		deleteCell(column: Column): void {
 			this._cells.delete(column.id);
-		}
-
-		/**
-		 * Get the value of a cell by the column id
-		 * @param column The column
-		 * @returns The value of the cell if it exists, otherwise return the default value of the column
-		 * which is defined in the column schema and may be undefined
-		 */
-		getValue(column: Column): { value: CellValueType | undefined; isDefault: boolean } {
-			const cell = this._cells.get(column.id);
-			if (cell) {
-				return { value: cell.value, isDefault: false };
-			}
-			return { value: column.defaultValue, isDefault: true };
 		}
 
 		/**
