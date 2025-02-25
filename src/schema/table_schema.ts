@@ -1,6 +1,5 @@
 import {
 	TreeNodeFromImplicitAllowedTypes,
-	TreeArrayNode,
 	Tree,
 	SchemaFactory,
 	InsertableTreeNodeFromImplicitAllowedTypes,
@@ -91,24 +90,6 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 				return; // If the index is out of bounds, do nothing
 			}
 			rows.moveToIndex(index, this.index);
-		}
-
-		moveBefore(row: Row): void {
-			const rows = this.table.rows;
-			const index = rows.indexOf(row);
-			if (index < 0) {
-				return; // If the row is not in the table, do nothing
-			}
-			this.moveTo(index);
-		}
-
-		moveAfter(row: Row): void {
-			const rows = this.table.rows;
-			const index = rows.indexOf(row);
-			if (index < 0) {
-				return; // If the row is not in the table, do nothing
-			}
-			this.moveTo(index + 1);
 		}
 
 		/**
@@ -245,18 +226,6 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
-		 * Get a cell by the row and column
-		 * @param row The row
-		 * @param column The column
-		 */
-		getCell(row: Row, column: Column): CellValueType | undefined {
-			const cell = row.getCell(column);
-			if (cell) return cell;
-			// If the cell does not exist return undefined
-			return undefined;
-		}
-
-		/**
 		 * Get a cell by the synthetic id
 		 * @param id The synthetic id of the cell
 		 */
@@ -274,36 +243,12 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
-		 * Get the synthetic id of a cell in the table by the row and column.
-		 * This is the id of the column that the cell is in combined
-		 * with the id of the row that the cell is in in the format of rowId_columnId
-		 * This is used to identify the cell in the table
-		 * @param row The row
-		 * @param column The column
-		 * @returns The synthetic id of the cell
-		 */
-		getCellId(row: Row, column: Column): `${string}_${string}` {
-			const columnId = column.id;
-			const rowId = row.id;
-			return `${rowId}_${columnId}`;
-		}
-
-		/**
-		 *  Add a row to the table
-		 * */
-		appendNewRow(): Row {
-			const row = this.createDetachedRow();
-			this.appendDetachedRow(row);
-			return row;
-		}
-
-		/**
 		 * Insert a row at a specific location
 		 * @param index The index to insert the row at
 		 * */
-		insertNewRow(index: number): Row {
-			const row = this.createDetachedRow();
-			this.insertDetachedRow(index, row);
+		insertRow(index: number): Row {
+			const row = new Row({ _cells: {}, props: {} });
+			this.rows.insertAt(index, row);
 			return row;
 		}
 
@@ -324,65 +269,11 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
-		 * Create a Row before inserting it into the table
-		 * */
-		createDetachedRow(): Row {
-			return new Row({ _cells: {}, props: {} });
-		}
-
-		/**
-		 * Insert a detached Row into the table
-		 * @param index The index to insert the row at
-		 * */
-		insertDetachedRow(index: number, row: Row): void {
-			this.rows.insertAt(index, row);
-		}
-
-		/**
-		 * Append a detached Row into the table
-		 * @param row The row to append
-		 * */
-		appendDetachedRow(row: Row): void {
-			this.rows.insertAtEnd(row);
-		}
-
-		/**
-		 * Insert multiple detached Rows into the table
-		 * @param index The index to insert the rows at
-		 * @param rows The rows to insert
-		 * */
-		insertMultipleDetachedRows(index: number, rows: Row[]): void {
-			this.rows.insertAt(index, TreeArrayNode.spread(rows));
-		}
-
-		/**
-		 * Append multiple detached Rows into the table
-		 * @param rows The rows to append
-		 * */
-		appendMultipleDetachedRows(rows: Row[]): void {
-			this.rows.insertAtEnd(TreeArrayNode.spread(rows));
-		}
-
-		/**
-		 * Add a column to the table
-		 * @param name The name of the column
-		 * */
-		appendNewColumn(props: {
-			name: string;
-			defaultValue?: CellInsertableType;
-			hint?: string;
-		}): Column {
-			// destructure the input
-			const { name, defaultValue, hint } = props;
-			return this.insertNewColumn({ index: this.columns.length, name, defaultValue, hint });
-		}
-
-		/**
 		 * Insert a new column at a specific location
 		 * @param index The index to insert the column at
 		 * @param name The name of the column
 		 * */
-		insertNewColumn(props: {
+		insertColumn(props: {
 			index: number;
 			name: string;
 			defaultValue?: CellInsertableType;
