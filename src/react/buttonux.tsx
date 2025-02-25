@@ -349,17 +349,11 @@ export function DeleteSelectedRowsButton(props: {
 			return;
 		}
 
-		// Iterate through the selected rows and delete them from the table
-		// We need to do this in a transaction to ensure that the operation is atomic
-		// This ensures that the revertible of the operation will undo all the changes made by the operation.
-		Tree.runTransaction(table, () => {
-			for (const rowId of selectedRows) {
-				const row = table.getRow(rowId);
-				if (row !== undefined && Tree.status(row) === TreeStatus.InDocument) {
-					table.deleteRow(row);
-				}
-			}
-		});
+		// Create an array of rows to delete
+		const rowsToDelete = selectedRows
+			.map((rowId) => table.getRow(rowId))
+			.filter((row): row is FluidRow => row !== undefined);
+		table.deleteRows(rowsToDelete);
 		// Clear the selection
 		selection.clearSelection();
 	};

@@ -56,16 +56,8 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * @param column The column
 		 * @param value The value to set
 		 */
-		setCell(column: Column, value: CellInsertableType): void {
+		setCell(column: Column, value: CellInsertableType | undefined): void {
 			this._cells.set(column.id, value);
-		}
-
-		/**
-		 * Delete a cell from the row
-		 * @param column The column
-		 */
-		deleteCell(column: Column): void {
-			this._cells.delete(column.id);
 		}
 
 		/**
@@ -262,11 +254,26 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 		/**
 		 * Delete a row from the table
-		 * @param row The row to delete
+		 * @param rows The row to delete
 		 */
-		deleteRow(row: Row): void {
-			const index = this.rows.indexOf(row);
-			this.rows.removeAt(index);
+		deleteRows(rows: Row[]): void {
+			// If there are no rows to delete, do nothing
+			if (rows.length === 0) return;
+			// If there is only one row to delete, delete it
+			if (rows.length === 1) {
+				const index = this.rows.indexOf(rows[0]);
+				this.rows.removeAt(index);
+				return;
+			}
+			// If there are multiple rows to delete, delete them in a transaction
+			// This is to avoid the performance issues of deleting multiple rows at once
+			Tree.runTransaction(this, () => {
+				// Iterate over the rows and delete them
+				for (const row of rows) {
+					const index = this.rows.indexOf(row);
+					this.rows.removeAt(index);
+				}
+			});
 		}
 
 		/**

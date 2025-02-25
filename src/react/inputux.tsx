@@ -119,7 +119,7 @@ export function CellInputDate(props: {
 		if (isNaN(Date.parse(e.target.value))) {
 			if (fluidCell !== undefined) {
 				if (Tree.is(fluidCell, DateTime)) {
-					row.deleteCell(column);
+					row.setCell(column, undefined);
 					return;
 				}
 			}
