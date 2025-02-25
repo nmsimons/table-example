@@ -58,9 +58,9 @@ export function NewEmptyRowButton(props: {
 		const lastSelectedRow = getLastSelectedRow(table, selection);
 
 		if (lastSelectedRow !== undefined) {
-			table.insertRow({ index: lastSelectedRow.index + 1 });
+			table.insertRows({ index: lastSelectedRow.index + 1 });
 		} else {
-			table.insertRow({ index: table.rows.length });
+			table.insertRows({ index: table.rows.length });
 		}
 	};
 	return (
@@ -87,9 +87,9 @@ export function NewRowButton(props: {
 			const row = getRowWithValues(props.table);
 
 			if (lastSelectedRow !== undefined) {
-				props.table.insertRow({ index: lastSelectedRow.index + 1, rows: [row] });
+				props.table.insertRows({ index: lastSelectedRow.index + 1, rows: [row] });
 			} else {
-				props.table.insertRow({ index: props.table.rows.length, rows: [row] });
+				props.table.insertRows({ index: props.table.rows.length, rows: [row] });
 			}
 		});
 	};
@@ -116,7 +116,7 @@ export function NewManysRowsButton(props: { table: FluidTable }): JSX.Element {
 				const row = getRowWithValues(props.table);
 				rows.push(row);
 			}
-			props.table.insertRow({ index: props.table.rows.length, rows });
+			props.table.insertRows({ index: props.table.rows.length, rows });
 		});
 	};
 	return (
