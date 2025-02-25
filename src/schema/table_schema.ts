@@ -3,14 +3,14 @@ import {
 	TreeArrayNode,
 	Tree,
 	SchemaFactory,
-	ImplicitAllowedTypes,
 	InsertableTreeNodeFromImplicitAllowedTypes,
+	TreeNodeSchema,
 } from "fluid-framework";
 
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
 
-export function Table<T extends ImplicitAllowedTypes, Scope extends string | undefined>(
+export function Table<T extends readonly TreeNodeSchema[], Scope extends string | undefined>(
 	sf: SchemaFactory<Scope>,
 	schemaTypes: T,
 ) {
@@ -23,67 +23,11 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 	type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<T>;
 
 	/**
-	 * The Cell
-	 */
-	class Cell extends sf.object("Cell", {
-		value: sf.required(schemaTypes),
-		props: sf.map([sf.number, sf.string, sf.boolean]),
-	}) {
-		/**
-		 * Property getter to get the row that the cell is in
-		 */
-		get row(): Row {
-			const parent = Tree.parent(this);
-			if (parent !== undefined) {
-				const grandparent = Tree.parent(parent);
-				if (grandparent instanceof Row) {
-					return grandparent;
-				}
-			}
-			throw new Error("Cell is not in a row");
-		}
-
-		/**
-		 * Property getter to get the sythetic id of the cell
-		 * This is the id of the column that the cell is in combined
-		 * with the id of the row that the cell is in in the format of rowId_columnId
-		 * This is used to identify the cell in the table
-		 * */
-		get id(): `${string}_${string}` {
-			const column = this.column;
-			const row = this.row;
-			if (column && row) {
-				return `${row.id}_${column.id}`;
-			}
-			throw new Error("Cell is not in a row or column");
-		}
-
-		/**
-		 * Get the column the cell is in
-		 * */
-		get column(): Column {
-			const table = this.row.table;
-			const column = table.columns.find((column) => column.id === this.columnId);
-			if (column instanceof Column) return column;
-			throw new Error("Column not found");
-		}
-
-		private get columnId(): string {
-			for (const [key, value] of this.row._cells.entries()) {
-				if (value === this) {
-					return key;
-				}
-			}
-			throw new Error("ColumnId not found");
-		}
-	}
-	/**
 	 * The Row schema - this is a map of Cells where the key is the column id
 	 */
-
 	class Row extends sf.object("Row", {
 		id: sf.identifier,
-		_cells: sf.map(Cell), // The keys of this map are the column ids - this would ideally be private
+		_cells: sf.map(schemaTypes), // The keys of this map are the column ids - this would ideally be private
 		props: sf.map([sf.number, sf.string, sf.boolean]),
 	}) {
 		/**
@@ -94,7 +38,7 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 		get cells(): Record<string, CellValueType> {
 			const cells: Record<string, CellValueType> = {};
 			for (const [key, value] of this._cells.entries()) {
-				cells[key] = value.value;
+				cells[key] = value as CellValueType;
 			}
 			return cells;
 		}
@@ -103,22 +47,17 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 		 * @param column The column
 		 * @returns The cell if it exists, otherwise undefined
 		 * */
-		getCell(column: Column): Cell | undefined {
-			return this._cells.get(column.id);
+		getCell(column: Column): CellValueType | undefined {
+			return this._cells.get(column.id) as CellValueType | undefined;
 		}
 
 		/**
-		 * Initialize a cell with a value if it doesn't exist. If it does exist, return the cell without changing it
+		 * Set the value of a cell in the row
+		 * @param column The column
+		 * @param value The value to set
 		 */
-		initializeCell(column: Column, value: CellInsertableType): Cell {
-			let cell = this._cells.get(column.id);
-			if (cell) {
-				return cell;
-			} else {
-				cell = new Cell({ value, props: {} });
-				this._cells.set(column.id, cell);
-			}
-			return cell;
+		setCell(column: Column, value: CellInsertableType): void {
+			this._cells.set(column.id, value);
 		}
 
 		/**
@@ -239,12 +178,12 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 		/**
 		 * Get all the cells in this column
 		 */
-		get cells(): Cell[] {
+		get cells(): CellValueType[] {
 			// Get all the cells in the column and put them in an array
 			// omit the undefined values
 			const cells = this.table.rows
 				.map((row) => row._cells.get(this.id))
-				.filter((cell) => cell !== undefined) as Cell[];
+				.filter((cell) => cell !== undefined);
 			return cells;
 		}
 
@@ -295,7 +234,6 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 	}) {
 		public static readonly Row = Row;
 		public static readonly Column = Column;
-		public static readonly Cell = Cell;
 
 		/**
 		 * Get a row by the id
@@ -311,7 +249,7 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 		 * @param row The row
 		 * @param column The column
 		 */
-		getCell(row: Row, column: Column): Cell | undefined {
+		getCell(row: Row, column: Column): CellValueType | undefined {
 			const cell = row.getCell(column);
 			if (cell) return cell;
 			// If the cell does not exist return undefined
@@ -322,7 +260,7 @@ export function Table<T extends ImplicitAllowedTypes, Scope extends string | und
 		 * Get a cell by the synthetic id
 		 * @param id The synthetic id of the cell
 		 */
-		getCellById(id: `${string}_${string}`): Cell | undefined {
+		getCellById(id: `${string}_${string}`): CellValueType | undefined {
 			const [rowId, columnId] = id.split("_");
 			const row = this.getRow(rowId);
 			if (row) {

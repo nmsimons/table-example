@@ -456,7 +456,7 @@ export function TableCellViewContent(props: {
 	if (fluidCell === undefined) {
 		value = fluidColumn.defaultValue;
 	} else {
-		value = fluidCell.value; // Get the value from the fluid cell
+		value = fluidCell; // Get the value from the fluid cell
 	}
 
 	if (typeof value === "boolean") {

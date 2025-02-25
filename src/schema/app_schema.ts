@@ -121,7 +121,6 @@ export class FluidTable extends Table(tableFactory, schemaTypes) {
 }
 export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
 export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
-export type FluidCell = NodeFromSchema<typeof FluidTable.Cell>;
 
 /**
  * Export the tree config appropriate for this schema.

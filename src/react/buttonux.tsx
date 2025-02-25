@@ -23,7 +23,6 @@ import {
 	TableMoveRightFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
-import { setValue } from "./inputux.js";
 import { SelectionManager } from "../utils/presence.js";
 
 const getLastSelectedRow = (
@@ -138,18 +137,18 @@ const getRowWithValues = (table: FluidTable): FluidRow => {
 		const fluidColumn = table.getColumn(column.id);
 
 		if (type === "number") {
-			setValue(row, fluidColumn, Math.floor(Math.random() * 1000));
+			row.setCell(fluidColumn, Math.floor(Math.random() * 1000));
 		} else if (type === "boolean") {
-			setValue(row, fluidColumn, Math.random() > 0.5);
+			row.setCell(fluidColumn, Math.random() > 0.5);
 		} else if (type === "string") {
-			setValue(row, fluidColumn, Math.random().toString(36).substring(7));
+			row.setCell(fluidColumn, Math.random().toString(36).substring(7));
 		} else if (column.defaultValue === undefined && column.hint === "date") {
 			// Add a random date
 			const startDate = new Date(2020, 0, 1);
 			const endDate = new Date();
 			const date = getRandomDate(startDate, endDate);
 			const dateTime = new DateTime({ raw: date.getTime() });
-			row.initializeCell(fluidColumn, dateTime);
+			row.setCell(fluidColumn, dateTime);
 		}
 	}
 	return row;

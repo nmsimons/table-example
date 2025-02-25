@@ -1,5 +1,5 @@
 import React, { JSX } from "react";
-import { DateTime, Vote, FluidRow, FluidColumn, FluidCell } from "../schema/app_schema.js";
+import { DateTime, Vote, FluidRow, FluidColumn } from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { IconButton } from "./buttonux.js";
 import { ThumbLikeFilled } from "@fluentui/react-icons";
@@ -29,7 +29,7 @@ export function CellInputBoolean(props: {
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(row, column, e.target.checked);
+		row.setCell(column, e.target.checked);
 	};
 
 	return (
@@ -58,7 +58,7 @@ export function CellInputString(props: {
 
 	// handle a change event in the cell
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setValue(row, column, e.target.value);
+		row.setCell(column, e.target.value);
 	};
 
 	return (
@@ -86,7 +86,7 @@ export function CellInputNumber(props: {
 		// convert the value to a number
 		const num = parseFloat(e.target.value);
 		if (!isNaN(num)) {
-			setValue(row, column, num);
+			row.setCell(column, num);
 		}
 	};
 
@@ -118,7 +118,7 @@ export function CellInputDate(props: {
 		// Test if the target value is a valid date
 		if (isNaN(Date.parse(e.target.value))) {
 			if (fluidCell !== undefined) {
-				if (Tree.is(fluidCell.value, DateTime)) {
+				if (Tree.is(fluidCell, DateTime)) {
 					row.deleteCell(column);
 					return;
 				}
@@ -129,10 +129,10 @@ export function CellInputDate(props: {
 		// Generate a new Date from the target value
 		const d: Date = new Date(e.target.value);
 		if (fluidCell === undefined) {
-			row.initializeCell(column, new DateTime({ raw: d.getTime() }));
+			row.setCell(column, new DateTime({ raw: d.getTime() }));
 		} else {
-			if (Tree.is(fluidCell.value, DateTime)) {
-				fluidCell.value.value = d;
+			if (Tree.is(fluidCell, DateTime)) {
+				fluidCell.value = d;
 			}
 		}
 	};
@@ -164,7 +164,7 @@ export function CellInputVote(props: {
 	const handleClick = () => {
 		const cell = row.getCell(column);
 		if (cell === undefined) {
-			row.initializeCell(column, vote);
+			row.setCell(column, vote);
 		}
 		vote.toggleVote(userId);
 	};
@@ -183,26 +183,3 @@ export function CellInputVote(props: {
 		</div>
 	);
 }
-
-/**
- * Set the value of a cell. First test if it exists. If it doesn't exist, create it.
- * This will overwrite the value of the cell so if the value isn't a primitive, don't use this -
- * use initializeCell instead.
- * @param row The row
- * @param column The column
- * @param value The value to set
- * @returns The cell that was set
- * */
-export const setValue = (
-	row: FluidRow,
-	column: FluidColumn,
-	value: string | number | boolean,
-): FluidCell => {
-	const cell = row.getCell(column);
-	if (cell) {
-		cell.value = value;
-		return cell;
-	} else {
-		return row.initializeCell(column, value);
-	}
-};
