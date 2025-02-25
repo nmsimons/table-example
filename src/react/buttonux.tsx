@@ -87,9 +87,9 @@ export function NewRowButton(props: {
 			const row = getRowWithValues(props.table);
 
 			if (lastSelectedRow !== undefined) {
-				props.table.insertDetachedRow(lastSelectedRow.index + 1, row);
+				props.table.insertRow({ index: lastSelectedRow.index + 1, rows: [row] });
 			} else {
-				props.table.insertDetachedRow(props.table.rows.length, row);
+				props.table.insertRow({ index: props.table.rows.length, rows: [row] });
 			}
 		});
 	};
@@ -116,7 +116,7 @@ export function NewManysRowsButton(props: { table: FluidTable }): JSX.Element {
 				const row = getRowWithValues(props.table);
 				rows.push(row);
 			}
-			props.table.appendMultipleDetachedRows(rows);
+			props.table.insertRow({ index: props.table.rows.length, rows });
 		});
 	};
 	return (

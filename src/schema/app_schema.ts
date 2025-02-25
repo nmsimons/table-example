@@ -120,22 +120,6 @@ export class FluidTable extends Table(tableFactory, schemaTypes) {
 	}
 
 	/**
-	 * Append multiple detached Rows into the table
-	 * @param rows The rows to append
-	 * */
-	appendMultipleDetachedRows(rows: FluidRow[]): void {
-		this.insertRow({ index: this.rows.length, rows });
-	}
-
-	insertMultipleDetachedRows(index: number, rows: FluidRow[]): void {
-		this.insertRow({ index, rows });
-	}
-
-	insertDetachedRow(index: number, row: FluidRow): void {
-		this.insertRow({ index, rows: [row] });
-	}
-
-	/**
 	 * Create a Row before inserting it into the table
 	 * */
 	createDetachedRow(): FluidRow {
