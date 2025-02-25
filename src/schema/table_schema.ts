@@ -248,7 +248,9 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * @param index The index to insert the row at
 		 * @param rows The rows to insert
 		 * */
-		insertRow({ index, rows }: { index: number; rows?: Row[] }): Row | Row[] {
+		insertRow(props: { index: number; rows?: Row[] }): Row | Row[] {
+			const { index, rows } = props;
+
 			if (rows) {
 				this.rows.insertAt(index, TreeArrayNode.spread(rows));
 				return rows;
