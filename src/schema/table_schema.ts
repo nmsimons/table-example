@@ -56,7 +56,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		/** Get a cell by the column
 		 * @param column The column
 		 * @returns The cell if it exists, otherwise undefined
-		 * */
+		 */
 		getCell(column: Column): CellValueType | undefined {
 			return this._cells.get(column.id) as CellValueType | undefined;
 		}
@@ -73,7 +73,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		/**
 		 * Move a row to a new location
 		 * @param index The index to move the row to
-		 * */
+		 */
 		moveTo(index: number): void {
 			const rows = this.table.rows;
 			if (index > this.index) {
@@ -209,7 +209,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		/**
 		 * Move a column to a new location
 		 * @param index The index to move the column to
-		 * */
+		 */
 		moveTo(index: number): void {
 			const columns = this.table.columns;
 			if (index > this.index) {
@@ -234,7 +234,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 	/**
 	 * The Table schema
-	 * */
+	 */
 	class Table extends sf.object("Table", {
 		rows: sf.array(Row),
 		columns: sf.array(Column),
@@ -272,7 +272,8 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * Insert a row at a specific location
 		 * @param index The index to insert the row at
 		 * @param rows The rows to insert
-		 * */
+		 * If no rows are provided, a new row will be created.
+		 */
 		insertRows(props: { index: number; rows?: Row[] }): Row[] {
 			const { index, rows } = props;
 
@@ -287,7 +288,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 		/**
 		 * Delete a row from the table
-		 * @param rows The row to delete
+		 * @param rows The rows to delete
 		 */
 		deleteRows(rows: Row[]): void {
 			// If there are no rows to delete, do nothing
@@ -311,7 +312,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 		/**
 		 * Delete all rows from the table
-		 * */
+		 */
 		deleteAllRows(): void {
 			this.rows.removeRange();
 		}
@@ -320,7 +321,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * Insert a new column at a specific location
 		 * @param index The index to insert the column at
 		 * @param name The name of the column
-		 * */
+		 */
 		insertColumn(props: {
 			index: number;
 			name: string;
@@ -336,6 +337,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 		/**
 		 * Get a column by the id
+		 * @param id The id of the column
 		 */
 		getColumn(id: string): Column {
 			const column = this.columns.find((column) => column.id === id);
@@ -345,6 +347,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 
 		/**
 		 * Delete a column from the table
+		 * @param column The column to delete
 		 */
 		deleteColumn(column: Column): void {
 			const index = this.columns.indexOf(column);

@@ -95,7 +95,7 @@ export class Vote extends sf.object("Vote", {
 	 * Return whether the user has voted
 	 * @param userId The user id
 	 * @return Whether the user has voted
-	 * */
+	 */
 	hasVoted(userId: string): boolean {
 		return this.votes.has(userId);
 	}
