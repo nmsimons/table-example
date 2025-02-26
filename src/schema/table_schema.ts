@@ -33,13 +33,23 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		/**
 		 * Property getter to get the cells in the row
 		 * @returns The cells in the row as an object where the keys are the column ids
-		 * and the values are the cell values
+		 * and the values are the cell values - includes the default value of the column if the cell is undefined
+		 * This is used to get the cells in the row for the table view
 		 */
-		get cells(): Record<string, CellValueType> {
-			const cells: Record<string, CellValueType> = {};
-			for (const [key, value] of this._cells.entries()) {
-				cells[key] = value as CellValueType;
+		get cells(): Record<string, CellValueType | undefined> {
+			const cells: Record<string, CellValueType | undefined> = {};
+			// Iterate over the columns in the table and get the cell values
+			for (const column of this.table.columns) {
+				// Get the cell value from the row
+				const cellValue = this.getCell(column);
+				// If the cell value is undefined, set it to the default value of the column
+				if (cellValue === undefined) {
+					cells[column.id] = column.defaultValue;
+				} else {
+					cells[column.id] = cellValue;
+				}
 			}
+			// Return the cells
 			return cells;
 		}
 
@@ -150,14 +160,37 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
-		 * Get all the cells in this column
+		 * Get all the hydrated cells in this column and return them as a map of rowId to cell value
+		 * @returns The cells in the column as a map of rowId to cell value
 		 */
-		get cells(): CellValueType[] {
-			// Get all the cells in the column and put them in an array
-			// omit the undefined values
-			const cells = this.table.rows
-				.map((row) => row._cells.get(this.id))
-				.filter((cell) => cell !== undefined);
+		get cells(): Map<string, CellValueType> {
+			const cells: Map<string, CellValueType> = new Map();
+			// Iterate over the rows in the table and get the cell values
+			for (const row of this.table.rows) {
+				// Get the cell value from the row
+				const cellValue = row.getCell(this);
+				if (cellValue !== undefined) {
+					cells.set(row.id, cellValue);
+				}
+			}
+			// Return the cells
+			return cells;
+		}
+
+		/**
+		 * Get all the cells in this column and return them as a map of rowId to cell value
+		 * Include undefined and default values in the map
+		 * @returns The cells in the column as a map of rowId to cell value
+		 */
+		get cellsWithDefaults(): Map<string, CellValueType | undefined> {
+			const cells: Map<string, CellValueType | undefined> = new Map();
+			// Iterate over the rows in the table and get the cell values
+			for (const row of this.table.rows) {
+				// Get the cell value from the row
+				const cellValue = row.cells[this.id];
+				cells.set(row.id, cellValue);
+			}
+			// Return the cells
 			return cells;
 		}
 

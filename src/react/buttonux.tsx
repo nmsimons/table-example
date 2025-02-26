@@ -396,7 +396,7 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 		if (clicked !== hidden) setHidden(!hidden);
 	};
 
-	if (column.cells.length !== 0) return <></>;
+	if (column.cells.size !== 0) return <></>;
 
 	return (
 		<div onFocus={(e) => handleOnFocus(e)} onBlur={handleOnBlur} className="relative group">
