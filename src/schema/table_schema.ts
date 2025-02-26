@@ -350,10 +350,14 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * @param column The column to delete
 		 */
 		deleteColumn(column: Column): void {
-			const index = this.columns.indexOf(column);
-			this.columns.removeAt(index);
-			// TODO Remove the column from each row
-			// Doing this in a transaction is too slow
+			Tree.runTransaction(this, () => {
+				const index = this.columns.indexOf(column);
+				this.columns.removeAt(index);
+				// Remove the column data from each row
+				for (const row of this.rows) {
+					row.setCell(column, undefined);
+				}
+			});
 		}
 	}
 
