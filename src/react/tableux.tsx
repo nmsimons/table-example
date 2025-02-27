@@ -202,8 +202,8 @@ export function TableHeaderView(props: {
 			className="relative p-1 border-r-1 border-gray-100"
 			onFocus={handleFocus}
 		>
-			<PresenceBox hidden={!localSelection} remote={false} /> {/* Local selection box */}
-			<PresenceBox hidden={!remoteSelection} remote={true} /> {/* Remote selection box */}
+			<PresenceBox selection={selection} item={header} /> {/* Local selection box */}
+			<PresenceBox selection={selection} item={header} /> {/* Remote selection box */}
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<ColumnInput column={fluidColumn} /> {/* Input field for the column name */}
 				<ColumnTypeDropdown column={fluidColumn} />
@@ -436,8 +436,7 @@ export function TableCellView(props: {
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<PresenceBox hidden={!isSelected} remote={false} />
-			<PresenceBox hidden={!isRemoteSelected} remote={true} />
+			<PresenceBox selection={selection} item={cell} />
 			<TableCellViewContent key={cell.id} cell={cell} user={user} />
 		</td>
 	);
@@ -492,12 +491,41 @@ export function TableCellViewContent(props: {
 	return <></>;
 }
 
-export function PresenceBox(props: { hidden: boolean; remote: boolean }): JSX.Element {
-	const { hidden, remote } = props;
+export function PresenceBox(props: {
+	selection: SelectionManager;
+	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown>;
+}): JSX.Element {
+	const { selection, item } = props;
+	const [hidden, setHidden] = useState(
+		(selection.testSelection(item.id) || selection.testRemoteSelection(item.id)) === false,
+	);
+	const defineColor = useCallback((): string => {
+		if (selection.testSelection(item.id) && selection.testRemoteSelection(item.id)) {
+			return "outline-purple-800";
+		} else if (selection.testSelection(item.id)) {
+			return "outline-blue-600";
+		} else if (selection.testRemoteSelection(item.id)) {
+			return "outline-red-800";
+		}
+		return "outline-none";
+	}, [selection, item]);
+
+	const [color, setColor] = useState(defineColor());
+
+	useEffect(() => {
+		selection.addEventListener("selectionChanged", () => {
+			setHidden(
+				(selection.testSelection(item.id) || selection.testRemoteSelection(item.id)) ===
+					false,
+			);
+			setColor(defineColor());
+		});
+	}, []);
+
 	return (
 		<div
 			className={`absolute z-1 h-full w-full inset-0 pointer-events-none outline-2 -outline-offset-2
-			${hidden ? "hidden" : ""} ${remote ? "outline-red-800" : "outline-blue-600"} opacity-50`}
+			${hidden ? "hidden" : ""} ${color} opacity-50`}
 		></div>
 	);
 }
