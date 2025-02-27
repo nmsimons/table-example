@@ -352,10 +352,12 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		deleteColumn(column: Column): void {
 			Tree.runTransaction(this, () => {
 				const index = this.columns.indexOf(column);
+				// If the column is not in the table, do nothing
+				if (index === -1) return;
 				this.columns.removeAt(index);
 				// Remove the column data from each row
 				for (const row of this.rows) {
-					row.setCell(column, undefined);
+					row._cells.delete(column.id);
 				}
 			});
 		}
