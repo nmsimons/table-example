@@ -165,30 +165,23 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 */
 		get cells(): Map<string, CellValueType> {
 			const cells: Map<string, CellValueType> = new Map();
-			// Iterate over the rows in the table and get the cell values
-			for (const row of this.table.rows) {
+			// If the column is not in a table, return an empty map
+			if (!this.table) {
+				return cells;
+			}
+			// If the table has no rows, return an empty map
+			if (this.table.rows.length === 0) {
+				return cells;
+			}
+			// Get the rows that contain data for this column
+			const rows = this.table.rows.filter((row) => row.getCell(this) !== undefined);
+			// If there are rows with data for this column, put them in the map
+			for (const row of rows) {
 				// Get the cell value from the row
 				const cellValue = row.getCell(this);
 				if (cellValue !== undefined) {
 					cells.set(row.id, cellValue);
 				}
-			}
-			// Return the cells
-			return cells;
-		}
-
-		/**
-		 * Get all the cells in this column and return them as a map of rowId to cell value
-		 * Include undefined and default values in the map
-		 * @returns The cells in the column as a map of rowId to cell value
-		 */
-		get cellsWithDefaults(): Map<string, CellValueType | undefined> {
-			const cells: Map<string, CellValueType | undefined> = new Map();
-			// Iterate over the rows in the table and get the cell values
-			for (const row of this.table.rows) {
-				// Get the cell value from the row
-				const cellValue = row.cells[this.id];
-				cells.set(row.id, cellValue);
 			}
 			// Return the cells
 			return cells;
@@ -355,8 +348,10 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 				// If the column is not in the table, do nothing
 				if (index === -1) return;
 				this.columns.removeAt(index);
+				// Get all the rows that contain column data
+				const rows = this.rows.filter((row) => row.getCell(column) !== undefined);
 				// Remove the column data from each row
-				for (const row of this.rows) {
+				for (const row of rows) {
 					row._cells.delete(column.id);
 				}
 			});

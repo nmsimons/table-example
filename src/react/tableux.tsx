@@ -23,7 +23,7 @@ import {
 	FluidColumn,
 	typeDefinition,
 } from "../schema/app_schema.js";
-import { IMember, Tree } from "fluid-framework";
+import { IMember, Tree, TreeStatus } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
@@ -180,6 +180,8 @@ export function TableHeaderView(props: {
 
 	useEffect(() => {
 		selection.addEventListener("selectionChanged", () => {
+			if (fluidColumn === undefined || Tree.status(fluidColumn) !== TreeStatus.InDocument)
+				return;
 			setLocalSelection(selection.testSelection(fluidColumn.id));
 			setRemoteSelection(selection.testRemoteSelection(fluidColumn.id));
 		});
@@ -314,7 +316,7 @@ export function TableRowView(props: {
 
 	// Get the fluid row from the row
 	const fluidRow = row.original;
-	const fluidColumn = useEffect(() => {
+	useEffect(() => {
 		const unsubscribe = Tree.on(fluidRow, "treeChanged", () => {
 			// Trigger a re-render of the row
 			// This is necessary because the row is not re-rendered when the data changes
