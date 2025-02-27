@@ -14,7 +14,7 @@ import {
 	Column,
 	SortingFn,
 } from "@tanstack/react-table";
-import React, { JSX, useState, useEffect, use } from "react";
+import React, { JSX, useState, useEffect, use, useCallback } from "react";
 import {
 	DateTime,
 	Vote,
@@ -308,14 +308,13 @@ export function TableRowView(props: {
 	user: IMember; // Add the user prop here
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer, selection, user } = props;
-	const [inval, setInval] = useState(0); // used to force a re-render of the row
+	const [, setInval] = useState(0); // used to force a re-render of the row
 
 	const style = { transform: `translateY(${virtualRow.start}px)` };
 
 	// Get the fluid row from the row
 	const fluidRow = row.original;
-
-	useEffect(() => {
+	const fluidColumn = useEffect(() => {
 		const unsubscribe = Tree.on(fluidRow, "treeChanged", () => {
 			// Trigger a re-render of the row
 			// This is necessary because the row is not re-rendered when the data changes
@@ -451,13 +450,18 @@ export function TableCellViewContent(props: {
 	const { cell, user } = props;
 	const fluidRow = cell.row.original;
 	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	const fluidCell = fluidRow.getCell(fluidColumn); // Get the fluid cell
-	let value: typeDefinition | undefined;
-	if (fluidCell === undefined) {
-		value = fluidColumn.defaultValue;
-	} else {
-		value = fluidCell; // Get the value from the fluid cell
-	}
+	const value = fluidRow.getCell(fluidColumn) ?? fluidColumn.defaultValue;
+	const [, setInval] = useState(0); // used to force a re-render of the cell
+
+	useEffect(() => {
+		const unsubscribe = Tree.on(fluidColumn, "nodeChanged", () => {
+			// Trigger a re-render of the cell
+			if (fluidRow.getCell(fluidColumn) === undefined) {
+				setInval(Math.random());
+			}
+		});
+		return unsubscribe;
+	}, []); // Only run this effect once when the component mounts
 
 	if (typeof value === "boolean") {
 		return (

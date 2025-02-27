@@ -114,7 +114,7 @@ export function Header(props: {
 	const [rowCount, setRowCount] = useState(props.table.rows.length);
 
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.table, "treeChanged", () => {
+		const unsubscribe = Tree.on(props.table.rows, "nodeChanged", () => {
 			setRowCount(props.table.rows.length);
 		});
 		return unsubscribe;
