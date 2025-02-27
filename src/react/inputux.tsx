@@ -1,6 +1,6 @@
 import React, { JSX } from "react";
 import { DateTime, Vote, FluidRow, FluidColumn } from "../schema/app_schema.js";
-import { Tree } from "fluid-framework";
+import { Tree, TreeStatus } from "fluid-framework";
 import { IconButton } from "./buttonux.js";
 import { ThumbLikeFilled } from "@fluentui/react-icons";
 
@@ -147,8 +147,8 @@ export function CellInputDate(props: {
 		></input>
 	);
 }
-// A control that allows users to vote by clicking a button in a cell
 
+// A control that allows users to vote by clicking a button in a cell
 export function CellInputVote(props: {
 	value: Vote | undefined;
 	row: FluidRow;
@@ -162,11 +162,12 @@ export function CellInputVote(props: {
 
 	// handle a click event in the cell
 	const handleClick = () => {
-		const cell = row.getCell(column);
-		if (cell === undefined) {
+		vote.toggleVote(userId);
+		// Check if the vote object is in the table and that there are votes in it
+		if (Tree.status(vote) !== TreeStatus.InDocument && vote.numberOfVotes > 0) {
+			// If not, add it to the table
 			row.setCell(column, vote);
 		}
-		vote.toggleVote(userId);
 	};
 
 	return (
