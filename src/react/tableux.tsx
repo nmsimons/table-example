@@ -200,7 +200,7 @@ export function TableHeaderView(props: {
 				<DeleteButton
 					delete={() => {
 						header.column.clearSorting();
-						fluidColumn.table.deleteColumn(fluidColumn);
+						fluidColumn.table.removeColumn(fluidColumn);
 					}}
 				/>
 			</div>

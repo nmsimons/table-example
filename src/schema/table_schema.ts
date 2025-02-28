@@ -339,22 +339,15 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
-		 * Delete a column from the table
+		 * Delete a column header/object from the table
+		 * DOES NOT DELETE THE CELLS IN THE ROWS
 		 * @param column The column to delete
 		 */
-		deleteColumn(column: Column): void {
-			Tree.runTransaction(this, () => {
-				const index = this.columns.indexOf(column);
-				// If the column is not in the table, do nothing
-				if (index === -1) return;
-				this.columns.removeAt(index);
-				// Get all the rows that contain column data
-				const rows = this.rows.filter((row) => row.getCell(column) !== undefined);
-				// Remove the column data from each row
-				for (const row of rows) {
-					row._cells.delete(column.id);
-				}
-			});
+		removeColumn(column: Column): void {
+			const index = this.columns.indexOf(column);
+			// If the column is not in the table, do nothing
+			if (index === -1) return;
+			this.columns.removeAt(index);
 		}
 	}
 
