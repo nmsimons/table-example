@@ -315,14 +315,6 @@ export function TableRowView(props: {
 		return unsubscribe;
 	}, []); // Only run this effect once when the component mounts
 
-	const [isSelected, setIsSelected] = useState(selection.testSelection(fluidRow.id));
-
-	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
-			setIsSelected(selection.testSelection(row.id));
-		});
-	}, []);
-
 	return (
 		<tr
 			key={row.id}
