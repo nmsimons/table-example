@@ -160,11 +160,7 @@ export function TableHeaderView(props: {
 }): JSX.Element {
 	const { header, fluidTable, selection } = props;
 	const fluidColumn = fluidTable.getColumn(header.column.id);
-	const [localSelection, setLocalSelection] = useState(selection.testSelection(fluidColumn.id));
-	const [remoteSelection, setRemoteSelection] = useState(
-		selection.testRemoteSelection(fluidColumn.id),
-	);
-	const [inval, setInval] = useState(0); // used to force a re-render of the header
+	const [, setInval] = useState(0); // used to force a re-render of the header
 
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidColumn, "nodeChanged", () => {
@@ -177,15 +173,6 @@ export function TableHeaderView(props: {
 		});
 		return unsubscribe;
 	}, []); // Only run this effect once when the component mounts
-
-	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
-			if (fluidColumn === undefined || Tree.status(fluidColumn) !== TreeStatus.InDocument)
-				return;
-			setLocalSelection(selection.testSelection(fluidColumn.id));
-			setRemoteSelection(selection.testRemoteSelection(fluidColumn.id));
-		});
-	}, []);
 
 	// handle a focus event in the header
 	const handleFocus = () => {
@@ -349,10 +336,10 @@ export function TableRowView(props: {
 				position: "absolute",
 				width: "100%",
 				height: `${virtualRow.size}px`,
-				...(isSelected ? { zIndex: 3 } : {}),
 			}}
-			className={`${isSelected ? "outline-2 outline-blue-300" : ""}  w-full even:bg-white odd:bg-gray-100`}
+			className={`w-full even:bg-white odd:bg-gray-100`}
 		>
+			<PresenceBox selection={selection} item={row} /> {/* Local selection box */}
 			{row.getVisibleCells().map((cell) =>
 				cell.column.id === "index" ? (
 					<IndexCellView key="index" rowId={row.id} selection={selection} />
@@ -407,18 +394,6 @@ export function TableCellView(props: {
 }): JSX.Element {
 	const { cell, selection, user } = props;
 
-	const [isSelected, setIsSelected] = useState(selection.testSelection(cell.id));
-	const [isRemoteSelected, setIsRemoteSelected] = useState(
-		selection.testRemoteSelection(cell.id),
-	);
-
-	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
-			setIsSelected(selection.testSelection(cell.id));
-			setIsRemoteSelected(selection.testRemoteSelection(cell.id));
-		});
-	}, []);
-
 	// handle a click event in the cell
 	const handleFocus = () => {
 		selection.replaceSelection(cell.id, "cell");
@@ -433,8 +408,6 @@ export function TableCellView(props: {
 				minWidth: columnWidth,
 				width: columnWidth,
 				maxWidth: columnWidth,
-				...(isSelected ? { zIndex: 1000 } : {}),
-				...(isRemoteSelected ? { zIndex: 1000 } : {}),
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
@@ -495,7 +468,7 @@ export function TableCellViewContent(props: {
 
 export function PresenceBox(props: {
 	selection: SelectionManager;
-	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown>;
+	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
 }): JSX.Element {
 	const { selection, item } = props;
 	const [hidden, setHidden] = useState(
