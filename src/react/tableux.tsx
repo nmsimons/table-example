@@ -191,8 +191,8 @@ export function TableHeaderView(props: {
 			className="relative p-1 border-r-1 border-gray-100"
 			onFocus={handleFocus}
 		>
-			<PresenceBox selection={selection} item={header} /> {/* Local selection box */}
-			<PresenceBox selection={selection} item={header} /> {/* Remote selection box */}
+			<PresenceIndicator selection={selection} item={header} /> {/* Local selection box */}
+			<PresenceIndicator selection={selection} item={header} /> {/* Remote selection box */}
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<ColumnInput column={fluidColumn} /> {/* Input field for the column name */}
 				<ColumnTypeDropdown column={fluidColumn} />
@@ -339,7 +339,7 @@ export function TableRowView(props: {
 			}}
 			className={`w-full even:bg-white odd:bg-gray-100`}
 		>
-			<PresenceBox selection={selection} item={row} /> {/* Local selection box */}
+			<PresenceIndicator selection={selection} item={row} /> {/* Local selection box */}
 			{row.getVisibleCells().map((cell) =>
 				cell.column.id === "index" ? (
 					<IndexCellView key="index" rowId={row.id} selection={selection} />
@@ -411,7 +411,7 @@ export function TableCellView(props: {
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<PresenceBox selection={selection} item={cell} />
+			<PresenceIndicator selection={selection} item={cell} />
 			<TableCellViewContent key={cell.id} cell={cell} user={user} />
 		</td>
 	);
@@ -466,37 +466,31 @@ export function TableCellViewContent(props: {
 	return <></>;
 }
 
-export function PresenceBox(props: {
+export function PresenceIndicator(props: {
 	selection: SelectionManager;
 	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
 }): JSX.Element {
 	const { selection, item } = props;
-	const [hidden, setHidden] = useState(
-		(selection.testSelection(item.id) || selection.testRemoteSelection(item.id)) === false,
-	);
-	const defineColor = useCallback((): string => {
-		if (selection.testSelection(item.id) && selection.testRemoteSelection(item.id)) {
-			return "outline-purple-800";
-		} else if (selection.testSelection(item.id)) {
-			return "outline-blue-600";
-		} else if (selection.testRemoteSelection(item.id)) {
-			return "outline-red-800";
-		}
-		return "outline-none";
-	}, [selection, item]);
-
-	const [color, setColor] = useState(defineColor());
+	const [selected, setSelected] = useState(selection.testSelection(item.id));
+	const [remoteSelected, setRemoteSelected] = useState(selection.testRemoteSelection(item.id));
 
 	useEffect(() => {
 		selection.addEventListener("selectionChanged", () => {
-			setHidden(
-				(selection.testSelection(item.id) || selection.testRemoteSelection(item.id)) ===
-					false,
-			);
-			setColor(defineColor());
+			setSelected(selection.testSelection(item.id));
+			setRemoteSelected(selection.testRemoteSelection(item.id));
 		});
 	}, []);
 
+	return (
+		<>
+			<PresenceBox color="outline-blue-600" hidden={!selected} />
+			<PresenceBox color="outline-red-800" hidden={!remoteSelected} />
+		</>
+	);
+}
+
+function PresenceBox(props: { color: string; hidden: boolean }): JSX.Element {
+	const { color, hidden } = props;
 	return (
 		<div
 			className={`absolute z-1 h-full w-full inset-0 pointer-events-none outline-2 -outline-offset-2
