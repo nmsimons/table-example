@@ -205,7 +205,7 @@ export function MoveSelectedRowsButton(props: {
 	// Disable the button if there are no selected rows
 	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
 	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
+		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
 			if (selection.getSelected("row").length === 0) {
 				setDisabled(true);
@@ -213,6 +213,7 @@ export function MoveSelectedRowsButton(props: {
 				setDisabled(false);
 			}
 		});
+		return unsubscribe;
 	}, []);
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -263,7 +264,7 @@ export function MoveSelectedColumnsButton(props: {
 	);
 
 	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
+		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
 			if (
 				selection.getSelected("column").length === 0 &&
@@ -274,6 +275,7 @@ export function MoveSelectedColumnsButton(props: {
 				setDisabled(false);
 			}
 		});
+		return unsubscribe;
 	}, []);
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -329,7 +331,7 @@ export function DeleteSelectedRowsButton(props: {
 	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
 
 	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
+		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
 			if (selection.getSelected("row").length === 0) {
 				setDisabled(true);
@@ -337,6 +339,7 @@ export function DeleteSelectedRowsButton(props: {
 				setDisabled(false);
 			}
 		});
+		return unsubscribe;
 	}, []);
 
 	const handleClick = (e: React.MouseEvent) => {

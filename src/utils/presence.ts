@@ -8,7 +8,9 @@ import {
 	Latest,
 	type PresenceStatesSchema,
 	type PresenceStatesEntries,
+	LatestValueManagerEvents,
 } from "@fluidframework/presence/alpha";
+import { Listenable } from "fluid-framework";
 
 export type selectionType = "row" | "column" | "cell" | "";
 
@@ -17,7 +19,7 @@ type selection = {
 	type: selectionType;
 };
 
-export class SelectionManager extends EventTarget {
+export class SelectionManager {
 	statesSchema = {
 		// sets selected to an array of strings
 		selected: Latest<selection>({ items: [], type: "" }),
@@ -26,15 +28,16 @@ export class SelectionManager extends EventTarget {
 	private valueManager: PresenceStatesEntries<typeof this.statesSchema>["selected"];
 
 	constructor(presence: IPresence, statesName: string) {
-		super();
 		const statesWorkspace = presence.getStates("name:selectionManager", {});
 		// Workaround ts(2775): Assertions require every name in the call target to be declared with an explicit type annotation.
 		const workspace: typeof statesWorkspace = statesWorkspace;
 		workspace.add(statesName, Latest<selection>({ items: [], type: "" }));
 		this.valueManager = workspace.props[statesName];
-		this.valueManager.events.on("updated", () =>
-			this.dispatchEvent(new Event("selectionChanged")),
-		);
+	}
+
+	// export events
+	public get events(): Listenable<LatestValueManagerEvents<selection>> {
+		return this.valueManager.events;
 	}
 
 	public testSelection(id: string) {
@@ -70,10 +73,6 @@ export class SelectionManager extends EventTarget {
 			arr.splice(i, 1);
 		}
 		this.valueManager.local = { items: arr, type };
-
-		// emit an event to notify the app that the selection has changed
-		this.dispatchEvent(new Event("selectionChanged"));
-
 		return;
 	}
 
@@ -89,10 +88,6 @@ export class SelectionManager extends EventTarget {
 		} else {
 			this.valueManager.local = { items: [], type };
 		}
-
-		// emit an event to notify the app that the selection has changed
-		this.dispatchEvent(new Event("selectionChanged"));
-
 		return;
 	}
 
@@ -100,10 +95,6 @@ export class SelectionManager extends EventTarget {
 		let arr: string[] = [];
 		arr = [id];
 		this.valueManager.local = { items: arr, type };
-
-		// emit an event to notify the app that the selection has changed
-		this.dispatchEvent(new Event("selectionChanged"));
-
 		return;
 	}
 
@@ -118,10 +109,6 @@ export class SelectionManager extends EventTarget {
 			arr.push(id);
 		}
 		this.valueManager.local = { items: arr, type };
-
-		// emit an event to notify the app that the selection has changed
-		this.dispatchEvent(new Event("selectionChanged"));
-
 		return;
 	}
 
@@ -132,9 +119,6 @@ export class SelectionManager extends EventTarget {
 		if (i != -1) {
 			arr.splice(i, 1);
 			this.valueManager.local = { items: arr, type: this.valueManager.local.type };
-
-			// emit an event to notify the app that the selection has changed
-			this.dispatchEvent(new Event("selectionChanged"));
 		}
 
 		return;
@@ -142,7 +126,6 @@ export class SelectionManager extends EventTarget {
 
 	public clearSelection() {
 		this.valueManager.local = { items: [], type: "" };
-		this.dispatchEvent(new Event("selectionChanged"));
 	}
 
 	public getSelected(type: selectionType) {
@@ -154,11 +137,5 @@ export class SelectionManager extends EventTarget {
 
 	public getRemoteSelected() {
 		return this.valueManager.clientValues();
-	}
-
-	public dispose() {
-		this.valueManager.events.off("updated", () =>
-			this.dispatchEvent(new Event("selectionChanged")),
-		);
 	}
 }

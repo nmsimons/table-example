@@ -467,10 +467,17 @@ export function PresenceIndicator(props: {
 	const [remoteSelected, setRemoteSelected] = useState(selection.testRemoteSelection(item.id));
 
 	useEffect(() => {
-		selection.addEventListener("selectionChanged", () => {
+		const unsubscribe = selection.events.on("localUpdated", () => {
 			setSelected(selection.testSelection(item.id));
+		});
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		const unsubscribe = selection.events.on("updated", () => {
 			setRemoteSelected(selection.testRemoteSelection(item.id));
 		});
+		return unsubscribe;
 	}, []);
 
 	return (
