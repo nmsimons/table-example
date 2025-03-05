@@ -19,12 +19,6 @@ export default defineConfig(({ mode }) => {
 			port: 8080,
 			hot: true,
 		},
-		resolve: {
-			alias: {
-				".js": ".js",
-			},
-			extensions: [".ts", ".tsx", ".js", ".cjs", ".mjs"],
-		},
 		define: {
 			"process.env": env,
 		},
