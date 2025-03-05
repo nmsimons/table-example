@@ -71,6 +71,14 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		}
 
 		/**
+		 * Delete a cell from the row
+		 * @param column The column
+		 */
+		deleteCell(column: Column): void {
+			this._cells.delete(column.id);
+		}
+
+		/**
 		 * Move a row to a new location
 		 * @param index The index to move the row to
 		 */

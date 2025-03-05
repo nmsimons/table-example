@@ -8,6 +8,8 @@ import {
 	SchemaFactory,
 	TreeNodeFromImplicitAllowedTypes,
 	NodeFromSchema,
+	Tree,
+	TreeStatus,
 } from "fluid-framework";
 import { Table } from "./table_schema.js";
 
@@ -124,6 +126,20 @@ export class FluidTable extends Table(tableFactory, schemaTypes) {
 	 * */
 	createDetachedRow(): FluidRow {
 		return new FluidTable.Row({ _cells: {}, props: {} });
+	}
+
+	/**
+	 * Delete a column and all of its cells
+	 * @param column The column to delete
+	 */
+	deleteColumn(column: FluidColumn): void {
+		if (Tree.status(column) !== TreeStatus.InDocument) return;
+		Tree.runTransaction(this, () => {
+			for (const row of this.rows) {
+				row.deleteCell(column);
+			}
+			this.removeColumn(column);
+		});
 	}
 }
 

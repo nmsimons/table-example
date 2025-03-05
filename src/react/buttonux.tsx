@@ -548,16 +548,16 @@ export function IconButton(props: {
 		handleClick,
 		children,
 		icon,
-		color,
-		background,
-		grow,
+		color = "text-gray-600 hover:text-white",
+		background = "bg-transparent hover:bg-gray-600",
+		grow = false,
 		toggled,
-		toggleBackground,
-		toggleColor,
-		disabledColor,
-		disabledBackground,
+		toggleBackground = "bg-gray-400 hover:bg-gray-600",
+		toggleColor = "text-white",
+		disabledColor = "disabled:text-gray-600",
+		disabledBackground = "disabled:bg-transparent",
 		disabled,
-		responsive,
+		responsive = true,
 	} = props;
 
 	return (
@@ -571,17 +571,6 @@ export function IconButton(props: {
 		</button>
 	);
 }
-
-IconButton.defaultProps = {
-	color: "text-gray-600 hover:text-white",
-	background: "bg-transparent hover:bg-gray-600",
-	toggleBackground: "bg-gray-400 hover:bg-gray-600",
-	toggleColor: "text-white",
-	disabledColor: "disabled:text-gray-600",
-	disabledBackground: "disabled:bg-transparent",
-	grow: false,
-	responsive: true,
-};
 
 function IconButtonText(props: { children: React.ReactNode; responsive: boolean }): JSX.Element {
 	const { children, responsive } = props;
