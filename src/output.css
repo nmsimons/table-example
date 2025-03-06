@@ -200,6 +200,9 @@
   .visible {
     visibility: visible;
   }
+  .\!relative {
+    position: relative !important;
+  }
   .absolute {
     position: absolute;
   }
@@ -604,6 +607,9 @@
   .uppercase {
     text-transform: uppercase;
   }
+  .italic {
+    font-style: italic;
+  }
   .ordinal {
     --tw-ordinal: ordinal;
     font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
@@ -669,6 +675,12 @@
   .outline-none {
     --tw-outline-style: none;
     outline-style: none;
+  }
+  .\[vite\:css\] {
+    vite: css;
+  }
+  .\[vite\:html\] {
+    vite: html;
   }
   .odd\:bg-gray-100 {
     &:nth-child(odd) {

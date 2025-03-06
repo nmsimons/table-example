@@ -56,11 +56,11 @@ export function NewEmptyRowButton(props: {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		const lastSelectedRow = getLastSelectedRow(table, selection);
-
+		const row = table.createDetachedRow();
 		if (lastSelectedRow !== undefined) {
-			table.insertRows({ index: lastSelectedRow.index + 1 });
+			table.insertRows({ rows: [row], index: lastSelectedRow.index + 1 });
 		} else {
-			table.insertRows({ index: table.rows.length });
+			table.insertRows({ rows: [row], index: table.rows.length });
 		}
 	};
 	return (
@@ -176,10 +176,7 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 		} else if (index % 5 === 2) {
 			table.insertColumn({ name, defaultValue: 0, index: table.columns.length });
 		} else if (index % 5 === 3) {
-			table
-				.insertColumn({ name, defaultValue: false, index: table.columns.length })
-				// Set the label for the boolean column to a random string
-				.props.set("label", Math.random().toString(36).substring(7));
+			table.insertColumn({ name, defaultValue: false, index: table.columns.length });
 		} else if (index % 5 === 4) {
 			table.insertColumn({ name, hint: "vote", index: table.columns.length });
 		} else {
@@ -448,7 +445,6 @@ export function ChangeColumnTypeButton(props: { column: FluidColumn; type: strin
 			column.defaultValue = 0;
 		} else if (type === "Boolean") {
 			column.defaultValue = false;
-			column.props.set("label", Math.random().toString(36).substring(7));
 		} else if (type === "Date") {
 			column.defaultValue = undefined;
 			column.hint = "date";

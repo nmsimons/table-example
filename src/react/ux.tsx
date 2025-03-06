@@ -84,7 +84,7 @@ export function ReactApp(props: {
 					<RedoButton redo={() => undoRedo.redo()} />
 				</ButtonGroup>
 			</Toolbar>
-			<div className="flex h-[calc(100vh-96px)] flex-row ">
+			<div className="flex h-[calc(100vh-96px)] w-full flex-row ">
 				<Canvas
 					table={table.root}
 					selection={selection}

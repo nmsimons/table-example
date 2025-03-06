@@ -10,17 +10,26 @@ import {
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
 
-export function Table<T extends readonly TreeNodeSchema[], Scope extends string | undefined>(
-	sf: SchemaFactory<Scope>,
-	schemaTypes: T,
-) {
+export function Table<
+	TCell extends readonly TreeNodeSchema[],
+	TColumnProps extends readonly TreeNodeSchema[],
+	TRowProps extends readonly TreeNodeSchema[],
+	Scope extends string | undefined,
+>(props: {
+	sf: SchemaFactory<Scope>;
+	schemaTypes: TCell;
+	columnProps?: TColumnProps;
+	rowProps?: TRowProps;
+}) {
 	// Create a new table based on the SharedTree schema in this file
 	// The table will be empty and will have no columns
 	// The types allowed in the table are defined in the schemaTypes array
 	// The table will be initialized with the types allowed in the table
 
-	type CellValueType = TreeNodeFromImplicitAllowedTypes<T>;
-	type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<T>;
+	const { sf, schemaTypes, columnProps, rowProps } = props;
+
+	type CellValueType = TreeNodeFromImplicitAllowedTypes<TCell>;
+	type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<TCell>;
 
 	/**
 	 * The Row schema - this is a map of Cells where the key is the column id
@@ -28,7 +37,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 	class Row extends sf.object("Row", {
 		id: sf.identifier,
 		_cells: sf.map(schemaTypes), // The keys of this map are the column ids - this would ideally be private
-		props: sf.map([sf.number, sf.string, sf.boolean]),
+		props: sf.optional(rowProps ?? sf.null),
 	}) {
 		/**
 		 * Property getter to get the cells in the row
@@ -151,7 +160,7 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		name: sf.string,
 		defaultValue: sf.optional(schemaTypes),
 		hint: sf.optional(sf.string),
-		props: sf.map([sf.number, sf.string, sf.boolean]),
+		props: sf.optional(columnProps ?? sf.null),
 	}) {
 		/**
 		 * Get the parent Table
@@ -275,16 +284,19 @@ export function Table<T extends readonly TreeNodeSchema[], Scope extends string 
 		 * @param rows The rows to insert
 		 * If no rows are provided, a new row will be created.
 		 */
-		insertRows(props: { index: number; rows?: Row[] }): Row[] {
-			const { index, rows } = props;
+		insertRows(props: {
+			index?: number;
+			rows: InsertableTreeNodeFromImplicitAllowedTypes<typeof Row>[];
+		}): Row[] {
+			const { index, rows: insertableRows } = props;
 
-			if (rows) {
+			const rows: Row[] = insertableRows.map((insertableRow) => insertableRow as Row);
+			if (index === undefined) {
+				this.rows.insertAtEnd(TreeArrayNode.spread(rows));
+			} else {
 				this.rows.insertAt(index, TreeArrayNode.spread(rows));
-				return rows;
 			}
-			const row = new Row({ _cells: {}, props: {} });
-			this.rows.insertAt(index, row);
-			return [row];
+			return rows;
 		}
 
 		/**

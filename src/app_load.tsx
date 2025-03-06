@@ -28,7 +28,7 @@ export async function loadApp(
 
 	// Create an array of rows to be used in the table
 	const rows = new Array(10).fill(null).map(() => {
-		return { _cells: [], props: {} };
+		return { _cells: [] };
 	});
 
 	// Initialize the SharedTree DDSes
@@ -41,29 +41,22 @@ export async function loadApp(
 					{
 						name: "String",
 						defaultValue: "",
-						props: {},
 					},
 					{
 						name: "Number",
 						defaultValue: 0,
-						props: {},
 					},
 					{
 						name: "Boolean",
 						defaultValue: false,
-						props: {
-							label: "Reviewed",
-						},
 					},
 					{
 						name: "Date",
 						hint: "date",
-						props: {},
 					},
 					{
 						name: "Vote",
 						hint: "vote",
-						props: {},
 					},
 				],
 			}),

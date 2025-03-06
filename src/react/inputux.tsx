@@ -42,7 +42,6 @@ export function CellInputBoolean(props: {
 				checked={value ?? false}
 				onChange={handleChange}
 			></input>
-			{column.props.get("label")}
 		</label>
 	);
 }
