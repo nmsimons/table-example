@@ -37,7 +37,7 @@ export function Table<
 	class Row extends sf.object("Row", {
 		id: sf.identifier,
 		_cells: sf.map(schemaTypes), // The keys of this map are the column ids - this would ideally be private
-		props: sf.optional(rowProps ?? sf.null),
+		props: rowProps ?? sf.null,
 	}) {
 		/**
 		 * Property getter to get the cells in the row
@@ -160,7 +160,7 @@ export function Table<
 		name: sf.string,
 		defaultValue: sf.optional(schemaTypes),
 		hint: sf.optional(sf.string),
-		props: sf.optional(columnProps ?? sf.null),
+		props: columnProps ?? sf.null,
 	}) {
 		/**
 		 * Get the parent Table
@@ -340,10 +340,11 @@ export function Table<
 			name: string;
 			defaultValue?: CellInsertableType;
 			hint?: string;
+			props: TColumnProps | null;
 		}): Column {
-			const { index, name, defaultValue, hint } = props;
+			const { index, name, defaultValue, hint, props: columnProps } = props;
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const column = new Column({ props: {}, name, defaultValue, hint } as any);
+			const column = new Column({ name, defaultValue, hint, props: columnProps } as any);
 			this.columns.insertAt(index, column);
 			return column;
 		}

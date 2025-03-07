@@ -128,7 +128,7 @@ export class FluidTable extends Table({
 	 * Create a Row before inserting it into the table
 	 * */
 	createDetachedRow(): FluidRow {
-		return new FluidTable.Row({ _cells: {} });
+		return new FluidTable.Row({ _cells: {}, props: null });
 	}
 
 	/**

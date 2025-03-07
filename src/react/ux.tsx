@@ -124,7 +124,7 @@ export function Header(props: {
 		<div className="h-[48px] flex shrink-0 flex-row items-center justify-between bg-black text-base text-white z-40 w-full">
 			<div className="flex m-2">Table</div>
 			<div className="flex m-2 ">
-				{rowCount} rows | {props.saved ? "saved" : "not saved"} | {props.connectionState} |
+				{props.saved ? "saved" : "not saved"} | {rowCount} rows | {props.connectionState} |
 				users: {props.fluidMembers.length}
 			</div>
 		</div>

@@ -172,15 +172,25 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 
 		// Add a new column to the table
 		if (index % 5 === 1) {
-			table.insertColumn({ name, defaultValue: "", index: table.columns.length });
+			table.insertColumn({
+				name,
+				defaultValue: "",
+				index: table.columns.length,
+				props: null,
+			});
 		} else if (index % 5 === 2) {
-			table.insertColumn({ name, defaultValue: 0, index: table.columns.length });
+			table.insertColumn({ name, defaultValue: 0, index: table.columns.length, props: null });
 		} else if (index % 5 === 3) {
-			table.insertColumn({ name, defaultValue: false, index: table.columns.length });
+			table.insertColumn({
+				name,
+				defaultValue: false,
+				index: table.columns.length,
+				props: null,
+			});
 		} else if (index % 5 === 4) {
-			table.insertColumn({ name, hint: "vote", index: table.columns.length });
+			table.insertColumn({ name, hint: "vote", index: table.columns.length, props: null });
 		} else {
-			table.insertColumn({ name, hint: "date", index: table.columns.length });
+			table.insertColumn({ name, hint: "date", index: table.columns.length, props: null });
 		}
 	};
 	return (
