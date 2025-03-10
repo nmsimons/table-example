@@ -84,6 +84,7 @@ export function Table<
 		 * @param column The column
 		 */
 		deleteCell(column: Column): void {
+			if (!this._cells.has(column.id)) return;
 			this._cells.delete(column.id);
 		}
 
