@@ -289,15 +289,13 @@ export function Table<
 			index?: number;
 			rows: InsertableTreeNodeFromImplicitAllowedTypes<typeof Row>[];
 		}): Row[] {
-			const { index, rows: insertableRows } = props;
-
-			const rows: Row[] = insertableRows.map((insertableRow) => insertableRow as Row);
+			const { index, rows } = props;
 			if (index === undefined) {
 				this.rows.insertAtEnd(TreeArrayNode.spread(rows));
 			} else {
 				this.rows.insertAt(index, TreeArrayNode.spread(rows));
 			}
-			return rows;
+			return rows as Row[];
 		}
 
 		/**
