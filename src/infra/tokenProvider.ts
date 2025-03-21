@@ -34,22 +34,21 @@ export class AzureFunctionTokenProvider implements ITokenProvider {
 		private readonly user?: Pick<AzureMember, "name" | "id" | "additionalDetails">,
 	) {}
 
-	public async fetchOrdererToken(tenantId: string, documentId?: string): Promise<ITokenResponse> {
+	public async fetchOrdererToken(documentId?: string): Promise<ITokenResponse> {
 		return {
-			jwt: await this.getToken(tenantId, documentId),
+			jwt: await this.getToken(documentId),
 		};
 	}
 
 	public async fetchStorageToken(tenantId: string, documentId: string): Promise<ITokenResponse> {
 		return {
-			jwt: await this.getToken(tenantId, documentId),
+			jwt: await this.getToken(documentId),
 		};
 	}
 
-	private async getToken(tenantId: string, documentId: string | undefined): Promise<string> {
+	private async getToken(documentId: string | undefined): Promise<string> {
 		const response = await axios.get(this.azFunctionUrl, {
 			params: {
-				tenantId,
 				documentId,
 				userName: this.user?.name,
 				userId: this.user?.id,
