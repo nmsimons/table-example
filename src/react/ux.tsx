@@ -55,7 +55,7 @@ export function ReactApp(props: {
 				saved={saved}
 				connectionState={connectionState}
 				fluidMembers={fluidMembers}
-				clientId={currentUser.id}
+				currentUser={currentUser}
 				table={table.root}
 			/>
 			<Toolbar>
@@ -107,25 +107,27 @@ export function Header(props: {
 	saved: boolean;
 	connectionState: string;
 	fluidMembers: IMember[];
-	clientId: string;
+	currentUser: IMember;
 	table: FluidTable;
 }): JSX.Element {
+	const { saved, connectionState, fluidMembers, currentUser, table } = props;
+
 	// Update when the table changes
-	const [rowCount, setRowCount] = useState(props.table.rows.length);
+	const [rowCount, setRowCount] = useState(table.rows.length);
 
 	useEffect(() => {
-		const unsubscribe = Tree.on(props.table.rows, "nodeChanged", () => {
-			setRowCount(props.table.rows.length);
+		const unsubscribe = Tree.on(table.rows, "nodeChanged", () => {
+			setRowCount(table.rows.length);
 		});
 		return unsubscribe;
-	}, [props.table]);
+	}, [table]);
 
 	return (
 		<div className="h-[48px] flex shrink-0 flex-row items-center justify-between bg-black text-base text-white z-40 w-full">
 			<div className="flex m-2">Table</div>
 			<div className="flex m-2 ">
-				{props.saved ? "saved" : "not saved"} | {rowCount} rows | {props.connectionState} |
-				users: {props.fluidMembers.length}
+				{saved ? "saved" : "not saved"} | {rowCount} rows | {connectionState} | users:{" "}
+				{fluidMembers.length}
 			</div>
 		</div>
 	);
