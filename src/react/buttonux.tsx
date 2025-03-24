@@ -4,7 +4,14 @@
  */
 
 import React, { JSX, useEffect } from "react";
-import { DateTime, FluidColumn, FluidRow, FluidTable } from "../schema/app_schema.js";
+import {
+	DateTime,
+	FluidColumn,
+	FluidRow,
+	FluidTable,
+	HintValues,
+	hintValues,
+} from "../schema/app_schema.js";
 import {
 	DismissFilled,
 	ArrowUndoFilled,
@@ -135,22 +142,36 @@ const getRowWithValues = (table: FluidTable): FluidRow => {
 	// If the column is a number, we will add a random number, otherwise we will add a random string
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
-		const type = typeof column.defaultValue;
 		const fluidColumn = table.getColumn(column.id);
+		const hint = fluidColumn.hint;
 
-		if (type === "number") {
-			row.setCell(fluidColumn, Math.floor(Math.random() * 1000));
-		} else if (type === "boolean") {
-			row.setCell(fluidColumn, Math.random() > 0.5);
-		} else if (type === "string") {
-			row.setCell(fluidColumn, Math.random().toString(36).substring(7));
-		} else if (column.defaultValue === undefined && column.hint === "date") {
-			// Add a random date
-			const startDate = new Date(2020, 0, 1);
-			const endDate = new Date();
-			const date = getRandomDate(startDate, endDate);
-			const dateTime = new DateTime({ raw: date.getTime() });
-			row.setCell(fluidColumn, dateTime);
+		switch (hint) {
+			case hintValues.string:
+				row.setCell(fluidColumn, Math.random().toString(36).substring(7));
+				break;
+			case hintValues.number:
+				row.setCell(fluidColumn, Math.floor(Math.random() * 1000));
+				break;
+			case hintValues.boolean:
+				row.setCell(fluidColumn, Math.random() > 0.5);
+				break;
+			case hintValues.date: {
+				// Add a random date
+				const getDate = () => {
+					const startDate = new Date(2020, 0, 1);
+					const endDate = new Date();
+					const date = getRandomDate(startDate, endDate);
+					const dateTime = new DateTime({ raw: date.getTime() });
+					return dateTime;
+				};
+				row.setCell(fluidColumn, getDate());
+				break;
+			}
+			case hintValues.vote:
+				break;
+			default: // Add a random string
+				row.setCell(fluidColumn, Math.random().toString(36).substring(7));
+				break;
 		}
 	}
 	return row;
@@ -174,23 +195,38 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 		if (index % 5 === 1) {
 			table.insertColumn({
 				name,
-				defaultValue: "",
+				hint: hintValues.string,
 				index: table.columns.length,
 				props: null,
 			});
 		} else if (index % 5 === 2) {
-			table.insertColumn({ name, defaultValue: 0, index: table.columns.length, props: null });
+			table.insertColumn({
+				name,
+				hint: hintValues.number,
+				index: table.columns.length,
+				props: null,
+			});
 		} else if (index % 5 === 3) {
 			table.insertColumn({
 				name,
-				defaultValue: false,
+				hint: hintValues.boolean,
 				index: table.columns.length,
 				props: null,
 			});
 		} else if (index % 5 === 4) {
-			table.insertColumn({ name, hint: "vote", index: table.columns.length, props: null });
+			table.insertColumn({
+				name,
+				hint: hintValues.vote,
+				index: table.columns.length,
+				props: null,
+			});
 		} else {
-			table.insertColumn({ name, hint: "date", index: table.columns.length, props: null });
+			table.insertColumn({
+				name,
+				hint: hintValues.date,
+				index: table.columns.length,
+				props: null,
+			});
 		}
 	};
 	return (
@@ -417,11 +453,11 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 			/>
 			<div className={`absolute right-0 z-10 ${hidden ? `invisible` : `visible`}`}>
 				<div className="mt-1 bg-black text-white shadow-lg rounded-lg flex flex-col place-items-start">
-					<ChangeColumnTypeButton column={column} type="String" />
-					<ChangeColumnTypeButton column={column} type="Number" />
-					<ChangeColumnTypeButton column={column} type="Boolean" />
-					<ChangeColumnTypeButton column={column} type="Date" />
-					<ChangeColumnTypeButton column={column} type="Vote" />
+					<ChangeColumnTypeButton column={column} type={hintValues.string} />
+					<ChangeColumnTypeButton column={column} type={hintValues.number} />
+					<ChangeColumnTypeButton column={column} type={hintValues.boolean} />
+					<ChangeColumnTypeButton column={column} type={hintValues.date} />
+					<ChangeColumnTypeButton column={column} type={hintValues.vote} />
 				</div>
 			</div>
 		</div>
@@ -429,19 +465,17 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 }
 
 // Change the column type by setting the default value to a string, number, boolean, or date
-export function ChangeColumnTypeButton(props: { column: FluidColumn; type: string }): JSX.Element {
+export function ChangeColumnTypeButton(props: {
+	column: FluidColumn;
+	type: HintValues;
+}): JSX.Element {
 	const { column, type } = props;
 
 	// Set the icon based on the type of the column
-	// if the type is the same as the default type, we will show a checkmark
+	// if the type is the same as the hint, we will show a checkmark
 	// if the type is different, we will show a box
 	let icon;
-	if ((typeof column.defaultValue).toLowerCase() === type.toLowerCase()) {
-		icon = <CheckboxCheckedFilled />;
-	} else if (
-		column.defaultValue === undefined &&
-		(column.hint ?? "").toLowerCase() === type.toLowerCase()
-	) {
+	if ((column.hint ?? "") === type) {
 		icon = <CheckboxCheckedFilled />;
 	} else {
 		icon = <CheckboxUncheckedFilled />;
@@ -449,18 +483,26 @@ export function ChangeColumnTypeButton(props: { column: FluidColumn; type: strin
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		if (type === "String") {
-			column.defaultValue = "";
-		} else if (type === "Number") {
-			column.defaultValue = 0;
-		} else if (type === "Boolean") {
-			column.defaultValue = false;
-		} else if (type === "Date") {
-			column.defaultValue = undefined;
-			column.hint = "date";
-		} else if (type === "Vote") {
-			column.defaultValue = undefined;
-			column.hint = "vote";
+		column.hint = type;
+		switch (type) {
+			case hintValues.string:
+				column.hint = hintValues.string;
+				break;
+			case hintValues.number:
+				column.hint = hintValues.number;
+				break;
+			case hintValues.boolean:
+				column.hint = hintValues.boolean;
+				break;
+			case hintValues.date:
+				column.hint = hintValues.date;
+				break;
+			case hintValues.vote:
+				column.hint = hintValues.vote;
+				break;
+			default:
+				column.hint = hintValues.string;
+				break;
 		}
 	};
 	return (

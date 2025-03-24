@@ -149,6 +149,15 @@ export class FluidTable extends Table({
 export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
 export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
 
+export type HintValues = (typeof hintValues)[keyof typeof hintValues];
+export const hintValues = {
+	string: "string",
+	number: "number",
+	boolean: "boolean",
+	date: "date",
+	vote: "vote",
+} as const;
+
 /**
  * Export the tree config appropriate for this schema.
  * This is passed into the SharedTree when it is initialized.

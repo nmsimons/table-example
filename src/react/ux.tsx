@@ -110,7 +110,7 @@ export function Header(props: {
 	currentUser: IMember;
 	table: FluidTable;
 }): JSX.Element {
-	const { saved, connectionState, fluidMembers, currentUser, table } = props;
+	const { saved, connectionState, fluidMembers, table } = props;
 
 	// Update when the table changes
 	const [rowCount, setRowCount] = useState(table.rows.length);

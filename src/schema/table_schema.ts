@@ -53,7 +53,7 @@ export function Table<
 				const cellValue = this.getCell(column);
 				// If the cell value is undefined, set it to the default value of the column
 				if (cellValue === undefined) {
-					cells[column.id] = column.defaultValue;
+					cells[column.id] = undefined;
 				} else {
 					cells[column.id] = cellValue;
 				}
@@ -159,7 +159,6 @@ export function Table<
 	class Column extends sf.object("Column", {
 		id: sf.identifier,
 		name: sf.string,
-		defaultValue: sf.optional(schemaTypes),
 		hint: sf.optional(sf.string),
 		props: columnProps ?? sf.null,
 	}) {
@@ -337,13 +336,12 @@ export function Table<
 		insertColumn(props: {
 			index: number;
 			name: string;
-			defaultValue?: CellInsertableType;
 			hint?: string;
 			props: TColumnProps | null;
 		}): Column {
-			const { index, name, defaultValue, hint, props: columnProps } = props;
+			const { index, name, hint, props: columnProps } = props;
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const column = new Column({ name, defaultValue, hint, props: columnProps } as any);
+			const column = new Column({ name, hint, props: columnProps } as any);
 			this.columns.insertAt(index, column);
 			return column;
 		}

@@ -416,7 +416,7 @@ export function TableCellViewContent(props: {
 	const { cell, user } = props;
 	const fluidRow = cell.row.original;
 	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	const value = fluidRow.getCell(fluidColumn) ?? fluidColumn.defaultValue;
+	const value = fluidRow.getCell(fluidColumn);
 	const [, setInval] = useState(0); // used to force a re-render of the cell
 
 	useEffect(() => {
@@ -429,33 +429,64 @@ export function TableCellViewContent(props: {
 		return unsubscribe;
 	}, []); // Only run this effect once when the component mounts
 
-	if (typeof value === "boolean") {
-		return (
-			<CellInputBoolean value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
-		);
-	} else if (typeof value === "number") {
-		return (
-			<CellInputNumber value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
-		);
-	} else if (typeof value === "string") {
-		return (
-			<CellInputString value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />
-		);
+	// Switch on the hint of the column to determine the type of input to display
+	switch (fluidColumn.hint) {
+		case "boolean":
+			return (
+				<CellInputBoolean
+					value={value as boolean}
+					row={fluidRow}
+					column={fluidColumn}
+					cellId={cell.id}
+				/>
+			);
+		case "number":
+			return (
+				<CellInputNumber
+					value={value as number}
+					row={fluidRow}
+					column={fluidColumn}
+					cellId={cell.id}
+				/>
+			);
+		case "string":
+			return (
+				<CellInputString
+					value={value as string}
+					row={fluidRow}
+					column={fluidColumn}
+					cellId={cell.id}
+				/>
+			);
+		case "date":
+			return (
+				<CellInputDate
+					value={value as DateTime}
+					row={fluidRow}
+					column={fluidColumn}
+					cellId={cell.id}
+				/>
+			);
+		case "vote":
+			return (
+				<CellInputVote
+					value={value as Vote}
+					row={fluidRow}
+					column={fluidColumn}
+					userId={user.id}
+				/>
+			);
+		default:
+			// If the value is undefined, make it a string
+			return (
+				<CellInputString
+					value={value as string}
+					row={fluidRow}
+					column={fluidColumn}
+					cellId={cell.id}
+				/>
+			);
 	}
-	// If the value is undefined and the column hint is date, display a date input
-	else if (value === undefined && fluidColumn.hint === "date") {
-		return <CellInputDate value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />;
-	} else if (value instanceof DateTime) {
-		return <CellInputDate value={value} row={fluidRow} column={fluidColumn} cellId={cell.id} />;
-	}
-	// If the value is undefined and the column hint is vote, display a vote button
-	else if (value === undefined && fluidColumn.hint === "vote") {
-		return <CellInputVote value={value} row={fluidRow} column={fluidColumn} userId={user.id} />;
-	} // If the value is a vote, display the vote button
-	else if (value instanceof Vote) {
-		return <CellInputVote value={value} row={fluidRow} column={fluidColumn} userId={user.id} />;
-	}
-	return <></>;
 }
 
 export function PresenceIndicator(props: {
@@ -594,24 +625,18 @@ const voteSortingFn: SortingFn<FluidRow> = (
 const getSortingConfig = (
 	column: FluidColumn,
 ): { fn: SortingFnOption<FluidRow> | undefined; desc: boolean } => {
-	if (typeof column.defaultValue === "boolean") {
+	if (column.hint === "boolean") {
 		return { fn: "basic", desc: false };
-	} else if (typeof column.defaultValue === "number") {
+	} else if (column.hint === "number") {
 		return { fn: "alphanumeric", desc: true };
-	} else if (typeof column.defaultValue === "string") {
+	} else if (column.hint === "string") {
 		return { fn: "alphanumeric", desc: false };
 	} else if (column.hint === "date") {
 		return { fn: dateSortingFn, desc: false };
 	} else if (column.hint === "vote") {
 		return { fn: voteSortingFn, desc: true };
 	} else {
-		console.error(
-			"Unknown column type",
-			"DefaultValue:",
-			column.defaultValue,
-			"Hint:",
-			column.hint,
-		);
+		console.error("Unknown column type", "Hint:", column.hint);
 		return { fn: "basic", desc: false };
 	}
 };

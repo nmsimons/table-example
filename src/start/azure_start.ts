@@ -3,9 +3,10 @@ import { loadApp } from "../app_load.js";
 import { getClientProps } from "../infra/azure/azureClientProps.js";
 import { AttachState } from "fluid-framework";
 import { AccountInfo, PublicClientApplication } from "@azure/msal-browser";
-import { authHelper } from "../infra/authHelper.js";
+import { authHelper } from "../infra/auth.js";
+import { GraphHelper } from "../infra/graph.js";
 
-export async function anonymousAzureStart() {
+export async function azureStart() {
 	// Get the user info
 	const msalInstance: PublicClientApplication = await authHelper();
 
@@ -60,6 +61,9 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 	// Initialize the Azure client
 	const clientProps = getClientProps(azureUser, telemetryLogger);
 	const client = new AzureClient(clientProps);
+
+	// Get the graph client
+	const graphHelper = new GraphHelper(msalInstance, account);
 
 	// Load the app
 	const container = await loadApp(client, containerId, telemetryLogger);

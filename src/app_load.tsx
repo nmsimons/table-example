@@ -4,7 +4,7 @@ import { OdspClient } from "@fluidframework/odsp-client/beta";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
-import { appTreeConfiguration, FluidTable } from "./schema/app_schema.js";
+import { appTreeConfiguration, FluidTable, hintValues } from "./schema/app_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
@@ -40,27 +40,27 @@ export async function loadApp(
 				columns: [
 					{
 						name: "String",
-						defaultValue: "",
+						hint: hintValues.string,
 						props: null,
 					},
 					{
 						name: "Number",
-						defaultValue: 0,
+						hint: hintValues.number,
 						props: null,
 					},
 					{
 						name: "Boolean",
-						defaultValue: false,
+						hint: hintValues.boolean,
 						props: null,
 					},
 					{
 						name: "Date",
-						hint: "date",
+						hint: hintValues.date,
 						props: null,
 					},
 					{
 						name: "Vote",
-						hint: "vote",
+						hint: hintValues.vote,
 						props: null,
 					},
 				],
