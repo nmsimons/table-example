@@ -5,9 +5,9 @@
 
 import {
 	Latest as latestStateFactory,
-	LatestValueManagerEvents as StateEvents,
+	LatestValueManagerEvents as LatestStateEvents,
 	PresenceStates as Workspace,
-	LatestValueManager as State,
+	LatestValueManager as LatestState,
 } from "@fluidframework/presence/alpha";
 import { Listenable } from "fluid-framework";
 
@@ -19,19 +19,16 @@ type selection = {
 };
 
 export class SelectionManager {
-	private state: State<selection>;
+	private state: LatestState<selection>;
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 	constructor(workspace: Workspace<{}>, name: string) {
-		workspace.add(
-			name,
-			latestStateFactory<selection>({ items: [], type: "" as selectionType }),
-		);
+		workspace.add(name, latestStateFactory<selection>({ items: [], type: "" }));
 		this.state = workspace.props[name];
 	}
 
 	// export events
-	public get events(): Listenable<StateEvents<selection>> {
+	public get events(): Listenable<LatestStateEvents<selection>> {
 		return this.state.events;
 	}
 
