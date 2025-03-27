@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { JSX, useEffect, useState } from "react";
+import React, { JSX, useEffect, useState, createContext, useContext } from "react";
 import { FluidTable } from "../schema/app_schema.js";
 import "../output.css";
 import { IFluidContainer, IMember, IServiceAudience, Tree, TreeView } from "fluid-framework";
@@ -24,6 +24,10 @@ import {
 	MoveSelectedRowsButton,
 	MoveSelectedColumnsButton,
 } from "./buttonux.js";
+import { GraphHelper } from "../infra/graph.js";
+
+// Create a context for the graph helper
+export const GraphContext = createContext<GraphHelper | null>(null);
 
 export function ReactApp(props: {
 	table: TreeView<typeof FluidTable>;
@@ -31,8 +35,9 @@ export function ReactApp(props: {
 	audience: IServiceAudience<IMember>;
 	container: IFluidContainer;
 	undoRedo: undoRedo;
+	graph: GraphHelper;
 }): JSX.Element {
-	const { table, selection, audience, container, undoRedo } = props;
+	const { table, selection, audience, container, undoRedo, graph } = props;
 
 	const [currentUser, setCurrentUser] = useState(
 		audience.getMyself() ?? { id: "unknown", connections: [] },
@@ -51,54 +56,64 @@ export function ReactApp(props: {
 			id="main"
 			className="flex flex-col bg-transparent h-screen w-full overflow-hidden overscroll-none"
 		>
-			<Header
-				saved={saved}
-				connectionState={connectionState}
-				fluidMembers={fluidMembers}
-				currentUser={currentUser}
-				table={table.root}
-			/>
-			<Toolbar>
-				<ButtonGroup>
-					<NewColumnButton table={table.root} />
-					<NewEmptyRowButton table={table.root} selection={selection} />
-					<NewRowButton table={table.root} selection={selection} />
-					<NewManysRowsButton table={table.root} />
-					<MoveSelectedRowsButton table={table.root} selection={selection} up={true} />
-					<MoveSelectedRowsButton table={table.root} selection={selection} up={false} />
-					<MoveSelectedColumnsButton
-						table={table.root}
-						selection={selection}
-						left={true}
-					/>
-					<MoveSelectedColumnsButton
-						table={table.root}
-						selection={selection}
-						left={false}
-					/>
-					<DeleteSelectedRowsButton table={table.root} selection={selection} />
-					<DeleteAllRowsButton table={table.root} />
-				</ButtonGroup>
-				<ButtonGroup>
-					<UndoButton undo={() => undoRedo.undo()} />
-					<RedoButton redo={() => undoRedo.redo()} />
-				</ButtonGroup>
-			</Toolbar>
-			<div className="flex h-[calc(100vh-96px)] w-full flex-row ">
-				<Canvas
-					table={table.root}
-					selection={selection}
-					audience={audience}
-					container={container}
+			<GraphContext value={graph}>
+				<Header
+					saved={saved}
+					connectionState={connectionState}
 					fluidMembers={fluidMembers}
 					currentUser={currentUser}
-					undoRedo={undoRedo}
-					setCurrentUser={setCurrentUser}
-					setConnectionState={setConnectionState}
-					setSaved={setSaved}
-					setFluidMembers={setFluidMembers}
+					table={table.root}
 				/>
-			</div>
+				<Toolbar>
+					<ButtonGroup>
+						<NewColumnButton table={table.root} />
+						<NewEmptyRowButton table={table.root} selection={selection} />
+						<NewRowButton table={table.root} selection={selection} />
+						<NewManysRowsButton table={table.root} />
+						<MoveSelectedRowsButton
+							table={table.root}
+							selection={selection}
+							up={true}
+						/>
+						<MoveSelectedRowsButton
+							table={table.root}
+							selection={selection}
+							up={false}
+						/>
+						<MoveSelectedColumnsButton
+							table={table.root}
+							selection={selection}
+							left={true}
+						/>
+						<MoveSelectedColumnsButton
+							table={table.root}
+							selection={selection}
+							left={false}
+						/>
+						<DeleteSelectedRowsButton table={table.root} selection={selection} />
+						<DeleteAllRowsButton table={table.root} />
+					</ButtonGroup>
+					<ButtonGroup>
+						<UndoButton undo={() => undoRedo.undo()} />
+						<RedoButton redo={() => undoRedo.redo()} />
+					</ButtonGroup>
+				</Toolbar>
+				<div className="flex h-[calc(100vh-96px)] w-full flex-row ">
+					<Canvas
+						table={table.root}
+						selection={selection}
+						audience={audience}
+						container={container}
+						fluidMembers={fluidMembers}
+						currentUser={currentUser}
+						undoRedo={undoRedo}
+						setCurrentUser={setCurrentUser}
+						setConnectionState={setConnectionState}
+						setSaved={setSaved}
+						setFluidMembers={setFluidMembers}
+					/>
+				</div>
+			</GraphContext>
 		</div>
 	);
 }
@@ -114,6 +129,19 @@ export function Header(props: {
 
 	// Update when the table changes
 	const [rowCount, setRowCount] = useState(table.rows.length);
+	const [user, setUser] = useState<{ displayName: string } | null>(null);
+
+	const graph = useContext(GraphContext);
+
+	useEffect(() => {
+		const fetchUserInfo = async () => {
+			const userInfo = await graph?.getUserInfo();
+			if (userInfo) {
+				setUser({ displayName: userInfo.displayName });
+			}
+		};
+		fetchUserInfo();
+	}, [graph]);
 
 	useEffect(() => {
 		const unsubscribe = Tree.on(table.rows, "nodeChanged", () => {
@@ -127,7 +155,7 @@ export function Header(props: {
 			<div className="flex m-2">Table</div>
 			<div className="flex m-2 ">
 				{saved ? "saved" : "not saved"} | {rowCount} rows | {connectionState} | users:{" "}
-				{fluidMembers.length}
+				{fluidMembers.length} | {user?.displayName}
 			</div>
 		</div>
 	);

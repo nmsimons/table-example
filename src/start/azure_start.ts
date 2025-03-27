@@ -52,21 +52,21 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 	let containerId = location.hash.substring(1);
 
 	// Initialize Devtools logger if in development mode
-	let telemetryLogger = undefined;
+	let logger = undefined;
 	if (process.env.NODE_ENV === "development") {
 		const { createDevtoolsLogger } = await import("@fluidframework/devtools/beta");
-		telemetryLogger = createDevtoolsLogger();
+		logger = createDevtoolsLogger();
 	}
 
 	// Initialize the Azure client
-	const clientProps = getClientProps(azureUser, telemetryLogger);
+	const clientProps = getClientProps(azureUser, logger);
 	const client = new AzureClient(clientProps);
 
 	// Get the graph client
-	const graphHelper = new GraphHelper(msalInstance, account);
+	const graph = new GraphHelper(msalInstance, account);
 
 	// Load the app
-	const container = await loadApp(client, containerId, telemetryLogger);
+	const container = await loadApp({ client, containerId, logger, graph });
 
 	// If the app is in a `createNew` state - no containerId, and the container is detached, we attach the container.
 	// This uploads the container to the service and connects to the collaboration session.

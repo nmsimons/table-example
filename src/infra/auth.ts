@@ -29,6 +29,7 @@ export async function authHelper(): Promise<PublicClientApplication> {
 					? "https://login.microsoftonline.com/consumers/"
 					: "https://login.microsoftonline.com/common/",
 			tenantId: fluidClient === "azure" ? "consumers" : "common",
+			scopes: ["User.Read", "openid", "profile"],
 		},
 		cache: {
 			cacheLocation: "localStorage",

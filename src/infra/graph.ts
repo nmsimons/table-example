@@ -32,16 +32,4 @@ export class GraphHelper {
 			throw error;
 		}
 	}
-
-	async getOtherUserInfo(
-		userId: string,
-	): Promise<{ id: string; displayName: string; mail: string }> {
-		try {
-			const user = await this.graphClient.api(`/users/${userId}`).get();
-			return user;
-		} catch (error) {
-			console.error("Error fetching user info:", error);
-			throw error;
-		}
-	}
 }

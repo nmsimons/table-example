@@ -1,6 +1,5 @@
 import type { ITelemetryBaseLogger } from "@fluidframework/core-interfaces";
 import { AzureClient } from "@fluidframework/azure-client";
-import { OdspClient } from "@fluidframework/odsp-client/beta";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
@@ -12,12 +11,16 @@ import { IFluidContainer } from "fluid-framework";
 
 import { acquirePresenceViaDataObject } from "@fluidframework/presence/alpha";
 import { SelectionManager } from "./utils/presence.js";
+import { GraphHelper } from "./infra/graph.js";
 
-export async function loadApp(
-	client: AzureClient | OdspClient,
-	containerId: string,
-	logger?: ITelemetryBaseLogger,
-): Promise<IFluidContainer> {
+export async function loadApp(props: {
+	client: AzureClient;
+	containerId: string;
+	graph: GraphHelper;
+	logger?: ITelemetryBaseLogger;
+}): Promise<IFluidContainer> {
+	const { client, containerId, graph, logger } = props;
+
 	// Initialize Fluid Container
 	const { services, container } = await loadFluidData(
 		containerId,
@@ -69,10 +72,15 @@ export async function loadApp(
 	}
 
 	// Get the Presence data object from the container
-	const selection = new SelectionManager(
-		acquirePresenceViaDataObject(container.initialObjects.presence),
-		"selection:main",
-	);
+	const presence = acquirePresenceViaDataObject(container.initialObjects.presence);
+
+	// Create a workspace for the selection manager
+	const workspace = presence.getStates("workspace:main", {});
+
+	// Create a selection manager in the workspace
+	// The selection manager will be used to manage the selection of cells in the table
+	// and will be used to synchronize the selection across clients
+	const selection = new SelectionManager(workspace, "selection:main");
 
 	// create the root element for React
 	const app = document.createElement("div");
@@ -93,6 +101,7 @@ export async function loadApp(
 			audience={services.audience}
 			container={container}
 			undoRedo={undoRedo}
+			graph={graph}
 		/>,
 	);
 
