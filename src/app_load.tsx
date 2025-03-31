@@ -11,15 +11,13 @@ import { IFluidContainer } from "fluid-framework";
 
 import { acquirePresenceViaDataObject } from "@fluidframework/presence/alpha";
 import { SelectionManager } from "./utils/presence.js";
-import { GraphHelper } from "./infra/graph.js";
 
 export async function loadApp(props: {
 	client: AzureClient;
 	containerId: string;
-	graph: GraphHelper;
 	logger?: ITelemetryBaseLogger;
 }): Promise<IFluidContainer> {
-	const { client, containerId, graph, logger } = props;
+	const { client, containerId, logger } = props;
 
 	// Initialize Fluid Container
 	const { services, container } = await loadFluidData(
@@ -101,7 +99,6 @@ export async function loadApp(props: {
 			audience={services.audience}
 			container={container}
 			undoRedo={undoRedo}
-			graph={graph}
 		/>,
 	);
 

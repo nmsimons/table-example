@@ -6,31 +6,25 @@
 
 import React, { JSX, use, useEffect } from "react";
 import { FluidTable } from "../schema/app_schema.js";
-import {
-	ConnectionState,
-	IFluidContainer,
-	IMember,
-	IServiceAudience,
-	Myself,
-	TreeView,
-} from "fluid-framework";
+import { ConnectionState, IFluidContainer, IServiceAudience, Myself } from "fluid-framework";
 import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/presence.js";
 
 import { TableView } from "./tableux.js";
+import { AzureMember } from "@fluidframework/azure-client";
 
 export function Canvas(props: {
 	table: FluidTable;
 	selection: SelectionManager;
-	audience: IServiceAudience<IMember>;
+	audience: IServiceAudience<AzureMember>;
 	container: IFluidContainer;
-	fluidMembers: IMember[];
-	currentUser: IMember;
+	fluidMembers: AzureMember[];
+	currentUser: AzureMember;
 	undoRedo: undoRedo;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
-	setFluidMembers: (arg: IMember[]) => void;
-	setCurrentUser: (arg: Myself<IMember>) => void;
+	setFluidMembers: (arg: AzureMember[]) => void;
+	setCurrentUser: (arg: Myself<AzureMember>) => void;
 }): JSX.Element {
 	useEffect(() => {
 		const updateConnectionState = () => {

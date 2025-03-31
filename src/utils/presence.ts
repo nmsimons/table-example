@@ -34,21 +34,12 @@ export class SelectionManager {
 
 	public testSelection(id: string) {
 		// check if the id is in the local selection
-		return this.state.local.items.some((item) => item === id);
+		return this.state.local.items.includes(id);
 	}
 
 	public testRemoteSelection(id: string) {
-		const remoteSelectedClients: string[] = [];
-
-		for (const cv of this.state.clientValues()) {
-			if (cv.client.getConnectionStatus() === "Connected") {
-				if (cv.value.items.some((item) => item === id)) {
-					remoteSelectedClients.push(cv.client.sessionId);
-				}
-			}
-		}
-
-		return remoteSelectedClients.length > 0;
+		const remoteClients = this.getRemoteClients(id);
+		return remoteClients.length > 0;
 	}
 
 	public toggleMultiSelection(id: string, type: selectionType) {
@@ -129,5 +120,19 @@ export class SelectionManager {
 
 	public getRemoteSelected() {
 		return this.state.clientValues();
+	}
+
+	public getRemoteClients(selectedId: string): string[] {
+		const remoteSelectedClients: string[] = [];
+
+		for (const cv of this.state.clientValues()) {
+			if (cv.client.getConnectionStatus() === "Connected") {
+				if (cv.value.items.includes(selectedId)) {
+					remoteSelectedClients.push(cv.client.sessionId);
+				}
+			}
+		}
+
+		return remoteSelectedClients;
 	}
 }

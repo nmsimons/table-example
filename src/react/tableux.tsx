@@ -495,10 +495,10 @@ export function PresenceIndicator(props: {
 }): JSX.Element {
 	const { selection, item } = props;
 	const [selected, setSelected] = useState(selection.testSelection(item.id));
-	const [remoteSelected, setRemoteSelected] = useState(selection.testRemoteSelection(item.id));
+	const [remoteSelected, setRemoteSelected] = useState(selection.getRemoteClients(item.id));
 
 	useEffect(() => {
-		const unsubscribe = selection.events.on("localUpdated", () => {
+		const unsubscribe = selection.events.on("localUpdated", (update) => {
 			setSelected(selection.testSelection(item.id));
 		});
 		return unsubscribe;
@@ -506,7 +506,7 @@ export function PresenceIndicator(props: {
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("updated", () => {
-			setRemoteSelected(selection.testRemoteSelection(item.id));
+			setRemoteSelected(selection.getRemoteClients(item.id));
 		});
 		return unsubscribe;
 	}, []);
@@ -514,7 +514,7 @@ export function PresenceIndicator(props: {
 	return (
 		<>
 			<PresenceBox color="outline-blue-600" hidden={!selected} />
-			<PresenceBox color="outline-red-800" hidden={!remoteSelected} />
+			<PresenceBox color="outline-red-800" hidden={remoteSelected.length === 0} />
 		</>
 	);
 }

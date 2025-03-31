@@ -4,7 +4,6 @@ import { getClientProps } from "../infra/azure/azureClientProps.js";
 import { AttachState } from "fluid-framework";
 import { AccountInfo, PublicClientApplication } from "@azure/msal-browser";
 import { authHelper } from "../infra/auth.js";
-import { GraphHelper } from "../infra/graph.js";
 
 export async function azureStart() {
 	// Get the user info
@@ -17,7 +16,8 @@ export async function azureStart() {
 
 	// If the tokenResponse is not null, then the user is signed in
 	// and the tokenResponse is the result of the redirect.
-	if (tokenResponse !== null) {
+	if (tokenResponse !== null && tokenResponse !== undefined) {
+		// The user is signed in.
 		const account = msalInstance.getAllAccounts()[0];
 		signedInAzureStart(msalInstance, account);
 	} else {
@@ -42,7 +42,7 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 
 	// Create the azureUser from the account
 	const azureUser = {
-		name: account.name ?? "Unknown",
+		name: account.name ?? account.username,
 		id: account.localAccountId,
 	};
 
@@ -62,11 +62,8 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 	const clientProps = getClientProps(azureUser, logger);
 	const client = new AzureClient(clientProps);
 
-	// Get the graph client
-	const graph = new GraphHelper(msalInstance, account);
-
 	// Load the app
-	const container = await loadApp({ client, containerId, logger, graph });
+	const container = await loadApp({ client, containerId, logger });
 
 	// If the app is in a `createNew` state - no containerId, and the container is detached, we attach the container.
 	// This uploads the container to the service and connects to the collaboration session.
