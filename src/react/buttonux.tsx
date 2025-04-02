@@ -30,33 +30,33 @@ import {
 	TableMoveRightFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
-import { SelectionManager } from "../utils/presence.js";
+import { selectionType, TableSelection } from "../utils/selection.js";
+import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 
 const getLastSelectedRow = (
 	table: FluidTable,
-	selection: SelectionManager,
+	selection: SelectionManager<TableSelection>,
 ): FluidRow | undefined => {
-	const selectedRows = selection.getSelected("row");
+	const selectedRows = selection.getLocalSelection().filter((s) => {
+		return s.type === "row";
+	});
 	if (selectedRows.length > 0) {
-		const lastSelectedRow = table.getRow(selectedRows[selectedRows.length - 1]);
+		const lastSelectedRow = table.getRow(selectedRows[selectedRows.length - 1].id);
 		// If the last selected row is not in the table, we will return undefined
-		if (
-			lastSelectedRow !== undefined &&
-			Tree.status(lastSelectedRow) === TreeStatus.InDocument
-		) {
+		if (!lastSelectedRow) return undefined;
+		if (Tree.status(lastSelectedRow) === TreeStatus.InDocument) {
 			return lastSelectedRow;
 		} else {
 			// Remove the last selected row from the selection
-			selection.removeFromSelection(selectedRows[selectedRows.length - 1], "row");
+			selection.removeFromSelection({ id: lastSelectedRow.id, type: "row" });
 			return getLastSelectedRow(table, selection);
 		}
 	}
-	return undefined;
 };
 
 export function NewEmptyRowButton(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
 	const { table, selection } = props;
 
@@ -82,7 +82,7 @@ export function NewEmptyRowButton(props: {
 
 export function NewRowButton(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -241,16 +241,16 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 
 export function MoveSelectedRowsButton(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	up: boolean;
 }): JSX.Element {
 	const { table, selection, up } = props;
 	// Disable the button if there are no selected rows
-	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
+	const [disabled, setDisabled] = React.useState(getSelected(selection, "row").length === 0);
 	useEffect(() => {
 		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
-			if (selection.getSelected("row").length === 0) {
+			if (getSelected(selection, "row").length === 0) {
 				setDisabled(true);
 			} else {
 				setDisabled(false);
@@ -261,7 +261,7 @@ export function MoveSelectedRowsButton(props: {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Get the selected rows from the selection manager
-		const selectedRows = selection.getSelected("row");
+		const selectedRows = getSelected(selection, "row").map((s) => s.id);
 
 		// If there are no selected rows, return
 		if (selectedRows.length === 0) {
@@ -296,22 +296,23 @@ export function MoveSelectedRowsButton(props: {
 
 export function MoveSelectedColumnsButton(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	left: boolean;
 }): JSX.Element {
 	const { table, selection, left } = props;
 	// Disable the button if there are no selected columns
 	// and no selected cells in the table
 	const [disabled, setDisabled] = React.useState(
-		selection.getSelected("column").length === 0 && selection.getSelected("cell").length === 0,
+		getSelected(selection, "column").length === 0 &&
+			getSelected(selection, "cell").length === 0,
 	);
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
 			if (
-				selection.getSelected("column").length === 0 &&
-				selection.getSelected("cell").length === 0
+				getSelected(selection, "column").length === 0 &&
+				getSelected(selection, "cell").length === 0
 			) {
 				setDisabled(true);
 			} else {
@@ -324,24 +325,25 @@ export function MoveSelectedColumnsButton(props: {
 		e.stopPropagation();
 		// Get the selected columns from the selection manager
 		// convert the array to a mutable array
-		const selectedColumns = selection.getSelected("column").slice();
+		const selectedColumns = getSelected(selection, "column").slice();
 
 		// If there are no selected columns, check for
 		// selected cells and move the column of the first selected cell
 		if (selectedColumns.length === 0) {
-			const selectedCells = selection.getSelected("cell");
+			const selectedCells = getSelected(selection, "cell");
 			if (selectedCells.length > 0) {
-				console.log(selectedCells[0]);
-				const column = table.getColumnByCellId(selectedCells[0] as `${string}_${string}`);
+				const column = table.getColumnByCellId(
+					selectedCells[0].id as `${string}_${string}`,
+				);
 				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
-					selectedColumns.push(column.id);
+					selectedColumns.push({ id: column.id, type: "column" });
 				}
 			}
 		}
 
 		Tree.runTransaction(table, () => {
-			for (const columnId of selectedColumns) {
-				const column = table.getColumn(columnId);
+			for (const c of selectedColumns) {
+				const column = table.getColumn(c.id);
 				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
 					if (left) {
 						column.moveTo(column.index - 1);
@@ -366,17 +368,17 @@ export function MoveSelectedColumnsButton(props: {
 
 export function DeleteSelectedRowsButton(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
 	const { table, selection } = props;
 
 	// Disable the button if there are no selected rows
-	const [disabled, setDisabled] = React.useState(selection.getSelected("row").length === 0);
+	const [disabled, setDisabled] = React.useState(getSelected(selection, "row").length === 0);
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("localUpdated", () => {
 			// If the selection is empty, we will disable the button
-			if (selection.getSelected("row").length === 0) {
+			if (getSelected(selection, "row").length === 0) {
 				setDisabled(true);
 			} else {
 				setDisabled(false);
@@ -388,7 +390,7 @@ export function DeleteSelectedRowsButton(props: {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		// Get the selected rows from the selection manager
-		const selectedRows = selection.getSelected("row");
+		const selectedRows = getSelected(selection, "row").map((s) => s.id);
 
 		// If there are no selected rows, return
 		if (selectedRows.length === 0) {
@@ -656,3 +658,24 @@ export function Placeholder(): JSX.Element {
 		</div>
 	);
 }
+
+const getSelected = (
+	selection: SelectionManager<TableSelection>,
+	type: selectionType,
+): TableSelection[] => {
+	switch (type) {
+		case "row":
+			// Return the selected rows
+			return selection.getLocalSelection().filter((s) => s.type === "row");
+		case "column":
+			// Return the selected columns
+			return selection.getLocalSelection().filter((s) => s.type === "column");
+		case "cell":
+			// Return the selected cells
+			return selection.getLocalSelection().filter((s) => s.type === "cell");
+		default:
+			// If the type is not recognized, return an empty array
+			console.warn(`Unknown selection type: ${type}`);
+			return [];
+	}
+};

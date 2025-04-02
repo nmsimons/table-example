@@ -4,73 +4,78 @@
  * Licensed under the MIT License.
  */
 
-import React, { JSX, use, useEffect } from "react";
+import React, { JSX, useEffect } from "react";
 import { FluidTable } from "../schema/app_schema.js";
 import { ConnectionState, IFluidContainer, IServiceAudience, Myself } from "fluid-framework";
 import { undoRedo } from "../utils/undo.js";
-import type { SelectionManager } from "../utils/presence.js";
+import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 
 import { TableView } from "./tableux.js";
 import { AzureMember } from "@fluidframework/azure-client";
+import { TableSelection } from "../utils/selection.js";
 
 export function Canvas(props: {
 	table: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	audience: IServiceAudience<AzureMember>;
 	container: IFluidContainer;
 	fluidMembers: AzureMember[];
 	currentUser: AzureMember;
-	undoRedo: undoRedo;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
 	setFluidMembers: (arg: AzureMember[]) => void;
 	setCurrentUser: (arg: Myself<AzureMember>) => void;
 }): JSX.Element {
+	const {
+		table,
+		selection,
+		audience,
+		container,
+		currentUser,
+		setConnectionState,
+		setSaved,
+		setFluidMembers,
+		setCurrentUser,
+	} = props;
+
 	useEffect(() => {
 		const updateConnectionState = () => {
-			if (props.container.connectionState === ConnectionState.Connected) {
-				props.setConnectionState("connected");
+			if (container.connectionState === ConnectionState.Connected) {
+				setConnectionState("connected");
 			} else if (props.container.connectionState === ConnectionState.Disconnected) {
-				props.setConnectionState("disconnected");
+				setConnectionState("disconnected");
 			} else if (props.container.connectionState === ConnectionState.EstablishingConnection) {
-				props.setConnectionState("connecting");
+				setConnectionState("connecting");
 			} else if (props.container.connectionState === ConnectionState.CatchingUp) {
-				props.setConnectionState("catching up");
+				setConnectionState("catching up");
 			}
 		};
 		updateConnectionState();
-		props.setSaved(!props.container.isDirty);
-		props.container.on("connected", updateConnectionState);
-		props.container.on("disconnected", updateConnectionState);
-		props.container.on("dirty", () => props.setSaved(false));
-		props.container.on("saved", () => props.setSaved(true));
-		props.container.on("disposed", updateConnectionState);
+		setSaved(!props.container.isDirty);
+		container.on("connected", updateConnectionState);
+		container.on("disconnected", updateConnectionState);
+		container.on("dirty", () => props.setSaved(false));
+		container.on("saved", () => props.setSaved(true));
+		container.on("disposed", updateConnectionState);
 	}, []);
 
 	const updateMembers = () => {
-		if (props.audience.getMyself() == undefined) return;
-		if (props.audience.getMyself()?.id == undefined) return;
-		if (props.audience.getMembers() == undefined) return;
-		if (props.container.connectionState !== ConnectionState.Connected) return;
-		props.setFluidMembers(Array.from(props.audience.getMembers().values()));
-		props.setCurrentUser(props.audience.getMyself()!);
+		if (container.connectionState !== ConnectionState.Connected) return;
+		setFluidMembers(Array.from(audience.getMembers().values()));
+		setCurrentUser(audience.getMyself()!);
 	};
 
 	useEffect(() => {
-		props.audience.on("membersChanged", updateMembers);
+		audience.on("membersChanged", updateMembers);
 		updateMembers();
 		return () => {
-			props.audience.off("membersChanged", updateMembers);
+			audience.off("membersChanged", updateMembers);
 		};
 	}, []);
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView
-				fluidTable={props.table}
-				selection={props.selection}
-				user={props.currentUser}
-			/>
+			<TableView fluidTable={table} selection={selection} user={currentUser} />
 		</div>
 	);
 }

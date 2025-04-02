@@ -25,7 +25,7 @@ const localConnectionConfig: AzureLocalConnectionConfig = {
 };
 
 export function getClientProps(
-	user: typeof azureUser,
+	user?: typeof azureUser,
 	logger?: ITelemetryBaseLogger,
 ): AzureClientProps {
 	const remoteConnectionConfig: AzureRemoteConnectionConfig = {

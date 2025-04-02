@@ -8,7 +8,7 @@ import { FluidTable } from "../schema/app_schema.js";
 import "../output.css";
 import { IFluidContainer, IServiceAudience, Tree, TreeView } from "fluid-framework";
 import { Canvas } from "./canvasux.js";
-import type { SelectionManager } from "../utils/presence.js";
+import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import { undoRedo } from "../utils/undo.js";
 import {
 	Toolbar,
@@ -25,10 +25,11 @@ import {
 	MoveSelectedColumnsButton,
 } from "./buttonux.js";
 import { AzureMember } from "@fluidframework/azure-client";
+import { TableSelection } from "../utils/selection.js";
 
 export function ReactApp(props: {
 	table: TreeView<typeof FluidTable>;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	audience: IServiceAudience<AzureMember>;
 	container: IFluidContainer;
 	undoRedo: undoRedo;
@@ -93,7 +94,6 @@ export function ReactApp(props: {
 					container={container}
 					fluidMembers={fluidMembers}
 					currentUser={currentUser}
-					undoRedo={undoRedo}
 					setCurrentUser={setCurrentUser}
 					setConnectionState={setConnectionState}
 					setSaved={setSaved}

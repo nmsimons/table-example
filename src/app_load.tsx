@@ -10,7 +10,7 @@ import { loadFluidData } from "./infra/fluid.js";
 import { IFluidContainer } from "fluid-framework";
 
 import { acquirePresenceViaDataObject } from "@fluidframework/presence/alpha";
-import { SelectionManager } from "./utils/presence.js";
+import { createTableSelectionManager } from "./utils/selection.js";
 
 export async function loadApp(props: {
 	client: AzureClient;
@@ -78,7 +78,11 @@ export async function loadApp(props: {
 	// Create a selection manager in the workspace
 	// The selection manager will be used to manage the selection of cells in the table
 	// and will be used to synchronize the selection across clients
-	const selection = new SelectionManager(workspace, "selection:main");
+	const selection = createTableSelectionManager({
+		name: "selection:main", // The name of the workspace
+		workspace, // The presence workspace
+		presence, // The presence data object
+	});
 
 	// create the root element for React
 	const app = document.createElement("div");

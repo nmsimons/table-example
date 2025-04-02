@@ -14,7 +14,7 @@ import {
 	Column,
 	SortingFn,
 } from "@tanstack/react-table";
-import React, { JSX, useState, useEffect, use, useCallback } from "react";
+import React, { JSX, useState, useEffect } from "react";
 import {
 	DateTime,
 	Vote,
@@ -32,7 +32,8 @@ import {
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
-import { SelectionManager } from "../utils/presence.js";
+import { selectionType, TableSelection } from "../utils/selection.js";
+import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import { createPortal } from "react-dom";
 import {
 	CellInputBoolean,
@@ -42,13 +43,14 @@ import {
 	CellInputVote,
 	ColumnInput,
 } from "./inputux.js";
+import { esbuildVersion } from "vite";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
 
 export function TableView(props: {
 	fluidTable: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	user: IMember;
 }): JSX.Element {
 	const { fluidTable, selection, user } = props;
@@ -108,7 +110,7 @@ export function TableView(props: {
 export function TableHeadersView(props: {
 	table: Table<FluidRow>;
 	fluidTable: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
 	const { table, fluidTable, selection } = props;
 
@@ -156,7 +158,7 @@ export function IndexHeaderView(): JSX.Element {
 export function TableHeaderView(props: {
 	header: Header<FluidRow, unknown>;
 	fluidTable: FluidTable;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
 	const { header, fluidTable, selection } = props;
 	const fluidColumn = fluidTable.getColumn(header.column.id);
@@ -177,7 +179,7 @@ export function TableHeaderView(props: {
 	// handle a focus event in the header
 	const handleFocus = () => {
 		// set the selection to the column
-		selection.replaceSelection(fluidColumn.id, "column");
+		selection.setSelection({ id: fluidColumn.id, type: "column" });
 	};
 
 	return (
@@ -191,8 +193,10 @@ export function TableHeaderView(props: {
 			className="relative p-1 border-r-1 border-gray-100"
 			onFocus={handleFocus}
 		>
-			<PresenceIndicator selection={selection} item={header} /> {/* Local selection box */}
-			<PresenceIndicator selection={selection} item={header} /> {/* Remote selection box */}
+			<PresenceIndicator selection={selection} item={header} type="column" />{" "}
+			{/* Local selection box */}
+			<PresenceIndicator selection={selection} item={header} type="column" />{" "}
+			{/* Remote selection box */}
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<ColumnInput column={fluidColumn} /> {/* Input field for the column name */}
 				<ColumnTypeDropdown column={fluidColumn} />
@@ -246,7 +250,7 @@ export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Ele
 export function TableBodyView(props: {
 	table: Table<FluidRow>;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	user: IMember; // Add the user prop here
 }): JSX.Element {
 	const { table, tableContainerRef, selection, user } = props;
@@ -293,7 +297,7 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	user: IMember; // Add the user prop here
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer, selection, user } = props;
@@ -331,7 +335,8 @@ export function TableRowView(props: {
 			}}
 			className={`w-full even:bg-white odd:bg-gray-100`}
 		>
-			<PresenceIndicator selection={selection} item={row} /> {/* Local selection box */}
+			<PresenceIndicator selection={selection} item={row} type="row" />
+			{/* Local selection box */}
 			{row.getVisibleCells().map((cell) =>
 				cell.column.id === "index" ? (
 					<IndexCellView key="index" rowId={row.id} selection={selection} />
@@ -347,15 +352,24 @@ export function TableRowView(props: {
 	);
 }
 
-export function IndexCellView(props: { selection: SelectionManager; rowId: string }): JSX.Element {
+export function IndexCellView(props: {
+	selection: SelectionManager<TableSelection>;
+	rowId: string;
+}): JSX.Element {
 	const { selection, rowId } = props;
 
 	// handle a click event in the cell
 	const handleClick = (e: React.MouseEvent) => {
 		if (e.ctrlKey) {
-			selection.toggleMultiSelection(rowId, "row");
+			selection.toggleSelection({ id: rowId, type: "row" });
 		} else {
-			selection.toggleSelection(rowId, "row");
+			if (selection.testSelection({ id: rowId, type: "row" })) {
+				// If the row is already selected, clear the selection
+				selection.clearSelection();
+			} else {
+				// If the row is not selected, add the selection
+				selection.setSelection({ id: rowId, type: "row" });
+			}
 		}
 	};
 
@@ -381,14 +395,14 @@ export function IndexCellView(props: { selection: SelectionManager; rowId: strin
 
 export function TableCellView(props: {
 	cell: Cell<FluidRow, cellValue>;
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	user: IMember; // Add the user prop here
 }): JSX.Element {
 	const { cell, selection, user } = props;
 
 	// handle a click event in the cell
 	const handleFocus = () => {
-		selection.replaceSelection(cell.id, "cell");
+		selection.setSelection({ id: cell.id, type: "cell" });
 	};
 
 	return (
@@ -403,7 +417,7 @@ export function TableCellView(props: {
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<PresenceIndicator selection={selection} item={cell} />
+			<PresenceIndicator selection={selection} item={cell} type="cell" />
 			<TableCellViewContent key={cell.id} cell={cell} user={user} />
 		</td>
 	);
@@ -490,43 +504,54 @@ export function TableCellViewContent(props: {
 }
 
 export function PresenceIndicator(props: {
-	selection: SelectionManager;
+	selection: SelectionManager<TableSelection>;
 	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
+	type: selectionType;
 }): JSX.Element {
-	const { selection, item } = props;
-	const [selected, setSelected] = useState(selection.testSelection(item.id));
-	const [remoteSelected, setRemoteSelected] = useState(selection.getRemoteClients(item.id));
+	const { selection, item, type } = props;
+	const selectedItem = { id: item.id, type } as const; // Default to cell for Cell and Row types, Header will override it
+	const [selected, setSelected] = useState(selection.testSelection(selectedItem));
+	const [remoteSelected, setRemoteSelected] = useState(
+		selection.testRemoteSelection(selectedItem),
+	);
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("localUpdated", (update) => {
-			setSelected(selection.testSelection(item.id));
+			setSelected(selection.testSelection(selectedItem));
 		});
 		return unsubscribe;
 	}, []);
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("updated", () => {
-			setRemoteSelected(selection.getRemoteClients(item.id));
+			setRemoteSelected(selection.testRemoteSelection(selectedItem));
 		});
 		return unsubscribe;
 	}, []);
 
+	const isRow = type === "row";
+
 	return (
 		<>
-			<PresenceBox color="outline-blue-600" hidden={!selected} />
-			<PresenceBox color="outline-red-800" hidden={remoteSelected.length === 0} />
+			<PresenceBox color="outline-blue-600" hidden={!selected} isRow={isRow} />
+			<PresenceBox
+				color="outline-red-800"
+				hidden={remoteSelected.length === 0}
+				isRow={isRow}
+			/>
 		</>
 	);
 }
 
-function PresenceBox(props: { color: string; hidden: boolean }): JSX.Element {
-	const { color, hidden } = props;
-	return (
-		<div
-			className={`absolute z-1 h-full w-full inset-0 pointer-events-none outline-2 -outline-offset-2
-			${hidden ? "hidden" : ""} ${color} opacity-50`}
-		></div>
-	);
+function PresenceBox(props: { color: string; hidden: boolean; isRow: boolean }): JSX.Element {
+	const { color, hidden, isRow } = props;
+	const className = `absolute z-1 h-full w-full inset-0 pointer-events-none outline-2 -outline-offset-2
+	${hidden ? "hidden" : ""} ${color} opacity-50`;
+	if (isRow) {
+		return <td className={className}></td>;
+	} else {
+		return <span className={className}></span>;
+	}
 }
 
 export type cellValue = typeDefinition; // Define the allowed cell value types
