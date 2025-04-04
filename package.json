@@ -26,7 +26,8 @@
 	"dependencies": {
 		"@azure/identity": "^4.5.0",
 		"@azure/msal-browser": "^3.28.0",
-		"@fluentui/react-icons": "^2.0.270",
+		"@fluentui/react-components": "^9.61.6",
+		"@fluentui/react-icons": "^2.0.292",
 		"@fluidframework/azure-client": "^2.23.0",
 		"@fluidframework/odsp-client": "^2.23.0",
 		"@fluidframework/presence": "^2.23.0",
@@ -42,8 +43,8 @@
 		"fluid-framework": "^2.23.0",
 		"hashids": "^2.2.10",
 		"jsrsasign": "^11.1.0",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
 		"react-transition-state": "^2.2.0",
 		"unique-names-generator": "^4.7.1",
 		"uuid": "^11.0.5",
@@ -73,10 +74,5 @@
 		"tailwindcss": "^4.0.9",
 		"ts-loader": "^9.5.2",
 		"typescript": "~5.7"
-	},
-	"overrides": {
-		"@fluentui/react-icons": {
-			"react": "^19.0.0"
-		}
 	}
 }

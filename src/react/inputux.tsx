@@ -1,8 +1,8 @@
 import React, { JSX } from "react";
 import { DateTime, Vote, FluidRow, FluidColumn } from "../schema/app_schema.js";
 import { Tree, TreeStatus } from "fluid-framework";
-import { IconButton } from "./buttonux.js";
-import { ThumbLikeFilled } from "@fluentui/react-icons";
+import { ThumbLikeFilled, ThumbLikeRegular } from "@fluentui/react-icons";
+import { ToolbarButton } from "@fluentui/react-components";
 
 export function ColumnInput(props: { column: FluidColumn }): JSX.Element {
 	const { column } = props;
@@ -34,7 +34,7 @@ export function CellInputBoolean(props: {
 
 	return (
 		// Layout the checkbox and label in a flex container and align the checkbox to the left
-		<label className="flex items-center w-full h-full p-1 gap-x-2">
+		<div className="flex items-center w-full h-full p-1 ">
 			<input
 				id={cellId}
 				className="outline-none w-4 h-4"
@@ -42,7 +42,7 @@ export function CellInputBoolean(props: {
 				checked={value ?? false}
 				onChange={handleChange}
 			></input>
-		</label>
+		</div>
 	);
 }
 
@@ -171,15 +171,13 @@ export function CellInputVote(props: {
 
 	return (
 		<div className="flex items-center justify-center w-full h-full">
-			<IconButton
-				icon={<ThumbLikeFilled />}
-				handleClick={handleClick}
-				toggled={vote.hasVoted(userId)}
-				toggleBackground="bg-blue-500 hover:bg-blue-700"
-				responsive={false}
+			<ToolbarButton
+				icon={vote.hasVoted(userId) ? <ThumbLikeFilled /> : <ThumbLikeRegular />}
+				onClick={handleClick}
+				appearance="transparent"
 			>
-				{vote.numberOfVotes}
-			</IconButton>
+				{vote.numberOfVotes.toString()}
+			</ToolbarButton>
 		</div>
 	);
 }

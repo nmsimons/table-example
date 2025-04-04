@@ -41,9 +41,9 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 	msalInstance.setActiveAccount(account);
 
 	// Create the azureUser from the account
-	const azureUser = {
+	const user = {
 		name: account.name ?? account.username,
-		id: account.localAccountId,
+		id: account.homeAccountId,
 	};
 
 	// Get the root container id from the URL
@@ -59,11 +59,11 @@ async function signedInAzureStart(msalInstance: PublicClientApplication, account
 	}
 
 	// Initialize the Azure client
-	const clientProps = getClientProps(azureUser, logger);
+	const clientProps = getClientProps(user, logger);
 	const client = new AzureClient(clientProps);
 
 	// Load the app
-	const container = await loadApp({ client, containerId, logger });
+	const container = await loadApp({ client, containerId, logger, account });
 
 	// If the app is in a `createNew` state - no containerId, and the container is detached, we attach the container.
 	// This uploads the container to the service and connects to the collaboration session.

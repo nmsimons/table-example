@@ -14,7 +14,7 @@ import {
 	Column,
 	SortingFn,
 } from "@tanstack/react-table";
-import React, { JSX, useState, useEffect } from "react";
+import React, { JSX, useState, useEffect, use, useContext } from "react";
 import {
 	DateTime,
 	Vote,
@@ -34,7 +34,6 @@ import {
 } from "@fluentui/react-icons";
 import { selectionType, TableSelection } from "../utils/selection.js";
 import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
-import { createPortal } from "react-dom";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -43,17 +42,13 @@ import {
 	CellInputVote,
 	ColumnInput,
 } from "./inputux.js";
-import { esbuildVersion } from "vite";
+import { PresenceContext } from "./PresenceContext.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
 
-export function TableView(props: {
-	fluidTable: FluidTable;
-	selection: SelectionManager<TableSelection>;
-	user: IMember;
-}): JSX.Element {
-	const { fluidTable, selection, user } = props;
+export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
+	const { fluidTable } = props;
 	const [data, setData] = useState<FluidRow[]>(
 		fluidTable.rows.map((row) => {
 			return row;
@@ -96,7 +91,7 @@ export function TableView(props: {
 				style={{ display: "grid" }}
 				className="table-auto w-full border-collapse border-b-2 border-gray-200"
 			>
-				<TableHeadersView table={table} fluidTable={fluidTable} selection={selection} />
+				<TableHeadersView table={table} fluidTable={fluidTable} />
 				<TableBodyView
 					table={table}
 					tableContainerRef={tableContainerRef}
@@ -110,9 +105,8 @@ export function TableView(props: {
 export function TableHeadersView(props: {
 	table: Table<FluidRow>;
 	fluidTable: FluidTable;
-	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
-	const { table, fluidTable, selection } = props;
+	const { table, fluidTable } = props;
 
 	return (
 		<thead
@@ -132,7 +126,6 @@ export function TableHeadersView(props: {
 								key={header.id}
 								header={header}
 								fluidTable={fluidTable}
-								selection={selection} // Pass the selection prop to the TableHeaderView
 							/>
 						),
 					)}
@@ -158,11 +151,12 @@ export function IndexHeaderView(): JSX.Element {
 export function TableHeaderView(props: {
 	header: Header<FluidRow, unknown>;
 	fluidTable: FluidTable;
-	selection: SelectionManager<TableSelection>;
 }): JSX.Element {
-	const { header, fluidTable, selection } = props;
+	const { header, fluidTable } = props;
 	const fluidColumn = fluidTable.getColumn(header.column.id);
 	const [, setInval] = useState(0); // used to force a re-render of the header
+
+	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
 
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidColumn, "nodeChanged", () => {
@@ -193,10 +187,8 @@ export function TableHeaderView(props: {
 			className="relative p-1 border-r-1 border-gray-100"
 			onFocus={handleFocus}
 		>
-			<PresenceIndicator selection={selection} item={header} type="column" />{" "}
-			{/* Local selection box */}
-			<PresenceIndicator selection={selection} item={header} type="column" />{" "}
-			{/* Remote selection box */}
+			<PresenceIndicator item={header} type="column" /> {/* Local selection box */}
+			<PresenceIndicator item={header} type="column" /> {/* Remote selection box */}
 			<div className="flex flex-row justify-between w-full gap-x-1">
 				<ColumnInput column={fluidColumn} /> {/* Input field for the column name */}
 				<ColumnTypeDropdown column={fluidColumn} />
@@ -229,7 +221,7 @@ export function SortButton(props: { column: Column<FluidRow> }): JSX.Element {
 
 	return (
 		<IconButton
-			handleClick={handleClick}
+			onClick={handleClick}
 			icon={<SortIndicator sorted={sorted} />}
 			toggled={sorted !== false}
 		/>
@@ -250,10 +242,8 @@ export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Ele
 export function TableBodyView(props: {
 	table: Table<FluidRow>;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
-	selection: SelectionManager<TableSelection>;
-	user: IMember; // Add the user prop here
 }): JSX.Element {
-	const { table, tableContainerRef, selection, user } = props;
+	const { table, tableContainerRef } = props;
 	const { rows } = table.getRowModel();
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
@@ -297,10 +287,8 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
-	selection: SelectionManager<TableSelection>;
-	user: IMember; // Add the user prop here
 }): JSX.Element {
-	const { row, virtualRow, rowVirtualizer, selection, user } = props;
+	const { row, virtualRow, rowVirtualizer } = props;
 	const [, setInval] = useState(0); // used to force a re-render of the row
 
 	const style = { transform: `translateY(${virtualRow.start}px)` };
@@ -335,11 +323,11 @@ export function TableRowView(props: {
 			}}
 			className={`w-full even:bg-white odd:bg-gray-100`}
 		>
-			<PresenceIndicator selection={selection} item={row} type="row" />
+			<PresenceIndicator item={row} type="row" />
 			{/* Local selection box */}
 			{row.getVisibleCells().map((cell) =>
 				cell.column.id === "index" ? (
-					<IndexCellView key="index" rowId={row.id} selection={selection} />
+					<IndexCellView key="index" rowId={row.id} />
 				) : (
 					<TableCellView
 						key={cell.id}
@@ -352,11 +340,10 @@ export function TableRowView(props: {
 	);
 }
 
-export function IndexCellView(props: {
-	selection: SelectionManager<TableSelection>;
-	rowId: string;
-}): JSX.Element {
-	const { selection, rowId } = props;
+export function IndexCellView(props: { rowId: string }): JSX.Element {
+	const { rowId } = props;
+
+	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
 
 	// handle a click event in the cell
 	const handleClick = (e: React.MouseEvent) => {
@@ -393,12 +380,10 @@ export function IndexCellView(props: {
 	);
 }
 
-export function TableCellView(props: {
-	cell: Cell<FluidRow, cellValue>;
-	selection: SelectionManager<TableSelection>;
-	user: IMember; // Add the user prop here
-}): JSX.Element {
-	const { cell, selection, user } = props;
+export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
+	const { cell } = props;
+
+	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
 
 	// handle a click event in the cell
 	const handleFocus = () => {
@@ -417,21 +402,20 @@ export function TableCellView(props: {
 			}}
 			className={`flex p-1 border-collapse border-r-2`}
 		>
-			<PresenceIndicator selection={selection} item={cell} type="cell" />
-			<TableCellViewContent key={cell.id} cell={cell} user={user} />
+			<PresenceIndicator item={cell} type="cell" />
+			<TableCellViewContent key={cell.id} cell={cell} />
 		</td>
 	);
 }
 
-export function TableCellViewContent(props: {
-	cell: Cell<FluidRow, cellValue>;
-	user: IMember;
-}): JSX.Element {
-	const { cell, user } = props;
+export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
+	const { cell } = props;
 	const fluidRow = cell.row.original;
 	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
 	const value = fluidRow.getCell(fluidColumn);
 	const [, setInval] = useState(0); // used to force a re-render of the cell
+
+	const users = useContext(PresenceContext).users;
 
 	useEffect(() => {
 		const unsubscribe = Tree.on(fluidColumn, "nodeChanged", () => {
@@ -487,7 +471,7 @@ export function TableCellViewContent(props: {
 					value={value as Vote}
 					row={fluidRow}
 					column={fluidColumn}
-					userId={user.id}
+					userId={users.getMyself().value.id} // Replace with actual user ID from context or props
 				/>
 			);
 		default:
@@ -504,19 +488,21 @@ export function TableCellViewContent(props: {
 }
 
 export function PresenceIndicator(props: {
-	selection: SelectionManager<TableSelection>;
 	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
 	type: selectionType;
 }): JSX.Element {
-	const { selection, item, type } = props;
+	const { item, type } = props;
 	const selectedItem = { id: item.id, type } as const; // Default to cell for Cell and Row types, Header will override it
+
+	const selection = useContext(PresenceContext).selection;
+
 	const [selected, setSelected] = useState(selection.testSelection(selectedItem));
 	const [remoteSelected, setRemoteSelected] = useState(
 		selection.testRemoteSelection(selectedItem),
 	);
 
 	useEffect(() => {
-		const unsubscribe = selection.events.on("localUpdated", (update) => {
+		const unsubscribe = selection.events.on("localUpdated", () => {
 			setSelected(selection.testSelection(selectedItem));
 		});
 		return unsubscribe;
@@ -524,6 +510,13 @@ export function PresenceIndicator(props: {
 
 	useEffect(() => {
 		const unsubscribe = selection.events.on("updated", () => {
+			setRemoteSelected(selection.testRemoteSelection(selectedItem));
+		});
+		return unsubscribe;
+	}, []);
+
+	useEffect(() => {
+		const unsubscribe = selection.clients.events.on("attendeeDisconnected", () => {
 			setRemoteSelected(selection.testRemoteSelection(selectedItem));
 		});
 		return unsubscribe;

@@ -11,32 +11,17 @@ import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 
 import { TableView } from "./tableux.js";
-import { AzureMember } from "@fluidframework/azure-client";
 import { TableSelection } from "../utils/selection.js";
 
 export function Canvas(props: {
 	table: FluidTable;
 	selection: SelectionManager<TableSelection>;
-	audience: IServiceAudience<AzureMember>;
+
 	container: IFluidContainer;
-	fluidMembers: AzureMember[];
-	currentUser: AzureMember;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
-	setFluidMembers: (arg: AzureMember[]) => void;
-	setCurrentUser: (arg: Myself<AzureMember>) => void;
 }): JSX.Element {
-	const {
-		table,
-		selection,
-		audience,
-		container,
-		currentUser,
-		setConnectionState,
-		setSaved,
-		setFluidMembers,
-		setCurrentUser,
-	} = props;
+	const { table, selection, container, setConnectionState, setSaved } = props;
 
 	useEffect(() => {
 		const updateConnectionState = () => {
@@ -59,23 +44,9 @@ export function Canvas(props: {
 		container.on("disposed", updateConnectionState);
 	}, []);
 
-	const updateMembers = () => {
-		if (container.connectionState !== ConnectionState.Connected) return;
-		setFluidMembers(Array.from(audience.getMembers().values()));
-		setCurrentUser(audience.getMyself()!);
-	};
-
-	useEffect(() => {
-		audience.on("membersChanged", updateMembers);
-		updateMembers();
-		return () => {
-			audience.off("membersChanged", updateMembers);
-		};
-	}, []);
-
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView fluidTable={table} selection={selection} user={currentUser} />
+			<TableView fluidTable={table} selection={selection} />
 		</div>
 	);
 }

@@ -21,8 +21,6 @@ import {
 	TableInsertRowFilled,
 	TableInsertRowRegular,
 	RowTripleFilled,
-	CheckboxUncheckedFilled,
-	CheckboxCheckedFilled,
 	TableDeleteRowFilled,
 	TableMoveAboveFilled,
 	TableMoveBelowFilled,
@@ -32,6 +30,16 @@ import {
 import { Tree, TreeStatus } from "fluid-framework";
 import { selectionType, TableSelection } from "../utils/selection.js";
 import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
+import {
+	Menu,
+	MenuItemRadio,
+	MenuList,
+	MenuPopover,
+	MenuProps,
+	MenuTrigger,
+	ToolbarButton,
+	Tooltip,
+} from "@fluentui/react-components";
 
 const getLastSelectedRow = (
 	table: FluidTable,
@@ -71,12 +79,11 @@ export function NewEmptyRowButton(props: {
 		}
 	};
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowRegular />}
-		>
-			Empty Row
-		</ToolbarButton>
+			tooltip="Insert an empty row"
+		/>
 	);
 }
 
@@ -101,12 +108,11 @@ export function NewRowButton(props: {
 		});
 	};
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableInsertRowFilled />}
-		>
-			Row
-		</ToolbarButton>
+			tooltip="Insert a new row with random values"
+		/>
 	);
 }
 
@@ -127,12 +133,11 @@ export function NewManysRowsButton(props: { table: FluidTable }): JSX.Element {
 		});
 	};
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<RowTripleFilled />}
-		>
-			1000
-		</ToolbarButton>
+			tooltip="Insert 1000 rows with random values"
+		/>
 	);
 }
 
@@ -230,12 +235,11 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 		}
 	};
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<ColumnFilled />}
-		>
-			Column
-		</ToolbarButton>
+			tooltip="Insert a new column with random type"
+		/>
 	);
 }
 
@@ -284,13 +288,12 @@ export function MoveSelectedRowsButton(props: {
 	};
 
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={up ? <TableMoveAboveFilled /> : <TableMoveBelowFilled />}
 			disabled={disabled}
-		>
-			{up ? "Up" : "Down"}
-		</ToolbarButton>
+			tooltip={up ? "Move selected rows up" : "Move selected rows down"}
+		/>
 	);
 }
 
@@ -356,13 +359,12 @@ export function MoveSelectedColumnsButton(props: {
 	};
 
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={left ? <TableMoveLeftFilled /> : <TableMoveRightFilled />}
 			disabled={disabled}
-		>
-			{left ? "Left" : "Right"}
-		</ToolbarButton>
+			tooltip={left ? "Move selected columns left" : "Move selected columns right"}
+		/>
 	);
 }
 
@@ -407,13 +409,12 @@ export function DeleteSelectedRowsButton(props: {
 	};
 
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<TableDeleteRowFilled />}
 			disabled={disabled}
-		>
-			Delete
-		</ToolbarButton>
+			tooltip="Delete selected rows"
+		/>
 	);
 }
 
@@ -422,70 +423,49 @@ export function DeleteSelectedRowsButton(props: {
 export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element {
 	const { column } = props;
 
-	const [hidden, setHidden] = React.useState(true);
-	const [clicked, setClicked] = React.useState(false);
-
-	const handleOnFocus = (e: React.FocusEvent<HTMLDivElement, Element>) => {
-		e.stopPropagation();
-		setHidden(false);
-	};
-
-	const handleOnBlur = () => {
-		// setTimeout to allow the click event to be registered
-		// before the dropdown is hidden
-		setClicked(false);
-		setTimeout(() => {
-			setHidden(true);
-		}, 300);
-	};
-
-	const handleOnClick = () => {
-		setClicked(!clicked);
-		if (clicked !== hidden) setHidden(!hidden);
+	const [checkedValues, setCheckedValues] = React.useState<Record<string, string[]>>({
+		type: [column.hint ?? ""],
+	});
+	const onChange: MenuProps["onCheckedValueChange"] = (
+		e: React.MouseEvent,
+		{ name, checkedItems }: { name: string; checkedItems: string[] },
+	) => {
+		setCheckedValues((s) => ({ ...s, [name]: checkedItems }));
 	};
 
 	if (column.cells.size !== 0) return <></>;
 
 	return (
-		<div onFocus={(e) => handleOnFocus(e)} onBlur={handleOnBlur} className="relative group">
-			<IconButton
-				toggled={!hidden}
-				handleClick={() => handleOnClick()}
-				icon={<CaretDown16Filled />}
-			/>
-			<div className={`absolute right-0 z-10 ${hidden ? `invisible` : `visible`}`}>
-				<div className="mt-1 bg-black text-white shadow-lg rounded-lg flex flex-col place-items-start">
-					<ChangeColumnTypeButton column={column} type={hintValues.string} />
-					<ChangeColumnTypeButton column={column} type={hintValues.number} />
-					<ChangeColumnTypeButton column={column} type={hintValues.boolean} />
-					<ChangeColumnTypeButton column={column} type={hintValues.date} />
-					<ChangeColumnTypeButton column={column} type={hintValues.vote} />
-				</div>
-			</div>
-		</div>
+		<Menu
+			positioning={{ autoSize: true }}
+			checkedValues={checkedValues}
+			onCheckedValueChange={onChange}
+		>
+			<MenuTrigger disableButtonEnhancement>
+				<ToolbarButton icon={<CaretDown16Filled />} />
+			</MenuTrigger>
+			<MenuPopover>
+				<MenuList>
+					<ChangeColumnTypeMenuItem column={column} type={hintValues.string} />
+					<ChangeColumnTypeMenuItem column={column} type={hintValues.number} />
+					<ChangeColumnTypeMenuItem column={column} type={hintValues.boolean} />
+					<ChangeColumnTypeMenuItem column={column} type={hintValues.date} />
+					<ChangeColumnTypeMenuItem column={column} type={hintValues.vote} />
+				</MenuList>
+			</MenuPopover>
+		</Menu>
 	);
 }
 
 // Change the column type by setting the default value to a string, number, boolean, or date
-export function ChangeColumnTypeButton(props: {
+export function ChangeColumnTypeMenuItem(props: {
 	column: FluidColumn;
 	type: HintValues;
 }): JSX.Element {
 	const { column, type } = props;
 
-	// Set the icon based on the type of the column
-	// if the type is the same as the hint, we will show a checkmark
-	// if the type is different, we will show a box
-	let icon;
-	if ((column.hint ?? "") === type) {
-		icon = <CheckboxCheckedFilled />;
-	} else {
-		icon = <CheckboxUncheckedFilled />;
-	}
-
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		column.hint = type;
 		switch (type) {
 			case hintValues.string:
 				column.hint = hintValues.string;
@@ -507,18 +487,11 @@ export function ChangeColumnTypeButton(props: {
 				break;
 		}
 	};
+
 	return (
-		<div className="p-1 w-full">
-			<IconButton
-				color="white"
-				handleClick={(e: React.MouseEvent) => handleClick(e)}
-				icon={icon}
-				grow={true}
-				responsive={false}
-			>
-				{type}
-			</IconButton>
-		</div>
+		<MenuItemRadio onClick={(e: React.MouseEvent) => handleClick(e)} name="type" value={type}>
+			{type}
+		</MenuItemRadio>
 	);
 }
 
@@ -529,58 +502,44 @@ export function DeleteAllRowsButton(props: { table: FluidTable }): JSX.Element {
 		props.table.deleteAllRows();
 	};
 	return (
-		<ToolbarButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
+		<TooltipButton
+			onClick={(e: React.MouseEvent) => handleClick(e)}
 			icon={<DismissFilled />}
-		>
-			Clear
-		</ToolbarButton>
+			tooltip="Delete all rows"
+		/>
 	);
 }
 
 export function UndoButton(props: { undo: () => void }): JSX.Element {
-	return (
-		<ToolbarButton handleClick={() => props.undo()} icon={<ArrowUndoFilled />}></ToolbarButton>
-	);
+	return <TooltipButton tooltip="Undo" onClick={() => props.undo()} icon={<ArrowUndoFilled />} />;
 }
 
 export function RedoButton(props: { redo: () => void }): JSX.Element {
-	return (
-		<ToolbarButton handleClick={() => props.redo()} icon={<ArrowRedoFilled />}></ToolbarButton>
-	);
+	return <TooltipButton onClick={() => props.redo()} icon={<ArrowRedoFilled />} tooltip="Redo" />;
 }
 
 export function DeleteButton(props: { delete: () => void }): JSX.Element {
-	return <IconButton handleClick={() => props.delete()} icon={<DismissFilled />} grow={false} />;
+	return <IconButton onClick={() => props.delete()} icon={<DismissFilled />} grow={false} />;
 }
 
-// A wrapper for IconButton just for the toolbar buttons that are not toggled
-export function ToolbarButton(props: {
-	handleClick: (value: React.MouseEvent) => void;
+export function TooltipButton(props: {
+	onClick: (e: React.MouseEvent) => void;
 	children?: React.ReactNode;
 	icon: JSX.Element;
+	tooltip?: string;
 	disabled?: boolean;
 }): JSX.Element {
-	const { handleClick, children, icon, disabled } = props;
+	const { children, tooltip } = props;
 
 	return (
-		<IconButton
-			handleClick={(e: React.MouseEvent) => handleClick(e)}
-			icon={icon}
-			color="text-white"
-			background="bg-gray-600 hover:bg-black"
-			grow={false}
-			disabled={disabled}
-			disabledColor="disabled:text-gray-400"
-			disabledBackground="disabled:bg-transparent"
-		>
-			{children}
-		</IconButton>
+		<Tooltip content={tooltip ?? "No Tooltip Provided"} relationship="description">
+			<ToolbarButton {...props}>{children}</ToolbarButton>
+		</Tooltip>
 	);
 }
 
 export function IconButton(props: {
-	handleClick: (value: React.MouseEvent) => void;
+	onClick: (value: React.MouseEvent) => void;
 	children?: React.ReactNode;
 	icon: JSX.Element;
 	color?: string;
@@ -594,60 +553,21 @@ export function IconButton(props: {
 	disabled?: boolean;
 	responsive?: boolean;
 }): JSX.Element {
-	const {
-		handleClick,
-		children,
-		icon,
-		color = "text-gray-600 hover:text-white",
-		background = "bg-transparent hover:bg-gray-600",
-		grow = false,
-		toggled,
-		toggleBackground = "bg-gray-400 hover:bg-gray-600",
-		toggleColor = "text-white",
-		disabledColor = "disabled:text-gray-600",
-		disabledBackground = "disabled:bg-transparent",
-		disabled,
-		responsive = true,
-	} = props;
+	const { onClick: handleClick, children, icon, disabled } = props;
 
 	return (
-		<button
-			className={`text-nowrap font-bold px-2 py-1 rounded-sm inline-flex items-center h-6 ${grow ? "grow w-full" : ""} ${toggled ? `${toggleBackground} ${toggleColor}` : `${background} ${color}`} ${disabledColor} ${disabledBackground} `}
-			onClick={(e) => handleClick(e)}
+		<ToolbarButton
+			onClick={(e: React.MouseEvent<Element, MouseEvent>) => handleClick(e)}
 			disabled={disabled}
+			icon={icon}
 		>
-			{icon}
-			<IconButtonText responsive={responsive ?? true}>{children}</IconButtonText>
-		</button>
+			{children}
+		</ToolbarButton>
 	);
-}
-
-function IconButtonText(props: { children: React.ReactNode; responsive: boolean }): JSX.Element {
-	const { children, responsive } = props;
-
-	if (children == undefined) {
-		return <></>;
-	} else {
-		return (
-			<span className={`${responsive ? `hidden` : ``} text-sm pl-2 leading-none lg:block`}>
-				{props.children}
-			</span>
-		);
-	}
 }
 
 export function ButtonGroup(props: { children: React.ReactNode }): JSX.Element {
 	return <div className="flex flex-intial items-center">{props.children}</div>;
-}
-
-export function Toolbar(props: { children: React.ReactNode }): JSX.Element {
-	return (
-		<div className="h-[48px] relative bg-gray-600 text-base text-white z-40 w-full shadow p-2">
-			<div className="h-full w-full flex flex-row items-center justify-between no-wrap">
-				{props.children}
-			</div>
-		</div>
-	);
 }
 
 export function Placeholder(): JSX.Element {

@@ -14,10 +14,9 @@ import {
 	ClientConnectionId,
 } from "@fluidframework/presence/alpha";
 import { Listenable } from "fluid-framework";
-import { SelectionManager } from "./Interfaces/SelectionManager.js";
-import { PresenceManager } from "./Interfaces/PresenceManager.js";
+import { SelectionManager, SelectionPackage } from "./Interfaces/SelectionManager.js";
 
-// A function the creates a new SelectionManager instance
+// A function that creates a new SelectionManager instance
 // with the given presence and workspace.
 export function createTableSelectionManager(props: {
 	presence: Presence;
@@ -26,11 +25,10 @@ export function createTableSelectionManager(props: {
 }): SelectionManager<TableSelection> {
 	const { presence, workspace, name } = props;
 
-	type SelectionPackage = { selected: TableSelection[] };
-	class SelectionManagerImpl implements PresenceManager<SelectionPackage> {
-		initialState: SelectionPackage = { selected: [] }; // Default initial state for the selection manager
+	class SelectionManagerImpl implements SelectionManager<TableSelection> {
+		initialState: SelectionPackage<TableSelection> = { selected: [] }; // Default initial state for the selection manager
 
-		state: LatestState<SelectionPackage>;
+		state: LatestState<SelectionPackage<TableSelection>>;
 
 		constructor(
 			name: string,
@@ -41,7 +39,7 @@ export function createTableSelectionManager(props: {
 			this.state = workspace.props[name];
 		}
 
-		public get events(): Listenable<LatestStateEvents<SelectionPackage>> {
+		public get events(): Listenable<LatestStateEvents<SelectionPackage<TableSelection>>> {
 			return this.state.events;
 		}
 
@@ -144,7 +142,10 @@ export function createTableSelectionManager(props: {
 			return remoteSelected;
 		}
 
-		_testForInclusion(sel: TableSelection, collection: readonly TableSelection[]): boolean {
+		private _testForInclusion(
+			sel: TableSelection,
+			collection: readonly TableSelection[],
+		): boolean {
 			/**
 			 * Helper function to test for inclusion of a selection in a collection.
 			 */

@@ -2,7 +2,7 @@ import {
 	ClientConnectionId,
 	ClientSessionId,
 	ISessionClient as SessionClient,
-	PresenceEvents,
+	PresenceEvents as ClientEvents,
 	LatestValueManager as LatestState,
 	LatestValueManagerEvents as LatestStateEvents,
 	LatestMapValueManager as LatestMap,
@@ -10,22 +10,22 @@ import {
 } from "@fluidframework/presence/alpha";
 import { Listenable } from "fluid-framework";
 
-export interface presenceClients {
+export interface PresenceClients {
 	getAttendee: (clientId: ClientConnectionId | ClientSessionId) => SessionClient;
 	getAttendees: () => ReadonlySet<SessionClient>;
 	getMyself: () => SessionClient;
-	events: Listenable<PresenceEvents>;
+	events: Listenable<ClientEvents>;
 }
 
 export interface PresenceManager<TState> {
 	initialState: TState;
 	state: LatestState<TState>;
-	clients: presenceClients;
+	clients: PresenceClients;
 	events: Listenable<LatestStateEvents<TState>>;
 }
 
 export interface PresenceMapManager<TState> {
 	state: LatestMap<TState>;
-	clients: presenceClients;
+	clients: PresenceClients;
 	events: Listenable<LatestMapEvents<TState, string>>;
 }

@@ -4,8 +4,8 @@ import { PresenceManager } from "./PresenceManager.js";
 // This interface is used to manage the selection of items in the app.
 // It extends the PresenceManager interface to provide additional methods
 // The generic type TSelection extends { id: string } ensures that the selection items have an 'id' property
-export interface SelectionManager<TSelection extends { id: string }>
-	extends PresenceManager<{ selected: TSelection[] }> {
+export interface SelectionManager<TSelection extends Selection = Selection> // Default type is Selection if not specified
+	extends PresenceManager<SelectionPackage<TSelection>> {
 	/**
 	 * Test if the given item is selected by the local client
 	 * @param sel The selection to test
@@ -56,3 +56,11 @@ export interface SelectionManager<TSelection extends { id: string }>
 	 */
 	getRemoteSelected(): Map<TSelection, string[]>;
 }
+
+export type Selection = {
+	id: string;
+};
+
+export type SelectionPackage<TSelection extends Selection> = {
+	selected: TSelection[];
+};
