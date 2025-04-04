@@ -21,7 +21,7 @@
 		"webpack": "cross-env vite build"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=22.0.0"
 	},
 	"dependencies": {
 		"@azure/identity": "^4.5.0",

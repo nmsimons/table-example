@@ -204,7 +204,6 @@ export const CurrentUser = (): JSX.Element => {
 };
 
 export const Facepile = (props: Partial<AvatarGroupProps>) => {
-	const { avatarProps } = props;
 	const users = useContext(PresenceContext).users;
 	const [userRoster, setUserRoster] = useState(users.getUsers());
 
@@ -234,11 +233,12 @@ export const Facepile = (props: Partial<AvatarGroupProps>) => {
 	}
 
 	return (
-		<AvatarGroup size="24" {...avatarProps}>
+		<AvatarGroup size={24} {...props}>
 			{inlineItems.map((user) => (
 				<Tooltip
 					key={String(user.client.sessionId ?? user.value.name)}
 					content={user.value.name}
+					relationship={"label"}
 				>
 					<AvatarGroupItem
 						name={user.value.name}
