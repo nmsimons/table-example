@@ -236,13 +236,13 @@ export const Facepile = (props: Partial<AvatarGroupProps>) => {
 		<AvatarGroup size={24} {...props}>
 			{inlineItems.map((user) => (
 				<Tooltip
-					key={String(user.client.sessionId ?? user.value.name)}
+					key={String(user.attendee.sessionId ?? user.value.name)}
 					content={user.value.name}
 					relationship={"label"}
 				>
 					<AvatarGroupItem
 						name={user.value.name}
-						key={String(user.client.sessionId ?? user.value.name)}
+						key={String(user.attendee.sessionId ?? user.value.name)}
 					/>
 				</Tooltip>
 			))}
@@ -251,7 +251,7 @@ export const Facepile = (props: Partial<AvatarGroupProps>) => {
 					{overflowItems.map((user) => (
 						<AvatarGroupItem
 							name={user.value.name}
-							key={String(user.client.sessionId ?? user.value.name)}
+							key={String(user.attendee.sessionId ?? user.value.name)}
 						/>
 					))}
 				</AvatarGroupPopover>
