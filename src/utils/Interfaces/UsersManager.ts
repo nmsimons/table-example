@@ -1,4 +1,4 @@
-import { ISessionClient } from "@fluidframework/presence/alpha";
+import { Attendee } from "@fluidframework/presence/alpha";
 import { PresenceManager } from "./PresenceManager.js";
 
 export interface UsersManager<TUserInfo extends UserInfo = UserInfo>
@@ -36,7 +36,7 @@ export interface UsersManager<TUserInfo extends UserInfo = UserInfo>
 
 export type User<TUserInfo extends UserInfo = UserInfo> = {
 	value: TUserInfo; // The user information
-	client: ISessionClient; // The session client associated with the user
+	attendee: Attendee; // The session attendee associated with the user
 };
 
 export type UserInfo = {
