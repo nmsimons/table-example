@@ -7,7 +7,7 @@
 import React, { JSX, useEffect } from "react";
 import { ConnectionState, IFluidContainer } from "fluid-framework";
 
-import { FluidTable } from "../schema/app_schema.js";
+import { Table as FluidTable } from "../schema/app_schema.js";
 import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import { TableView } from "./tableux.js";
 import { TableSelection } from "../utils/selection.js";

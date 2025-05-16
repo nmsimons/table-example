@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	ColumnDef,
 	createColumnHelper,
@@ -15,24 +14,25 @@ import {
 	SortingFn,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect, useContext } from "react";
-import {
-	DateTime,
-	Vote,
-	FluidTable,
-	FluidRow,
-	FluidColumn,
-	typeDefinition,
-} from "../schema/app_schema.js";
 import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
-import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
 	ArrowSortDownFilled,
 	ArrowSortFilled,
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
+
+import {
+	DateTime,
+	Vote,
+	Table as FluidTable,
+	TableRow as FluidRow,
+	TableColumn as FluidColumn,
+	CellValueType as FluidCell,
+} from "../schema/app_schema.js";
 import { SelectionType } from "../utils/selection.js";
+import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -53,7 +53,7 @@ export function TableView(props: { fluidTable: FluidTable }): JSX.Element {
 			return row;
 		}),
 	);
-	const [columns, setColumns] = useState<ColumnDef<FluidRow, cellValue>[]>(
+	const [columns, setColumns] = useState<ColumnDef<FluidRow, FluidCell>[]>(
 		updateColumnData(fluidTable.columns.map((column) => column)),
 	);
 
@@ -152,7 +152,12 @@ export function TableHeaderView(props: {
 	fluidTable: FluidTable;
 }): JSX.Element {
 	const { header, fluidTable } = props;
+
 	const fluidColumn = fluidTable.getColumn(header.column.id);
+	if (fluidColumn === undefined) {
+		throw new Error("Column not found");
+	}
+
 	const [, setInval] = useState(0); // used to force a re-render of the header
 
 	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
@@ -240,9 +245,10 @@ export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Ele
 
 export function TableBodyView(props: {
 	table: Table<FluidRow>;
+	fluidTable: FluidTable;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
 }): JSX.Element {
-	const { table, tableContainerRef } = props;
+	const { fluidTable, table, tableContainerRef } = props;
 	const { rows } = table.getRowModel();
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
@@ -274,6 +280,13 @@ export function TableBodyView(props: {
 						row={row}
 						virtualRow={virtualRow}
 						rowVirtualizer={rowVirtualizer}
+						getFluidColumn={(id) => {
+							const column = fluidTable.getColumn(id);
+							if (column === undefined) {
+								throw new Error(`Column "${id}" not found`);
+							}
+							return column;
+						}}
 						{...props} // Pass the user prop to the TableRowView
 					/>
 				);
@@ -286,6 +299,7 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
+	getFluidColumn: (columnId: string) => FluidColumn;
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer } = props;
 	const [, setInval] = useState(0); // used to force a re-render of the row
@@ -330,7 +344,7 @@ export function TableRowView(props: {
 				) : (
 					<TableCellView
 						key={cell.id}
-						cell={cell as Cell<FluidRow, cellValue>}
+						cell={cell as Cell<FluidRow, FluidCell>}
 						{...props} // Pass the user prop to the TableCellView
 					/>
 				),
@@ -379,8 +393,11 @@ export function IndexCellView(props: { rowId: string }): JSX.Element {
 	);
 }
 
-export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
-	const { cell } = props;
+export function TableCellView(props: {
+	cell: Cell<FluidRow, FluidCell>;
+	getFluidColumn: (columnId: string) => FluidColumn;
+}): JSX.Element {
+	const { cell, getFluidColumn } = props;
 
 	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
 
@@ -402,16 +419,19 @@ export function TableCellView(props: { cell: Cell<FluidRow, cellValue> }): JSX.E
 			className={`flex p-1 border-collapse border-r-2`}
 		>
 			<PresenceIndicator item={cell} type="cell" />
-			<TableCellViewContent key={cell.id} cell={cell} />
+			<TableCellViewContent key={cell.id} cell={cell} getFluidColumn={getFluidColumn} />
 		</td>
 	);
 }
 
-export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> }): JSX.Element {
-	const { cell } = props;
+export function TableCellViewContent(props: {
+	cell: Cell<FluidRow, FluidCell>;
+	getFluidColumn: (columnId: string) => FluidColumn;
+}): JSX.Element {
+	const { cell, getFluidColumn } = props;
 	const fluidRow = cell.row.original;
-	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	const value = fluidRow.getCell(fluidColumn);
+	const fluidColumn = getFluidColumn(cell.column.id);
+	const value = fluidRow.getCell(cell.column.id);
 	const [, setInval] = useState(0); // used to force a re-render of the cell
 
 	const users = useContext(PresenceContext).users;
@@ -427,7 +447,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 	}, []); // Only run this effect once when the component mounts
 
 	// Switch on the hint of the column to determine the type of input to display
-	switch (fluidColumn.hint) {
+	switch (fluidColumn.props.hint) {
 		case "boolean":
 			return (
 				<CellInputBoolean
@@ -487,7 +507,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 }
 
 export function PresenceIndicator(props: {
-	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
+	item: Cell<FluidRow, FluidCell> | Header<FluidRow, unknown> | Row<FluidRow>;
 	type: SelectionType;
 }): JSX.Element {
 	const { item, type } = props;
@@ -546,15 +566,13 @@ function PresenceBox(props: { color: string; hidden: boolean; isRow: boolean }):
 	}
 }
 
-export type cellValue = typeDefinition; // Define the allowed cell value types
-
 const updateColumnData = (columnsArray: FluidColumn[]) => {
 	// Create a column helper based on the columns in the table
 	const columnHelper = createColumnHelper<FluidRow>();
 
 	// Create an array of ColumnDefs based on the columns in the table using
 	// the column helper
-	const headerArray: ColumnDef<FluidRow, cellValue>[] = [];
+	const headerArray: ColumnDef<FluidRow, FluidCell>[] = [];
 	// Add the index column
 	const d = columnHelper.display({
 		id: "index",
@@ -565,13 +583,22 @@ const updateColumnData = (columnsArray: FluidColumn[]) => {
 	columnsArray.forEach((column) => {
 		const sortingConfig = getSortingConfig(column);
 		headerArray.push(
-			columnHelper.accessor((row) => row.cells[column.id], {
-				id: column.id,
-				header: column.name,
-				sortingFn: sortingConfig.fn,
-				sortDescFirst: sortingConfig.desc,
-				sortUndefined: "last",
-			}),
+			columnHelper.accessor(
+				(row) => {
+					const cell: FluidCell | undefined = row.getCell(column.id);
+					if (cell === undefined) {
+						throw new Error("Cell not found");
+					}
+					return cell;
+				},
+				{
+					id: column.id,
+					header: column.props.label,
+					sortingFn: sortingConfig.fn,
+					sortDescFirst: sortingConfig.desc,
+					sortUndefined: "last",
+				},
+			),
 		);
 	});
 
@@ -642,18 +669,18 @@ const voteSortingFn: SortingFn<FluidRow> = (
 const getSortingConfig = (
 	column: FluidColumn,
 ): { fn: SortingFnOption<FluidRow> | undefined; desc: boolean } => {
-	if (column.hint === "boolean") {
+	if (column.props.hint === "boolean") {
 		return { fn: "basic", desc: false };
-	} else if (column.hint === "number") {
+	} else if (column.props.hint === "number") {
 		return { fn: "alphanumeric", desc: true };
-	} else if (column.hint === "string") {
+	} else if (column.props.hint === "string") {
 		return { fn: "alphanumeric", desc: false };
-	} else if (column.hint === "date") {
+	} else if (column.props.hint === "date") {
 		return { fn: dateSortingFn, desc: false };
-	} else if (column.hint === "vote") {
+	} else if (column.props.hint === "vote") {
 		return { fn: voteSortingFn, desc: true };
 	} else {
-		console.error("Unknown column type", "Hint:", column.hint);
+		console.error("Unknown column type", "Hint:", column.props.hint);
 		return { fn: "basic", desc: false };
 	}
 };

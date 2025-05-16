@@ -3,22 +3,21 @@
  * Licensed under the MIT License.
  */
 
+import { TreeViewConfiguration, Tree } from "fluid-framework";
+import { SchemaFactoryAlpha } from "fluid-framework/alpha";
 import {
-	TreeViewConfiguration,
-	SchemaFactory,
+	InsertableTreeNodeFromImplicitAllowedTypes,
+	TableSchema,
 	TreeNodeFromImplicitAllowedTypes,
-	NodeFromSchema,
-	Tree,
 	TreeStatus,
-} from "fluid-framework";
-import { Table } from "./table_schema.js";
+} from "@fluidframework/tree/internal";
 
 // Schema is defined using a factory object that generates classes for objects as well
 // as list and map nodes.
 
 // Include a UUID to guarantee that this schema will be uniquely identifiable.
 // As this schema uses a recursive type, the beta SchemaFactoryRecursive is used instead of just SchemaFactory.
-const sf = new SchemaFactory("fc1db2e8-0a00-11ee-be56-0242ac120002");
+const sf = new SchemaFactoryAlpha("fc1db2e8-0a00-11ee-be56-0242ac120002");
 
 /**
  * A SharedTree object date-time
@@ -103,51 +102,44 @@ export class Vote extends sf.object("Vote", {
 	}
 }
 
-export type typeDefinition = TreeNodeFromImplicitAllowedTypes<typeof schemaTypes>;
-const schemaTypes = [sf.string, sf.number, sf.boolean, DateTime, Vote] as const;
+const Cell = [sf.string, sf.number, sf.boolean, DateTime, Vote] as const;
+export type CellValueType = TreeNodeFromImplicitAllowedTypes<typeof Cell>;
+export type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<typeof Cell>;
 
-const tableFactory = new SchemaFactory(sf.scope + "/table1");
-export class FluidTable extends Table({
-	sf: tableFactory,
-	schemaTypes,
+export class TableColumn extends TableSchema.column({
+	schemaFactory: sf,
+	cell: Cell,
+	props: sf.object("ColumnProps", {
+		label: sf.string,
+		hint: sf.string,
+	}),
+}) {}
+
+export class TableRow extends TableSchema.row({
+	schemaFactory: sf,
+	cell: Cell,
+}) {}
+
+export class Table extends TableSchema.table({
+	schemaFactory: sf,
+	row: TableRow,
+	column: TableColumn,
+	cell: Cell,
 }) {
-	/**
-	 * Get a cell by the synthetic id
-	 * @param id The synthetic id of the cell
-	 */
-	getColumnByCellId(id: `${string}_${string}`) {
-		const [, columnId] = id.split("_");
-		const column = this.getColumn(columnId);
-		if (column === undefined) {
-			return undefined;
-		}
-		return column;
-	}
-
-	/**
-	 * Create a Row before inserting it into the table
-	 * */
-	createDetachedRow(): FluidRow {
-		return new FluidTable.Row({ _cells: {}, props: null });
-	}
-
 	/**
 	 * Delete a column and all of its cells
 	 * @param column The column to delete
 	 */
-	deleteColumn(column: FluidColumn): void {
+	deleteColumn(column: TableColumn): void {
 		if (Tree.status(column) !== TreeStatus.InDocument) return;
 		Tree.runTransaction(this, () => {
 			for (const row of this.rows) {
-				row.deleteCell(column);
+				row.removeCell(column);
 			}
 			this.removeColumn(column);
 		});
 	}
 }
-
-export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
-export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
 
 export type HintValues = (typeof hintValues)[keyof typeof hintValues];
 export const hintValues = {
@@ -164,5 +156,5 @@ export const hintValues = {
  * */
 export const appTreeConfiguration = new TreeViewConfiguration(
 	// Schema for the root
-	{ schema: FluidTable },
+	{ schema: Table },
 );

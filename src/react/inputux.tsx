@@ -1,5 +1,10 @@
 import React, { JSX } from "react";
-import { DateTime, Vote, FluidRow, FluidColumn } from "../schema/app_schema.js";
+import {
+	DateTime,
+	Vote,
+	TableRow as FluidRow,
+	TableColumn as FluidColumn,
+} from "../schema/app_schema.js";
 import { Tree, TreeStatus } from "fluid-framework";
 import { ThumbLikeFilled, ThumbLikeRegular } from "@fluentui/react-icons";
 import { ToolbarButton } from "@fluentui/react-components";
@@ -10,9 +15,9 @@ export function ColumnInput(props: { column: FluidColumn }): JSX.Element {
 		<input
 			id={column.id}
 			className="outline-none w-full h-full truncate"
-			value={column.name}
+			value={column.props.label}
 			onChange={(e) => {
-				column.name = e.target.value;
+				column.props.label = e.target.value;
 			}}
 		></input>
 	);
@@ -118,7 +123,7 @@ export function CellInputDate(props: {
 		if (isNaN(Date.parse(e.target.value))) {
 			if (fluidCell !== undefined) {
 				if (Tree.is(fluidCell, DateTime)) {
-					row.setCell(column, undefined);
+					row.removeCell(column);
 					return;
 				}
 			}
