@@ -32,7 +32,7 @@ import {
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
-import { selectionType } from "../utils/selection.js";
+import { SelectionType } from "../utils/selection.js";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -488,7 +488,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, cellValue> })
 
 export function PresenceIndicator(props: {
 	item: Cell<FluidRow, cellValue> | Header<FluidRow, unknown> | Row<FluidRow>;
-	type: selectionType;
+	type: SelectionType;
 }): JSX.Element {
 	const { item, type } = props;
 	const selectedItem = { id: item.id, type } as const; // Default to cell for Cell and Row types, Header will override it

@@ -28,7 +28,7 @@ import {
 	TableMoveRightFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
-import { selectionType, TableSelection } from "../utils/selection.js";
+import { SelectionType, TableSelection } from "../utils/selection.js";
 import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import {
 	Menu,
@@ -581,7 +581,7 @@ export function Placeholder(): JSX.Element {
 
 const getSelected = (
 	selection: SelectionManager<TableSelection>,
-	type: selectionType,
+	type: SelectionType,
 ): TableSelection[] => {
 	switch (type) {
 		case "row":
