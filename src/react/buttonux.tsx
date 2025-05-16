@@ -442,9 +442,7 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 		setCheckedValues((s) => ({ ...s, [name]: checkedItems }));
 	};
 
-	// TODO
 	const cells = [...column.getCells()];
-
 	if (cells.length > 0) {
 		return <></>;
 	}
