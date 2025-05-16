@@ -345,7 +345,7 @@ export function MoveSelectedColumnsButton(props: {
 		if (selectedColumns.length === 0) {
 			const selectedCells = getSelected(selection, "cell");
 			if (selectedCells.length > 0) {
-				const column = table.getColumn(selectedCells[0]);
+				const column = table.getColumn(selectedCells[0].id);
 				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
 					selectedColumns.push({ id: column.id, type: "column" });
 				}

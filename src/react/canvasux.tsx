@@ -5,23 +5,21 @@
  */
 
 import React, { JSX, useEffect } from "react";
-import { Table as FluidTable } from "../schema/app_schema.js";
-import { ConnectionState, IFluidContainer, IServiceAudience, Myself } from "fluid-framework";
-import { undoRedo } from "../utils/undo.js";
-import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
+import { ConnectionState, IFluidContainer } from "fluid-framework";
 
+import { Table as FluidTable } from "../schema/app_schema.js";
+import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import { TableView } from "./tableux.js";
 import { TableSelection } from "../utils/selection.js";
 
 export function Canvas(props: {
 	table: FluidTable;
 	selection: SelectionManager<TableSelection>;
-
 	container: IFluidContainer;
 	setConnectionState: (arg: string) => void;
 	setSaved: (arg: boolean) => void;
 }): JSX.Element {
-	const { table, selection, container, setConnectionState, setSaved } = props;
+	const { table, container, setConnectionState, setSaved } = props;
 
 	useEffect(() => {
 		const updateConnectionState = () => {
@@ -46,7 +44,7 @@ export function Canvas(props: {
 
 	return (
 		<div className="relative flex grow-0 h-full w-full bg-transparent">
-			<TableView fluidTable={table} selection={selection} />
+			<TableView fluidTable={table} />
 		</div>
 	);
 }

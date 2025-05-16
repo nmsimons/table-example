@@ -1,19 +1,19 @@
 import {
 	ClientConnectionId,
-	ClientSessionId,
-	ISessionClient as SessionClient,
-	PresenceEvents as ClientEvents,
-	LatestValueManager as LatestState,
-	LatestValueManagerEvents as LatestStateEvents,
-	LatestMapValueManager as LatestMap,
-	LatestMapValueManagerEvents as LatestMapEvents,
+	AttendeeId,
+	Attendee,
+	AttendeesEvents as ClientEvents,
+	LatestRaw as LatestState,
+	LatestRawEvents as LatestStateEvents,
+	LatestMapRaw as LatestMap,
+	LatestMapRawEvents as LatestMapEvents,
 } from "@fluidframework/presence/alpha";
 import { Listenable } from "fluid-framework";
 
 export interface PresenceClients {
-	getAttendee: (clientId: ClientConnectionId | ClientSessionId) => SessionClient;
-	getAttendees: () => ReadonlySet<SessionClient>;
-	getMyself: () => SessionClient;
+	getAttendee: (clientId: ClientConnectionId | AttendeeId) => Attendee;
+	getAttendees: () => ReadonlySet<Attendee>;
+	getMyself: () => Attendee;
 	events: Listenable<ClientEvents>;
 }
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	ColumnDef,
 	createColumnHelper,
@@ -15,6 +14,15 @@ import {
 	SortingFn,
 } from "@tanstack/react-table";
 import React, { JSX, useState, useEffect, useContext } from "react";
+import { Tree } from "fluid-framework";
+import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
+import {
+	ArrowSortDownFilled,
+	ArrowSortFilled,
+	ArrowSortUpFilled,
+	ReOrderDotsVertical16Filled,
+} from "@fluentui/react-icons";
+
 import {
 	DateTime,
 	Vote,
@@ -23,15 +31,8 @@ import {
 	TableColumn as FluidColumn,
 	CellValueType as FluidCell,
 } from "../schema/app_schema.js";
-import { Tree } from "fluid-framework";
-import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
+import { SelectionType } from "../utils/selection.js";
 import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
-import {
-	ArrowSortDownFilled,
-	ArrowSortFilled,
-	ArrowSortUpFilled,
-	ReOrderDotsVertical16Filled,
-} from "@fluentui/react-icons";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -41,7 +42,6 @@ import {
 	ColumnInput,
 } from "./inputux.js";
 import { PresenceContext } from "./PresenceContext.js";
-import { SelectionType } from "../utils/selection.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
@@ -528,7 +528,7 @@ export function PresenceIndicator(props: {
 	}, []);
 
 	useEffect(() => {
-		const unsubscribe = selection.events.on("updated", () => {
+		const unsubscribe = selection.events.on("remoteUpdated", () => {
 			setRemoteSelected(selection.testRemoteSelection(selectedItem));
 		});
 		return unsubscribe;
