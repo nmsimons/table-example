@@ -50,7 +50,7 @@ export function createUsersManager(props: {
 			getMyself: () => {
 				return this.presence.attendees.getMyself();
 			},
-			events: this.presence.events,
+			events: this.presence.attendees.events,
 		};
 
 		getUsers(): readonly User[] {

@@ -53,7 +53,7 @@ export function createTableSelectionManager(props: {
 			getMyself: () => {
 				return this.presence.attendees.getMyself();
 			},
-			events: this.presence.events,
+			events: this.presence.attendees.events,
 		};
 
 		/** Test if the given id is selected by the local client */

@@ -23,7 +23,7 @@ import {
 	FluidColumn,
 	typeDefinition,
 } from "../schema/app_schema.js";
-import { IMember, Tree, TreeStatus } from "fluid-framework";
+import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
@@ -32,8 +32,7 @@ import {
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
-import { selectionType, TableSelection } from "../utils/selection.js";
-import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
+import { selectionType } from "../utils/selection.js";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -509,7 +508,7 @@ export function PresenceIndicator(props: {
 	}, []);
 
 	useEffect(() => {
-		const unsubscribe = selection.events.on("updated", () => {
+		const unsubscribe = selection.events.on("remoteUpdated", () => {
 			setRemoteSelected(selection.testRemoteSelection(selectedItem));
 		});
 		return unsubscribe;
