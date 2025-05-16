@@ -6,9 +6,9 @@
 import React, { JSX, useEffect } from "react";
 import {
 	DateTime,
-	FluidColumn,
-	FluidRow,
-	FluidTable,
+	TableColumn as FluidColumn,
+	TableRow as FluidRow,
+	Table as FluidTable,
 	HintValues,
 	hintValues,
 } from "../schema/app_schema.js";
@@ -28,7 +28,7 @@ import {
 	TableMoveRightFilled,
 } from "@fluentui/react-icons";
 import { Tree, TreeStatus } from "fluid-framework";
-import { selectionType, TableSelection } from "../utils/selection.js";
+import { SelectionType, TableSelection } from "../utils/selection.js";
 import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import {
 	Menu,
@@ -71,11 +71,12 @@ export function NewEmptyRowButton(props: {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		const lastSelectedRow = getLastSelectedRow(table, selection);
-		const row = table.createDetachedRow();
+		const row = new FluidRow({ cells: {} });
 		if (lastSelectedRow !== undefined) {
-			table.insertRows({ rows: [row], index: lastSelectedRow.index + 1 });
+			const lastSelectedRowIndex = props.table.rows.indexOf(lastSelectedRow);
+			table.insertRow({ row, index: lastSelectedRowIndex + 1 });
 		} else {
-			table.insertRows({ rows: [row], index: table.rows.length });
+			table.insertRow({ row });
 		}
 	};
 	return (
@@ -101,9 +102,10 @@ export function NewRowButton(props: {
 			const row = getRowWithValues(props.table);
 
 			if (lastSelectedRow !== undefined) {
-				props.table.insertRows({ index: lastSelectedRow.index + 1, rows: [row] });
+				const lastSelectedRowIndex = props.table.rows.indexOf(lastSelectedRow);
+				props.table.insertRow({ row, index: lastSelectedRowIndex + 1 });
 			} else {
-				props.table.insertRows({ index: props.table.rows.length, rows: [row] });
+				props.table.insertRow({ row });
 			}
 		});
 	};
@@ -142,23 +144,20 @@ export function NewManysRowsButton(props: { table: FluidTable }): JSX.Element {
 }
 
 const getRowWithValues = (table: FluidTable): FluidRow => {
-	const row = table.createDetachedRow();
+	const row = new FluidRow({ cells: {} });
 	// Iterate through all the columns and add a random value for the new row
 	// If the column is a number, we will add a random number, otherwise we will add a random string
 	// If the column is a boolean, we will add a random boolean
 	for (const column of table.columns) {
-		const fluidColumn = table.getColumn(column.id);
-		const hint = fluidColumn.hint;
-
-		switch (hint) {
+		switch (column.props.hint) {
 			case hintValues.string:
-				row.setCell(fluidColumn, Math.random().toString(36).substring(7));
+				row.setCell(column, Math.random().toString(36).substring(7));
 				break;
 			case hintValues.number:
-				row.setCell(fluidColumn, Math.floor(Math.random() * 1000));
+				row.setCell(column, Math.floor(Math.random() * 1000));
 				break;
 			case hintValues.boolean:
-				row.setCell(fluidColumn, Math.random() > 0.5);
+				row.setCell(column, Math.random() > 0.5);
 				break;
 			case hintValues.date: {
 				// Add a random date
@@ -169,13 +168,13 @@ const getRowWithValues = (table: FluidTable): FluidRow => {
 					const dateTime = new DateTime({ raw: date.getTime() });
 					return dateTime;
 				};
-				row.setCell(fluidColumn, getDate());
+				row.setCell(column, getDate());
 				break;
 			}
 			case hintValues.vote:
 				break;
 			default: // Add a random string
-				row.setCell(fluidColumn, Math.random().toString(36).substring(7));
+				row.setCell(column, Math.random().toString(36).substring(7));
 				break;
 		}
 	}
@@ -194,43 +193,53 @@ export function NewColumnButton(props: { table: FluidTable }): JSX.Element {
 		e.stopPropagation();
 
 		const index = props.table.columns.length + 1;
-		const name = `Column ${index.toString()}`;
+		const label = `Column ${index.toString()}`;
 
 		// Add a new column to the table
 		if (index % 5 === 1) {
 			table.insertColumn({
-				name,
-				hint: hintValues.string,
-				index: table.columns.length,
-				props: null,
+				column: {
+					props: {
+						label,
+						hint: hintValues.string,
+					},
+				},
 			});
 		} else if (index % 5 === 2) {
 			table.insertColumn({
-				name,
-				hint: hintValues.number,
-				index: table.columns.length,
-				props: null,
+				column: {
+					props: {
+						label,
+						hint: hintValues.number,
+					},
+				},
 			});
 		} else if (index % 5 === 3) {
 			table.insertColumn({
-				name,
-				hint: hintValues.boolean,
-				index: table.columns.length,
-				props: null,
+				column: {
+					props: {
+						label,
+						hint: hintValues.boolean,
+					},
+				},
 			});
 		} else if (index % 5 === 4) {
 			table.insertColumn({
-				name,
-				hint: hintValues.vote,
-				index: table.columns.length,
-				props: null,
+				column: {
+					props: {
+						label,
+						hint: hintValues.vote,
+					},
+				},
 			});
 		} else {
 			table.insertColumn({
-				name,
-				hint: hintValues.date,
-				index: table.columns.length,
-				props: null,
+				column: {
+					props: {
+						label,
+						hint: hintValues.date,
+					},
+				},
 			});
 		}
 	};
@@ -277,10 +286,11 @@ export function MoveSelectedRowsButton(props: {
 			for (const rowId of selectedRows) {
 				const row = table.getRow(rowId);
 				if (row !== undefined && Tree.status(row) === TreeStatus.InDocument) {
+					const rowIndex = table.rows.indexOf(row);
 					if (up) {
-						row.moveTo(row.index - 1);
+						table.rows.moveToIndex(rowIndex - 1, rowIndex);
 					} else {
-						row.moveTo(row.index + 1);
+						table.rows.moveToIndex(rowIndex + 1, rowIndex);
 					}
 				}
 			}
@@ -335,9 +345,7 @@ export function MoveSelectedColumnsButton(props: {
 		if (selectedColumns.length === 0) {
 			const selectedCells = getSelected(selection, "cell");
 			if (selectedCells.length > 0) {
-				const column = table.getColumnByCellId(
-					selectedCells[0].id as `${string}_${string}`,
-				);
+				const column = table.getColumn(selectedCells[0]);
 				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
 					selectedColumns.push({ id: column.id, type: "column" });
 				}
@@ -348,10 +356,11 @@ export function MoveSelectedColumnsButton(props: {
 			for (const c of selectedColumns) {
 				const column = table.getColumn(c.id);
 				if (column !== undefined && Tree.status(column) === TreeStatus.InDocument) {
+					const currentIndex = table.columns.indexOf(column);
 					if (left) {
-						column.moveTo(column.index - 1);
+						table.columns.moveToIndex(currentIndex - 1, currentIndex);
 					} else {
-						column.moveTo(column.index + 1);
+						table.columns.moveToIndex(currentIndex + 1, currentIndex);
 					}
 				}
 			}
@@ -403,7 +412,7 @@ export function DeleteSelectedRowsButton(props: {
 		const rowsToDelete = selectedRows
 			.map((rowId) => table.getRow(rowId))
 			.filter((row): row is FluidRow => row !== undefined);
-		table.deleteRows(rowsToDelete);
+		table.removeRows(rowsToDelete);
 		// Clear the selection
 		selection.clearSelection();
 	};
@@ -424,7 +433,7 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 	const { column } = props;
 
 	const [checkedValues, setCheckedValues] = React.useState<Record<string, string[]>>({
-		type: [column.hint ?? ""],
+		type: [column.props.hint ?? ""],
 	});
 	const onChange: MenuProps["onCheckedValueChange"] = (
 		e: React.MouseEvent,
@@ -433,7 +442,12 @@ export function ColumnTypeDropdown(props: { column: FluidColumn }): JSX.Element 
 		setCheckedValues((s) => ({ ...s, [name]: checkedItems }));
 	};
 
-	if (column.cells.size !== 0) return <></>;
+	// TODO
+	const cells = [...column.getCells()];
+
+	if (cells.length > 0) {
+		return <></>;
+	}
 
 	return (
 		<Menu
@@ -468,22 +482,22 @@ export function ChangeColumnTypeMenuItem(props: {
 		e.stopPropagation();
 		switch (type) {
 			case hintValues.string:
-				column.hint = hintValues.string;
+				column.props.hint = hintValues.string;
 				break;
 			case hintValues.number:
-				column.hint = hintValues.number;
+				column.props.hint = hintValues.number;
 				break;
 			case hintValues.boolean:
-				column.hint = hintValues.boolean;
+				column.props.hint = hintValues.boolean;
 				break;
 			case hintValues.date:
-				column.hint = hintValues.date;
+				column.props.hint = hintValues.date;
 				break;
 			case hintValues.vote:
-				column.hint = hintValues.vote;
+				column.props.hint = hintValues.vote;
 				break;
 			default:
-				column.hint = hintValues.string;
+				column.props.hint = hintValues.string;
 				break;
 		}
 	};
@@ -499,7 +513,7 @@ export function ChangeColumnTypeMenuItem(props: {
 export function DeleteAllRowsButton(props: { table: FluidTable }): JSX.Element {
 	const handleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		props.table.deleteAllRows();
+		props.table.removeAllRows();
 	};
 	return (
 		<TooltipButton
@@ -581,7 +595,7 @@ export function Placeholder(): JSX.Element {
 
 const getSelected = (
 	selection: SelectionManager<TableSelection>,
-	type: selectionType,
+	type: SelectionType,
 ): TableSelection[] => {
 	switch (type) {
 		case "row":

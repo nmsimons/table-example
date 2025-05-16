@@ -107,6 +107,7 @@ export type CellInsertableType = InsertableTreeNodeFromImplicitAllowedTypes<type
 
 export class TableColumn extends TableSchema.column({
 	schemaFactory: sf,
+	cell: Cell,
 	props: sf.object("ColumnProps", {
 		label: sf.string,
 		hint: sf.string,
@@ -138,49 +139,6 @@ export class Table extends TableSchema.table({
 		});
 	}
 }
-
-// const tableFactory = new SchemaFactory(sf.scope + "/table1");
-// export class FluidTable extends Table({
-// 	sf: tableFactory,
-// 	schemaTypes: cellTypes,
-// }) {
-// 	/**
-// 	 * Get a cell by the synthetic id
-// 	 * @param id The synthetic id of the cell
-// 	 */
-// 	getColumnByCellId(id: `${string}_${string}`) {
-// 		const [, columnId] = id.split("_");
-// 		const column = this.getColumn(columnId);
-// 		if (column === undefined) {
-// 			return undefined;
-// 		}
-// 		return column;
-// 	}
-
-// 	/**
-// 	 * Create a Row before inserting it into the table
-// 	 * */
-// 	createDetachedRow(): FluidRow {
-// 		return new FluidTable.Row({ _cells: {}, props: null });
-// 	}
-
-// 	/**
-// 	 * Delete a column and all of its cells
-// 	 * @param column The column to delete
-// 	 */
-// 	deleteColumn(column: FluidColumn): void {
-// 		if (Tree.status(column) !== TreeStatus.InDocument) return;
-// 		Tree.runTransaction(this, () => {
-// 			for (const row of this.rows) {
-// 				row.deleteCell(column);
-// 			}
-// 			this.removeColumn(column);
-// 		});
-// 	}
-// }
-
-// export type FluidRow = NodeFromSchema<typeof FluidTable.Row>;
-// export type FluidColumn = NodeFromSchema<typeof FluidTable.Column>;
 
 export type HintValues = (typeof hintValues)[keyof typeof hintValues];
 export const hintValues = {

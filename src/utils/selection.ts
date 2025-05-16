@@ -167,7 +167,7 @@ export function createTableSelectionManager(props: {
 
 export type TableSelection = {
 	id: string; // The unique identifier for the selected item
-	type: selectionType; // The type of the selection (row, column, cell, etc.)
+	type: SelectionType; // The type of the selection (row, column, cell, etc.)
 };
 
-export type selectionType = "row" | "column" | "cell";
+export type SelectionType = "row" | "column" | "cell";

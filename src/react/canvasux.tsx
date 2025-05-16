@@ -5,7 +5,7 @@
  */
 
 import React, { JSX, useEffect } from "react";
-import { FluidTable } from "../schema/app_schema.js";
+import { Table as FluidTable } from "../schema/app_schema.js";
 import { ConnectionState, IFluidContainer, IServiceAudience, Myself } from "fluid-framework";
 import { undoRedo } from "../utils/undo.js";
 import type { SelectionManager } from "../utils/Interfaces/SelectionManager.js";

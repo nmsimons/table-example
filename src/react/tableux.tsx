@@ -23,7 +23,7 @@ import {
 	TableColumn as FluidColumn,
 	CellValueType as FluidCell,
 } from "../schema/app_schema.js";
-import { IMember, Tree, TreeStatus } from "fluid-framework";
+import { Tree } from "fluid-framework";
 import { useVirtualizer, VirtualItem, Virtualizer } from "@tanstack/react-virtual";
 import { ColumnTypeDropdown, DeleteButton, IconButton } from "./buttonux.js";
 import {
@@ -32,8 +32,6 @@ import {
 	ArrowSortUpFilled,
 	ReOrderDotsVertical16Filled,
 } from "@fluentui/react-icons";
-import { selectionType, TableSelection } from "../utils/selection.js";
-import { SelectionManager } from "../utils/Interfaces/SelectionManager.js";
 import {
 	CellInputBoolean,
 	CellInputNumber,
@@ -43,6 +41,7 @@ import {
 	ColumnInput,
 } from "./inputux.js";
 import { PresenceContext } from "./PresenceContext.js";
+import { SelectionType } from "../utils/selection.js";
 
 const leftColumnWidth = "20px"; // Width of the index column
 const columnWidth = "200px"; // Width of the data columns
@@ -246,9 +245,10 @@ export function SortIndicator(props: { sorted: false | SortDirection }): JSX.Ele
 
 export function TableBodyView(props: {
 	table: Table<FluidRow>;
+	fluidTable: FluidTable;
 	tableContainerRef: React.RefObject<HTMLDivElement | null>;
 }): JSX.Element {
-	const { table, tableContainerRef } = props;
+	const { fluidTable, table, tableContainerRef } = props;
 	const { rows } = table.getRowModel();
 
 	const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
@@ -280,6 +280,13 @@ export function TableBodyView(props: {
 						row={row}
 						virtualRow={virtualRow}
 						rowVirtualizer={rowVirtualizer}
+						getFluidColumn={(id) => {
+							const column = fluidTable.getColumn(id);
+							if (column === undefined) {
+								throw new Error(`Column "${id}" not found`);
+							}
+							return column;
+						}}
 						{...props} // Pass the user prop to the TableRowView
 					/>
 				);
@@ -292,6 +299,7 @@ export function TableRowView(props: {
 	row: Row<FluidRow>;
 	virtualRow: VirtualItem;
 	rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
+	getFluidColumn: (columnId: string) => FluidColumn;
 }): JSX.Element {
 	const { row, virtualRow, rowVirtualizer } = props;
 	const [, setInval] = useState(0); // used to force a re-render of the row
@@ -385,8 +393,11 @@ export function IndexCellView(props: { rowId: string }): JSX.Element {
 	);
 }
 
-export function TableCellView(props: { cell: Cell<FluidRow, FluidCell> }): JSX.Element {
-	const { cell } = props;
+export function TableCellView(props: {
+	cell: Cell<FluidRow, FluidCell>;
+	getFluidColumn: (columnId: string) => FluidColumn;
+}): JSX.Element {
+	const { cell, getFluidColumn } = props;
 
 	const selection = useContext(PresenceContext).selection; // Get the selection manager from context
 
@@ -408,16 +419,19 @@ export function TableCellView(props: { cell: Cell<FluidRow, FluidCell> }): JSX.E
 			className={`flex p-1 border-collapse border-r-2`}
 		>
 			<PresenceIndicator item={cell} type="cell" />
-			<TableCellViewContent key={cell.id} cell={cell} />
+			<TableCellViewContent key={cell.id} cell={cell} getFluidColumn={getFluidColumn} />
 		</td>
 	);
 }
 
-export function TableCellViewContent(props: { cell: Cell<FluidRow, FluidCell> }): JSX.Element {
-	const { cell } = props;
+export function TableCellViewContent(props: {
+	cell: Cell<FluidRow, FluidCell>;
+	getFluidColumn: (columnId: string) => FluidColumn;
+}): JSX.Element {
+	const { cell, getFluidColumn } = props;
 	const fluidRow = cell.row.original;
-	const fluidColumn = fluidRow.table.getColumn(cell.column.id);
-	const value = fluidRow.getCell(fluidColumn);
+	const fluidColumn = getFluidColumn(cell.column.id);
+	const value = fluidRow.getCell(cell.column.id);
 	const [, setInval] = useState(0); // used to force a re-render of the cell
 
 	const users = useContext(PresenceContext).users;
@@ -433,7 +447,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, FluidCell> })
 	}, []); // Only run this effect once when the component mounts
 
 	// Switch on the hint of the column to determine the type of input to display
-	switch (fluidColumn.hint) {
+	switch (fluidColumn.props.hint) {
 		case "boolean":
 			return (
 				<CellInputBoolean
@@ -494,7 +508,7 @@ export function TableCellViewContent(props: { cell: Cell<FluidRow, FluidCell> })
 
 export function PresenceIndicator(props: {
 	item: Cell<FluidRow, FluidCell> | Header<FluidRow, unknown> | Row<FluidRow>;
-	type: selectionType;
+	type: SelectionType;
 }): JSX.Element {
 	const { item, type } = props;
 	const selectedItem = { id: item.id, type } as const; // Default to cell for Cell and Row types, Header will override it
