@@ -9,6 +9,7 @@ import {
 	InsertableTreeNodeFromImplicitAllowedTypes,
 	TableSchema,
 	TreeNodeFromImplicitAllowedTypes,
+	TreeStatus,
 } from "@fluidframework/tree/internal";
 
 // Schema is defined using a factory object that generates classes for objects as well
@@ -130,7 +131,7 @@ export class Table extends TableSchema.table({
 	 * @param column The column to delete
 	 */
 	deleteColumn(column: TableColumn): void {
-		// if (Tree.status(column) !== TreeStatus.InDocument) return;
+		if (Tree.status(column) !== TreeStatus.InDocument) return;
 		Tree.runTransaction(this, () => {
 			for (const row of this.rows) {
 				row.removeCell(column);
