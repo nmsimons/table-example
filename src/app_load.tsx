@@ -3,7 +3,7 @@ import { AzureClient } from "@fluidframework/azure-client";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ReactApp } from "./react/ux.js";
-import { appTreeConfiguration, FluidTable, hintValues } from "./schema/app_schema.js";
+import { appTreeConfiguration, Table as FluidTable, hintValues } from "./schema/app_schema.js";
 import { createUndoRedoStacks } from "./utils/undo.js";
 import { containerSchema } from "./schema/container_schema.js";
 import { loadFluidData } from "./infra/fluid.js";
@@ -29,7 +29,7 @@ export async function loadApp(props: {
 
 	// Create an array of rows to be used in the table
 	const rows = new Array(10).fill(null).map(() => {
-		return { _cells: [], props: null };
+		return { cells: {} };
 	});
 
 	// Initialize the SharedTree DDSes
@@ -40,29 +40,34 @@ export async function loadApp(props: {
 				rows: rows,
 				columns: [
 					{
-						name: "String",
-						hint: hintValues.string,
-						props: null,
+						props: {
+							label: "String",
+							hint: hintValues.string,
+						},
 					},
 					{
-						name: "Number",
-						hint: hintValues.number,
-						props: null,
+						props: {
+							label: "Number",
+							hint: hintValues.number,
+						},
 					},
 					{
-						name: "Boolean",
-						hint: hintValues.boolean,
-						props: null,
+						props: {
+							label: "Boolean",
+							hint: hintValues.boolean,
+						},
 					},
 					{
-						name: "Date",
-						hint: hintValues.date,
-						props: null,
+						props: {
+							label: "Date",
+							hint: hintValues.date,
+						},
 					},
 					{
-						name: "Vote",
-						hint: hintValues.vote,
-						props: null,
+						props: {
+							label: "Vote",
+							hint: hintValues.vote,
+						},
 					},
 				],
 			}),
